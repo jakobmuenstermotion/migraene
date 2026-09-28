@@ -51,8 +51,20 @@ h1{font-family:var(--serif);font-size:24px;font-weight:600;margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:44px;padding:0 14px;border:1px solid var(--line);background:var(--card);border-radius:12px;font-weight:600}
 .chip.on{border-color:var(--accent);background:var(--soft)}
-.chip.lv{flex:1}
-.lv i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.chips{margin-top:10px}
+.timer{height:3px;border-radius:2px;background:var(--line);margin-top:12px;overflow:hidden}
+.timer i{display:block;height:100%;background:var(--accent);animation:shrink linear forwards;transform-origin:left}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.atk{background:var(--accent);color:var(--accent-ink);border-radius:16px;padding:14px;margin:0 0 10px}
+.atkhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 4px 10px;font-size:15px}
+.atkhead b{font-family:var(--serif);font-size:22px}
+.atk .big{background:var(--card);color:var(--ink);border-color:transparent}
+.big.sm{min-height:72px;justify-content:center}
+.big.end{background:var(--soft)}
+.grid.g3{grid-template-columns:1fr 1fr 1fr}
+.g3 .big{min-height:88px;padding:12px}
+.g3 .big b{font-size:18px}
 h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
 .list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);font-size:15px}
@@ -79,7 +91,8 @@ h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
 /* Begleit-Seite zum Migräne-Tagebuch: nur schnelle Markierungen. Alles wird verschlüsselt über ntfy.sh
    an das Haupt-Handy geschickt und dort übernommen; hier bleibt nur eine kurze Liste der letzten Tage. */
 var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, RESEND_MS = 6*3600000;
-var LV = [[3,'leicht','var(--i1)'],[5,'mittel','var(--i2)'],[8,'stark','var(--i3)']];
+var CHOICE_MS = 5000, START_LEVEL = 5;
+var DRINKS = [['water','Wasser'],['tea','Tee'],['coffee','Kaffee'],['other','Anderes']];
 function pad(n){ return (n<10?'0':'')+n; }
 function hm(ts){ var d = new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -114,50 +127,74 @@ if(cfg && location.hash && parseLink(location.hash)){
   if(st.cfg && (st.cfg.t!==cfg.t || st.cfg.k!==cfg.k)){ st.entries = []; st.acked = {}; }
   if(st.meds && st.cfg && st.cfg.t===cfg.t && !cfg.m.length) cfg.m = st.meds;
 }
-st.cfg = cfg; st.entries = st.entries || []; st.acked = st.acked || {};
-if(cfg && cfg.m && cfg.m.length && !st.meds) st.meds = cfg.m;
+st.cfg = cfg; st.entries = st.entries || []; st.acked = st.acked || {}; st.lists = st.lists || {};
+if(cfg && cfg.m && cfg.m.length && !(st.lists.m && st.lists.m.length)) st.lists.m = cfg.m;
 persist();
 
-var flash = null, flashTimer = null, net = '', syncing = false;
-function meds(){ return (st.meds && st.meds.length ? st.meds : (cfg && cfg.m) || []); }
+var flash = null, flashTimer = null, net = '', syncing = false, ask = null;
+function list(k){ return (st.lists && st.lists[k]) || []; }
+function live(){ return st.entries.filter(function(e){ return !e.del; }); }
 function openPain(){
-  var cut = Date.now()-36*3600000;
-  var starts = st.entries.filter(function(e){ return e.k==='pain' && !e.del && e.ts>cut; });
-  for(var i=starts.length-1;i>=0;i--){ var s = starts[i]; if(!st.entries.some(function(e){ return e.k==='painEnd' && !e.del && e.ref===s.id; })) return s; }
+  var cut = Date.now()-36*3600000, L = live();
+  var starts = L.filter(function(e){ return e.k==='pain' && e.ts>cut; });
+  for(var i=starts.length-1;i>=0;i--){ var s = starts[i]; if(!L.some(function(e){ return e.k==='painEnd' && e.ref===s.id; })) return s; }
   return null;
 }
+function levelNow(p){
+  var v = p.v || START_LEVEL;
+  live().filter(function(e){ return e.k==='lvl' && e.ref===p.id; }).sort(function(a,b){ return a.ts-b.ts; })
+    .forEach(function(e){ v = Math.max(1, Math.min(10, v + e.d)); });
+  return v;
+}
+function levelAfter(e){
+  var p = st.entries.filter(function(x){ return x.id===e.ref; })[0]; if(!p) return null;
+  var v = p.v || START_LEVEL;
+  live().filter(function(x){ return x.k==='lvl' && x.ref===p.id && (x.ts<e.ts || (x.ts===e.ts && x.id<=e.id)); }).sort(function(a,b){ return a.ts-b.ts; })
+    .forEach(function(x){ v = Math.max(1, Math.min(10, v + x.d)); });
+  return v;
+}
 function label(e){
-  if(e.k==='meal') return 'Gegessen';
-  if(e.k==='drink') return 'Getrunken';
+  if(e.k==='meal') return 'Gegessen'+(e.n ? ': '+e.n : '');
+  if(e.k==='drink'){ var d = DRINKS.filter(function(x){ return x[0]===e.s; })[0]; return 'Getrunken'+(d && e.s!=='other' ? ': '+d[1] : ''); }
+  if(e.k==='move') return 'Sport'+(e.n ? ': '+e.n : '');
   if(e.k==='med') return 'Medikament'+(e.n ? ': '+e.n : '');
-  if(e.k==='pain'){ var l = LV.filter(function(x){ return x[0]===e.v; })[0]; return 'Kopfschmerz beginnt'+(l ? ' · '+l[1] : ''); }
+  if(e.k==='pain') return 'Kopfschmerz beginnt';
+  if(e.k==='lvl') return e.d>0 ? 'Stärker' : 'Schwächer';
   if(e.k==='painEnd') return 'Kopfschmerz vorbei';
   return e.k;
 }
 function pending(){ var cut = Date.now()-KEEP_MS; return st.entries.filter(function(e){ return e.ts>cut && st.acked[e.id]!==e.u; }); }
-
-function add(k, extra){
+function showFlash(id, choices){
+  flash = {id:id, choices:choices||null, until:Date.now()+CHOICE_MS};
+  clearTimeout(flashTimer); flashTimer = setTimeout(function(){ flash = null; render(); }, CHOICE_MS);
+}
+function add(k, extra, choices){
   var now = Date.now(), e = {id:uid(), ts:now, u:now, k:k};
   for(var x in extra) e[x] = extra[x];
   st.entries.push(e);
   st.entries = st.entries.filter(function(y){ return y.ts>now-KEEP_MS; });
   persist();
-  flash = {id:e.id};
-  clearTimeout(flashTimer); flashTimer = setTimeout(function(){ flash = null; render(); }, 25000);
+  showFlash(e.id, choices);
   render(); sync();
   if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+  return e;
 }
 function upd(id, fields){
   var e = st.entries.filter(function(y){ return y.id===id; })[0]; if(!e) return;
   for(var x in fields) e[x] = fields[x];
-  e.u = Date.now(); persist(); render(); sync();
+  e.u = Date.now(); persist();
+  showFlash(id, null); render(); sync();
 }
 function remove(id){
   var e = st.entries.filter(function(y){ return y.id===id; })[0]; if(!e) return;
-  e.del = 1; e.u = Date.now();
-  if(e.k==='pain') st.entries.forEach(function(y){ if(y.k==='painEnd' && y.ref===e.id && !y.del){ y.del = 1; y.u = e.u; } });
+  var now = Date.now(); e.del = 1; e.u = now;
+  if(e.k==='pain') st.entries.forEach(function(y){ if((y.k==='painEnd' || y.k==='lvl') && y.ref===e.id && !y.del){ y.del = 1; y.u = now; } });
   if(flash && flash.id===id) flash = null;
   persist(); render(); sync();
+}
+function endPain(){
+  var p = openPain(); if(!p) return;
+  add('painEnd', {ref:p.id});
 }
 
 /* ---- Senden und Bestätigungen abholen ---- */
@@ -165,10 +202,10 @@ function fetchAcks(){
   return fetch(NTFY+cfg.t+'-ok/json?poll=1&since=all', {cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error('http'); return r.text(); }).then(function(txt){
     var msgs = txt.split('\n').filter(Boolean).map(function(l){ try{ return JSON.parse(l); }catch(_){ return null; } }).filter(function(m){ return m && m.event==='message'; });
     return Promise.all(msgs.map(function(m){ return unseal(m.message).then(function(p){ return {time:m.time, p:p}; }, function(){ return null; }); }));
-  }).then(function(list){
-    list.filter(Boolean).sort(function(a,b){ return a.time-b.time; }).forEach(function(x){
+  }).then(function(res){
+    res.filter(Boolean).sort(function(a,b){ return a.time-b.time; }).forEach(function(x){
       (x.p.a||[]).forEach(function(pair){ st.acked[pair[0]] = pair[1]; });
-      if(x.p.m && x.p.m.length) st.meds = x.p.m.slice(0, 12);
+      ['m','d','s'].forEach(function(k){ if(Array.isArray(x.p[k])) st.lists[k] = x.p[k].slice(0, 16); });
       if(x.p.at) st.lastSeen = Math.max(st.lastSeen||0, x.p.at);
     });
     persist();
@@ -178,7 +215,7 @@ function publish(){
   var p = pending(); if(!p.length) return Promise.resolve();
   var sig = p.map(function(e){ return e.id+':'+e.u; }).join(',');
   if(sig===st.lastSig && Date.now()-(st.lastSend||0)<RESEND_MS) return Promise.resolve();
-  var body = p.slice(-30).map(function(e){ var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','ref','del'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; }); return o; });
+  var body = p.slice(-40).map(function(e){ var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','d','ref','del'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; }); return o; });
   return seal({v:1, e:body}).then(function(msg){ return fetch(NTFY+cfg.t, {method:'POST', body:msg}); }).then(function(r){
     if(!r.ok) throw new Error('http');
     st.lastSig = sig; st.lastSend = Date.now(); persist();
@@ -200,6 +237,31 @@ function statusHtml(){
   if(net==='off') return '<p class="status">Gerade keine Verbindung. '+(p ? (p===1 ? '1 Eintrag wird' : p+' Einträge werden')+' gesendet, sobald Internet da ist.' : '')+'</p>';
   return '<p class="status">'+(p===1 ? '1 Eintrag ist' : p+' Einträge sind')+' unterwegs – das andere Handy holt '+(p===1 ? 'ihn' : 'sie')+' beim nächsten Öffnen ab.</p>';
 }
+function chipsHtml(id, field, items, cur){
+  return '<div class="chips">'+items.map(function(it){ var v = it[0], l = it[1];
+    return '<button class="chip'+(cur===v?' on':'')+'" data-act="pick" data-id="'+id+'" data-f="'+field+'" data-v="'+esc(v)+'">'+esc(l)+'</button>'; }).join('')+'</div>';
+}
+function flashHtml(){
+  var fe = flash && live().filter(function(e){ return e.id===flash.id; })[0];
+  if(!fe) return '';
+  var left = Math.max(0, flash.until-Date.now());
+  var h = '<div class="card done"><div class="l1"><b>'+esc(label(fe))+'</b><button class="link" data-act="undo" data-id="'+fe.id+'">Rückgängig</button></div>'+
+    '<p class="hint" style="margin-top:2px">gemerkt um '+hm(fe.ts)+'</p>';
+  var ch = flash.choices;
+  if(ch==='drink') h += chipsHtml(fe.id, 's', DRINKS, fe.s);
+  else if(ch==='meal' && list('d').length) h += chipsHtml(fe.id, 'n', list('d').map(function(x){ return [x, x]; }), fe.n);
+  else if(ch==='move' && list('s').length) h += chipsHtml(fe.id, 'n', list('s').map(function(x){ return [x, x]; }), fe.n);
+  else if(ch==='med' && list('m').length) h += chipsHtml(fe.id, 'n', list('m').map(function(x){ return [x, x]; }), fe.n);
+  h += '<div class="timer"><i style="animation-duration:'+left+'ms"></i></div></div>';
+  return h;
+}
+function askHtml(){
+  if(ask!=='endmed') return '';
+  return '<div class="card done"><b>Medikament genommen?</b><p class="hint" style="margin:2px 0 10px">Während dieser Attacke ist noch keins eingetragen.</p>'+
+    (list('m').length ? '<div class="chips">'+list('m').map(function(x){ return '<button class="chip" data-act="endmed" data-n="'+esc(x)+'">'+esc(x)+'</button>'; }).join('')+
+      '<button class="chip" data-act="endmed" data-n="">Anderes</button></div>' : '<div class="chips"><button class="chip" data-act="endmed" data-n="">Ja</button></div>')+
+    '<div class="two"><button class="chip" data-act="endnomed">Nein, keins</button><button class="chip" data-act="endcancel">Doch nicht vorbei</button></div></div>';
+}
 function render(){
   var app = document.getElementById('app');
   if(!cfg){
@@ -215,20 +277,18 @@ function render(){
     h += '<div class="card tip"><p class="hint"><b style="color:var(--ink)">Tipp:</b> Unten auf „Teilen“ tippen und „Zum Home-Bildschirm“ wählen – dann ist das hier wie eine eigene App.</p>'+
       '<button class="link" data-act="tipok" style="margin-top:6px">Verstanden</button></div>';
   }
-  var fe = flash && st.entries.filter(function(e){ return e.id===flash.id && !e.del; })[0];
-  if(fe){
-    h += '<div class="card done"><div class="l1"><b>'+esc(label(fe))+'</b><button class="link" data-act="undo" data-id="'+fe.id+'">Rückgängig</button></div><p class="hint" style="margin-top:2px">gemerkt um '+hm(fe.ts)+'</p>';
-    if(fe.k==='pain') h += '<p class="q">Wie stark? (kannst du auch weglassen)</p><div class="chips">'+LV.map(function(l){ return '<button class="chip lv'+(fe.v===l[0]?' on':'')+'" data-act="lv" data-id="'+fe.id+'" data-v="'+l[0]+'"><i style="background:'+l[2]+'"></i>'+l[1]+'</button>'; }).join('')+'</div>';
-    if(fe.k==='med' && meds().length) h += '<p class="q">Welches? (kannst du auch weglassen)</p><div class="chips">'+meds().map(function(m){ return '<button class="chip'+(fe.n===m?' on':'')+'" data-act="medname" data-id="'+fe.id+'" data-n="'+esc(m)+'">'+esc(m)+'</button>'; }).join('')+'</div>';
-    h += '</div>';
+  h += askHtml() || flashHtml();
+  if(op){
+    h += '<div class="atk"><div class="atkhead"><span>Kopfschmerz seit '+hm(op.ts)+'</span></div><div class="grid">'+
+      '<button class="big sm" data-act="worse"><b>Stärker</b></button><button class="big sm" data-act="better"><b>Schwächer</b></button>'+
+      '<button class="big sm" data-act="med"><b>Medikament</b></button><button class="big sm end" data-act="end"><b>Ende</b></button></div></div>';
+    h += '<div class="grid g3"><button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button><button class="big" data-act="move"><b>Sport</b></button></div>';
+  } else {
+    h += '<div class="grid"><button class="big pain wide" data-act="pain"><b>Kopfschmerz beginnt</b><small>jetzt</small></button>'+
+      '<button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button>'+
+      '<button class="big" data-act="move"><b>Sport</b></button><button class="big" data-act="med"><b>Medikament</b></button></div>';
   }
-  h += '<div class="grid">'+
-    (op ? '<button class="big pain on wide" data-act="painEnd"><b>Kopfschmerz vorbei</b><small>läuft seit '+hm(op.ts)+'</small></button>'
-        : '<button class="big pain wide" data-act="pain"><b>Kopfschmerz beginnt</b><small>jetzt</small></button>')+
-    '<button class="big" data-act="meal"><b>Gegessen</b><small>was genau, trägt das andere Handy nach</small></button>'+
-    '<button class="big" data-act="drink"><b>Getrunken</b><small>ein Glas oder eine Tasse</small></button>'+
-    '<button class="big wide" data-act="med"><b>Medikament genommen</b><small>jetzt</small></button></div>';
-  var today = st.entries.filter(function(e){ return !e.del && sameDay(e.ts, now); }).sort(function(a,b){ return b.ts-a.ts; });
+  var today = live().filter(function(e){ return sameDay(e.ts, now); }).sort(function(a,b){ return b.ts-a.ts || (b.id<a.id?-1:1); });
   h += '<h2>Heute</h2><div class="list">'+(today.length ? today.map(function(e){
     var ok = st.acked[e.id]===e.u;
     return '<div class="row"><span class="t">'+hm(e.ts)+'</span><span class="x1">'+esc(label(e))+'</span><span class="st'+(ok?' ok':'')+'">'+(ok ? 'angekommen' : 'unterwegs')+'</span>'+
@@ -244,18 +304,25 @@ document.addEventListener('click', function(ev){
     if(!c){ document.getElementById('linkIn').value = ''; document.getElementById('linkIn').placeholder = 'Link nicht erkannt – bitte nochmal'; return; }
     location.hash = (document.getElementById('linkIn').value.split('#')[1]||''); location.reload(); return;
   }
-  var a = b.getAttribute('data-act'), id = b.getAttribute('data-id');
-  if(a==='pain') add('pain', {});
-  else if(a==='painEnd'){ var op = openPain(); if(op) add('painEnd', {ref:op.id}); }
-  else if(a==='meal' || a==='drink' || a==='med') add(a, {});
-  else if(a==='lv') upd(id, {v:parseInt(b.getAttribute('data-v'),10)});
-  else if(a==='medname') upd(id, {n:b.getAttribute('data-n')});
+  var a = b.getAttribute('data-act'), id = b.getAttribute('data-id'), op = openPain();
+  if(a==='pain') add('pain', {v:START_LEVEL});
+  else if(a==='worse' && op) add('lvl', {ref:op.id, d:1});
+  else if(a==='better' && op) add('lvl', {ref:op.id, d:-1});
+  else if(a==='end' && op){
+    var hadMed = live().some(function(e){ return e.k==='med' && e.ts>=op.ts; });
+    if(hadMed) endPain(); else { ask = 'endmed'; flash = null; render(); }
+  }
+  else if(a==='endmed'){ ask = null; var n = b.getAttribute('data-n'); add('med', n ? {n:n} : {}); endPain(); }
+  else if(a==='endnomed'){ ask = null; endPain(); }
+  else if(a==='endcancel'){ ask = null; render(); }
+  else if(a==='meal' || a==='drink' || a==='move' || a==='med') add(a, {}, a);
+  else if(a==='pick'){ var f = b.getAttribute('data-f'), o = {}; o[f] = b.getAttribute('data-v'); upd(id, o); }
   else if(a==='undo' || a==='del') remove(id);
   else if(a==='tipok'){ st.tipDone = true; persist(); render(); }
 });
 document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='visible'){ render(); sync(); } });
 window.addEventListener('online', sync);
-setInterval(function(){ if(document.visibilityState==='visible'){ render(); sync(); } }, 60000);
+setInterval(function(){ if(document.visibilityState==='visible' && !flash && !ask){ render(); sync(); } }, 60000);
 render(); sync();
 })();
 </script>
