@@ -34,7 +34,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 h1{font-family:var(--serif);font-size:24px;font-weight:600;margin:0}
 .clock{font-size:14px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.big{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;min-height:112px;padding:14px 16px;border:1px solid var(--line);background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform .08s}
+.big{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;min-height:92px;padding:12px 16px;border:1px solid var(--line);background:var(--card);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform .08s}
 .big:active{transform:scale(.97)}
 .big b{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.15}
 .big small{font-size:13px;color:var(--muted);margin-top:3px}
@@ -93,6 +93,8 @@ h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
 var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, RESEND_MS = 6*3600000;
 var CHOICE_MS = 5000, START_LEVEL = 5;
 var DRINKS = [['water','Wasser'],['tea','Tee'],['coffee','Kaffee'],['other','Anderes']];
+var BELLY = [['bloat','Aufgebläht'],['cramp','Krämpfe'],['diarr','Durchfall'],['burn','Sodbrennen/Druck']];
+var NAUSEA = [['light','leicht'],['mid','mittel'],['strong','stark']];
 function pad(n){ return (n<10?'0':'')+n; }
 function hm(ts){ var d = new Date(ts); return pad(d.getHours())+':'+pad(d.getMinutes()); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
@@ -157,6 +159,8 @@ function label(e){
   if(e.k==='meal') return 'Gegessen'+(e.n ? ': '+e.n : '');
   if(e.k==='drink'){ var d = DRINKS.filter(function(x){ return x[0]===e.s; })[0]; return 'Getrunken'+(d && e.s!=='other' ? ': '+d[1] : ''); }
   if(e.k==='move') return 'Sport'+(e.n ? ': '+e.n : '');
+  if(e.k==='stomach'){ var bl = BELLY.filter(function(x){ return x[0]===e.s; })[0]; return 'Bauch'+(bl ? ': '+bl[1] : 'schmerzen'); }
+  if(e.k==='nausea'){ var nl = NAUSEA.filter(function(x){ return x[0]===e.s; })[0]; return 'Übelkeit'+(nl ? ': '+nl[1] : ''); }
   if(e.k==='med') return 'Medikament'+(e.n ? ': '+e.n : '');
   if(e.k==='pain') return 'Kopfschmerz beginnt';
   if(e.k==='lvl') return e.d>0 ? 'Stärker' : 'Schwächer';
@@ -251,6 +255,8 @@ function flashHtml(){
   if(ch==='drink') h += chipsHtml(fe.id, 's', DRINKS, fe.s);
   else if(ch==='meal' && list('d').length) h += chipsHtml(fe.id, 'n', list('d').map(function(x){ return [x, x]; }), fe.n);
   else if(ch==='move' && list('s').length) h += chipsHtml(fe.id, 'n', list('s').map(function(x){ return [x, x]; }), fe.n);
+  else if(ch==='stomach') h += chipsHtml(fe.id, 's', BELLY, fe.s);
+  else if(ch==='nausea') h += chipsHtml(fe.id, 's', NAUSEA, fe.s);
   else if(ch==='med' && list('m').length) h += chipsHtml(fe.id, 'n', list('m').map(function(x){ return [x, x]; }), fe.n);
   h += '<div class="timer"><i style="animation-duration:'+left+'ms"></i></div></div>';
   return h;
@@ -282,11 +288,13 @@ function render(){
     h += '<div class="atk"><div class="atkhead"><span>Kopfschmerz seit '+hm(op.ts)+'</span></div><div class="grid">'+
       '<button class="big sm" data-act="worse"><b>Stärker</b></button><button class="big sm" data-act="better"><b>Schwächer</b></button>'+
       '<button class="big sm" data-act="med"><b>Medikament</b></button><button class="big sm end" data-act="end"><b>Ende</b></button></div></div>';
-    h += '<div class="grid g3"><button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button><button class="big" data-act="move"><b>Sport</b></button></div>';
+    h += '<div class="grid g3"><button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button><button class="big" data-act="move"><b>Sport</b></button>'+
+      '<button class="big" data-act="stomach"><b>Bauch</b></button><button class="big" data-act="nausea"><b>Übelkeit</b></button></div>';
   } else {
     h += '<div class="grid"><button class="big pain wide" data-act="pain"><b>Kopfschmerz beginnt</b><small>jetzt</small></button>'+
       '<button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button>'+
-      '<button class="big" data-act="move"><b>Sport</b></button><button class="big" data-act="med"><b>Medikament</b></button></div>';
+      '<button class="big" data-act="move"><b>Sport</b></button><button class="big" data-act="med"><b>Medikament</b></button>'+
+      '<button class="big" data-act="stomach"><b>Bauch</b></button><button class="big" data-act="nausea"><b>Übelkeit</b></button></div>';
   }
   var today = live().filter(function(e){ return sameDay(e.ts, now); }).sort(function(a,b){ return b.ts-a.ts || (b.id<a.id?-1:1); });
   h += '<h2>Heute</h2><div class="list">'+(today.length ? today.map(function(e){
@@ -315,7 +323,7 @@ document.addEventListener('click', function(ev){
   else if(a==='endmed'){ ask = null; var n = b.getAttribute('data-n'); add('med', n ? {n:n} : {}); endPain(); }
   else if(a==='endnomed'){ ask = null; endPain(); }
   else if(a==='endcancel'){ ask = null; render(); }
-  else if(a==='meal' || a==='drink' || a==='move' || a==='med') add(a, {}, a);
+  else if(a==='meal' || a==='drink' || a==='move' || a==='med' || a==='stomach' || a==='nausea') add(a, {}, a);
   else if(a==='pick'){ var f = b.getAttribute('data-f'), o = {}; o[f] = b.getAttribute('data-v'); upd(id, o); }
   else if(a==='undo' || a==='del') remove(id);
   else if(a==='tipok'){ st.tipDone = true; persist(); render(); }
