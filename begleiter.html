@@ -88,6 +88,20 @@ h1.msg.long{font-size:18px}
 .atkhead b{font-family:var(--serif);font-size:22px}
 .big, .chip{background:var(--btnbg);border-color:var(--btnline)}
 button{transition:transform .08s ease-out}
+.mlpick{margin:12px 0 0}
+.mlpick .mlrow{display:flex;align-items:center;gap:12px}
+.mlpick .rw{position:relative;flex:1;height:30px}
+.mlpick input[type=range]{-webkit-appearance:none;appearance:none;position:absolute;left:0;top:0;width:100%;height:30px;margin:0;background:transparent;outline-offset:2px}
+.mlpick input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) 0,var(--accent) var(--pct),var(--line) var(--pct),var(--line) 100%)}
+.mlpick input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-10px;border-radius:50%;background:var(--card);border:3px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.mlpick input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+.mlpick input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
+.mlpick input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--card);border:3px solid var(--accent)}
+.mlpick .mlv{flex:none;min-width:74px;text-align:right;font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.mlpick .mlv small{font-size:13px;font-weight:600;color:var(--muted);margin-left:2px}
+.mlpick .tk{position:relative;height:15px;margin:0 86px 0 0}
+.mlpick .tk span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mlpick .tk span.on{color:var(--ink);font-weight:700}
 .pressed{transform:scale(.96)}
 .link.pressed, .del.pressed{transform:scale(.9)}
 .chip.on{background:var(--soft)}
@@ -127,6 +141,15 @@ h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
    an das Haupt-Handy geschickt und dort übernommen; hier bleibt nur eine kurze Liste der letzten Tage. */
 var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, PEND_MS = 3*86400000, RESEND_MS = 6*3600000;
 var CHOICE_MS = 10000, START_LEVEL = 5;
+var ML_STEPS = [50,100,150,200,250,300,330,500];
+function mlIdx(ml){ var b = 0; ML_STEPS.forEach(function(v, i){ if(Math.abs(v-ml) < Math.abs(ML_STEPS[b]-ml)) b = i; }); return b; }
+function mlPos(i){ return 'calc(13px + (100% - 26px) * '+(i/(ML_STEPS.length-1))+')'; }
+function mlHtml(id, ml){
+  var idx = mlIdx(ml||250);
+  return '<div class="mlpick"><div class="mlrow"><div class="rw"><input type="range" id="mlr" data-id="'+id+'" min="0" max="'+(ML_STEPS.length-1)+'" step="1" value="'+idx+'" aria-label="Menge in Millilitern" style="--pct:'+mlPos(idx)+'"></div>'+
+    '<div class="mlv" id="mlv" aria-live="polite">'+ML_STEPS[idx]+'<small>ml</small></div></div><div class="tk">'+
+    ML_STEPS.map(function(v, i){ return '<span data-i="'+i+'" class="'+(i===idx ? 'on' : '')+'" style="left:'+mlPos(i)+'">'+v+'</span>'; }).join('')+'</div></div>';
+}
 var DRINKS = [['water','Wasser'],['tea','Tee'],['coffee','Kaffee'],['other','Anderes']];
 var BELLY = [['bloat','Aufgebläht'],['pain','Schmerzen']];
 var PAIN = [['2','leicht'],['5','mittel'],['8','stark']];
@@ -195,7 +218,7 @@ function levelAfter(e){
 }
 function label(e){
   if(e.k==='meal') return 'Gegessen'+(e.n ? ': '+e.n : '');
-  if(e.k==='drink'){ var d = DRINKS.filter(function(x){ return x[0]===e.s; })[0]; return 'Getrunken'+(d && e.s!=='other' ? ': '+d[1] : ''); }
+  if(e.k==='drink'){ var d = DRINKS.filter(function(x){ return x[0]===e.s; })[0]; return 'Getrunken'+(d && e.s!=='other' ? ': '+d[1] : '')+(e.ml ? ' · '+e.ml+' ml' : ''); }
   if(e.k==='move') return 'Sport'+(e.n ? ': '+e.n : '')+(e.i ? ' ('+(e.i==='hard' ? 'intensiv' : 'leicht')+')' : '');
   if(e.k==='stomach') return e.s==='bloat' ? 'Bauch: aufgebläht' : 'Bauchschmerzen'+(e.v ? ' '+e.v+'/5' : '');
   if(e.k==='nausea') return 'Übelkeit'+(e.v ? ' '+e.v+'/5' : '');
@@ -215,7 +238,7 @@ function showFlash(id, choices){
   flash = {id:id, choices:choices||null, until:Date.now()+CHOICE_MS};
   clearTimeout(flashTimer); flashTimer = setTimeout(function(){ if(typing()) return; flash = null; render(); }, CHOICE_MS);
 }
-function typing(){ var a = document.activeElement; return !!(a && a.id==='foodIn'); }
+function typing(){ var a = document.activeElement; return !!(a && (a.id==='foodIn' || a.id==='mlr')); }
 function add(k, extra, choices){
   var now = Date.now(), e = {id:uid(), ts:now, u:now, k:k};
   for(var x in extra) e[x] = extra[x];
@@ -274,7 +297,7 @@ function publish(){
   /* in Pakete aufteilen (älteste zuerst), damit jede Nachricht unter der ntfy-Grenze von 4 KB bleibt */
   var enc = new TextEncoder(), chunks = [[]];
   p.slice().sort(function(a,b){ return a.ts-b.ts; }).forEach(function(e){
-    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
+    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del','ml'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
     var last = chunks[chunks.length-1];
     if(last.length && enc.encode(JSON.stringify({v:1, e:last.concat([o])})).length > 2800) chunks.push([o]); else last.push(o);
   });
@@ -309,7 +332,7 @@ function flashHtml(){
   var h = '<div class="card done"><div class="l1"><b>'+esc(label(fe))+'</b><button class="link" data-act="undo" data-id="'+fe.id+'">Rückgängig</button></div>'+
     '<p class="hint" style="margin-top:2px">gemerkt um '+hm(fe.ts)+'</p>';
   var ch = flash.choices, cv = fe.v!=null ? String(fe.v) : null;
-  if(ch==='drink') h += chipsHtml(fe.id, 's', DRINKS, fe.s);
+  if(ch==='drink') h += chipsHtml(fe.id, 's', DRINKS, fe.s)+mlHtml(fe.id, fe.ml);
   else if(ch==='pain') h += '<p class="q">Wie stark?</p>'+chipsHtml(fe.id, 'v', PAIN, cv);
   else if(ch==='meal'){
     if(list('d').length) h += chipsHtml(fe.id, 'n', list('d').map(function(x){ return [x, x]; }), fe.n);
@@ -434,11 +457,13 @@ document.addEventListener('click', function(ev){
   else if(a==='endmed'){ ask = null; var n = b.getAttribute('data-n'); add('med', n ? {n:n} : {}); endPain(); }
   else if(a==='endnomed'){ ask = null; endPain(); }
   else if(a==='endcancel'){ ask = null; render(); }
-  else if(a==='meal' || a==='drink' || a==='move' || a==='med' || a==='stomach' || a==='nausea') add(a, {}, a);
+  else if(a==='drink') add('drink', {ml:250}, 'drink');
+  else if(a==='meal' || a==='move' || a==='med' || a==='stomach' || a==='nausea') add(a, {}, a);
   else if(a==='pick'){
     var f = b.getAttribute('data-f'), v = b.getAttribute('data-v'), o = {}, ch = flash && flash.choices, next = null;
     o[f] = f==='v' ? parseInt(v, 10) : v;
     if(ch==='move' && f==='n') next = 'moveInt';
+    if(ch==='drink') next = 'drink';
     if(ch==='moveInt') next = null;
     if(ch==='stomach' && v==='pain') next = 'stomachLvl';
     if(ch==='stomach' && v==='bloat') o.v = null;
@@ -476,7 +501,23 @@ function showSug(){
   vocab().forEach(function(w){ var lw = w.toLowerCase(); if(lw===last) return; if(lw.indexOf(last)===0) starts.push(w); else if(lw.indexOf(last)>0) inner.push(w); });
   box.innerHTML = starts.concat(inner).slice(0, 6).map(function(w){ return '<button class="chip" data-act="sugpick" data-v="'+esc(w)+'">'+esc(w)+'</button>'; }).join('');
 }
-document.addEventListener('input', function(ev){ if(ev.target && ev.target.id==='foodIn') showSug(); });
+document.addEventListener('input', function(ev){
+  var t = ev.target; if(!t) return;
+  if(t.id==='foodIn'){ showSug(); return; }
+  if(t.id==='mlr'){
+    var ix = parseInt(t.value, 10);
+    t.style.setProperty('--pct', mlPos(ix));
+    var mv = document.getElementById('mlv'); if(mv) mv.innerHTML = ML_STEPS[ix]+'<small>ml</small>';
+    [].forEach.call(document.querySelectorAll('.mlpick .tk span'), function(sp){ sp.classList.toggle('on', parseInt(sp.getAttribute('data-i'), 10)===ix); });
+    if(flash){ flash.until = Date.now()+CHOICE_MS; clearTimeout(flashTimer); flashTimer = setTimeout(function(){ if(typing()) return; flash = null; render(); }, CHOICE_MS); }
+  }
+});
+document.addEventListener('change', function(ev){
+  var t = ev.target; if(!t || t.id!=='mlr') return;
+  var id = t.getAttribute('data-id'), e = st.entries.filter(function(y){ return y.id===id; })[0]; if(!e) return;
+  e.ml = ML_STEPS[parseInt(t.value, 10)]; e.u = Date.now(); persist();
+  showFlash(id, 'drink'); t.blur(); render(); sync();
+});
 document.addEventListener('focusin', function(ev){ if(ev.target && ev.target.id==='foodIn'){ clearTimeout(flashTimer); var t = document.querySelector('.timer'); if(t) t.style.visibility = 'hidden'; } });
 document.addEventListener('focusout', function(ev){ if(ev.target && ev.target.id==='foodIn') setTimeout(function(){ if(document.getElementById('foodIn') && !typing()) saveFood(); }, 150); });
 document.addEventListener('keydown', function(ev){ if(ev.target && ev.target.id==='foodIn' && ev.key==='Enter'){ ev.preventDefault(); saveFood(); } });
