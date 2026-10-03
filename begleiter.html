@@ -385,6 +385,40 @@ function dailyQHtml(){
   }
   return h;
 }
+/* v205: Nachfragen nach einer beendeten Attacke (kommen aus der Haupt-App) */
+var FU_IMP = [['0','Kaum eingeschränkt'],['1','Teilweise eingeschränkt'],['2','Ging gar nichts mehr']];
+var FU_FLAGS = [['light','Lichtempfindlich'],['sound','Geräuschempfindlich'],['nausea','Übelkeit/Erbrechen'],['move','Schlimmer bei Bewegung']];
+var FU_CHAR = [['puls','Pulsierend/pochend'],['press','Drückend/dumpf'],['stab','Stechend/hell'],['bore','Bohrend'],['pull','Ziehend'],['burn','Brennend']];
+var FU_SIDE = [['one','Einseitig'],['both','Beidseitig']];
+function fuEntry(id){ return live().filter(function(e){ return e.k==='fu' && e.ref===id; })[0] || null; }
+function fuCsv(v){ return v ? String(v).split(',').filter(Boolean) : []; }
+function fuState(fu){
+  var e = fuEntry(fu.i);
+  if(e) return {im:e.v!=null ? e.v : -1, fl:fuCsv(e.s), ch:fuCsv(e.n), sd:e.i||'', done:!!e.b};
+  return {im:fu.im!=null ? fu.im : -1, fl:fuCsv(fu.fl), ch:fuCsv(fu.ch), sd:fu.sd||'', done:false};
+}
+function fuSet(fu, patch){
+  var cur = fuState(fu), e = fuEntry(fu.i), now = Date.now();
+  var f = {v:patch.im!=null ? patch.im : cur.im, s:(patch.fl||cur.fl).join(','), n:(patch.ch||cur.ch).join(','), i:patch.sd!=null ? patch.sd : cur.sd, d:fu.d, ref:fu.i};
+  if(f.v<0) delete f.v;
+  if(patch.done) f.b = 1;
+  if(e){ for(var x in f) e[x] = f[x]; if(!patch.done) delete e.b; e.u = now; persist(); }
+  else { var ne = {id:uid(), ts:now, u:now, k:'fu'}; for(var y in f) ne[y] = f[y]; st.entries.push(ne); persist(); }
+  render(); sync();
+}
+function fuHtml(){
+  var fu = st.att && st.att.fu; if(!fu || !fu.i) return '';
+  var cur = fuState(fu); if(cur.done) return '';
+  var tdIso = isoOf(new Date());
+  var chip = function(a, v, on, l){ return '<button class="chip'+(on?' on':'')+'" data-act="fu" data-fk="'+a+'" data-v="'+v+'">'+esc(l)+'</button>'; };
+  var ds = fu.d===tdIso ? 'von heute' : 'vom '+fu.d.slice(8,10)+'.'+fu.d.slice(5,7)+'.';
+  return '<div class="card qcard"><b>Kurz nachgefragt</b><p class="hint" style="margin-top:2px">Zur Attacke '+ds+', '+esc(fu.t||'')+' Uhr</p>'+
+    '<p class="q">Wie sehr hat dich die Attacke im Alltag eingeschränkt?</p><div class="chips">'+FU_IMP.map(function(x){ return chip('im', x[0], cur.im===+x[0], x[1]); }).join('')+'</div>'+
+    '<p class="q">Was kam dazu?</p><div class="chips">'+FU_FLAGS.map(function(x){ return chip('fl', x[0], cur.fl.indexOf(x[0])>=0, x[1]); }).join('')+'</div>'+
+    '<p class="q">Der Schmerz war … (mehrere möglich)</p><div class="chips">'+FU_CHAR.map(function(x){ return chip('ch', x[0], cur.ch.indexOf(x[0])>=0, x[1]); }).join('')+'</div>'+
+    '<p class="q">Wo?</p><div class="chips">'+FU_SIDE.map(function(x){ return chip('sd', x[0], cur.sd===x[0], x[1]); }).join('')+'</div>'+
+    '<button class="chip" data-act="fudone" style="margin-top:14px;width:100%">Fertig</button></div>';
+}
 function askHtml(){
   if(ask!=='endmed') return '';
   return '<div class="card done"><b>Medikament genommen?</b><p class="hint" style="margin:2px 0 10px">Während dieser Attacke ist noch keins eingetragen.</p>'+
@@ -417,6 +451,7 @@ function render(){
   }
   h += askHtml() || flashHtml();
   h += dailyQHtml();
+  h += fuHtml();
   if(op){
     h += '<div class="atk"><div class="atkhead"><span>Kopfschmerz seit '+hm(op.ts)+'</span></div><div class="grid">'+
       '<button class="big sm" data-act="worse"><b>Stärker</b></button><button class="big sm" data-act="better"><b>Schwächer</b></button>'+
@@ -431,7 +466,7 @@ function render(){
       '<button class="big" data-act="move"><b>Sport</b></button><button class="big" data-act="med"><b>Medikament</b></button>'+
       '<button class="big" data-act="stomach"><b>Bauch</b></button><button class="big" data-act="nausea"><b>Übelkeit</b></button></div>';
   }
-  var today = live().filter(function(e){ return sameDay(e.ts, now); }).sort(function(a,b){ return b.ts-a.ts || (b.id<a.id?-1:1); });
+  var today = live().filter(function(e){ return e.k!=='fu' && sameDay(e.ts, now); }).sort(function(a,b){ return b.ts-a.ts || (b.id<a.id?-1:1); });
   h += '<h2>Heute</h2><div class="list">'+(today.length ? today.map(function(e){
     var ok = st.acked[e.id]===e.u;
     return '<div class="row"><span class="t">'+hm(e.ts)+'</span><span class="x1">'+esc(label(e))+'</span><span class="st'+(ok?' ok':'')+'">'+(ok ? 'angekommen' : 'unterwegs')+'</span>'+
@@ -480,6 +515,18 @@ document.addEventListener('click', function(ev){
       next = 'stomach';
     }
     upd(id, o, next);
+  }
+  else if(a==='fu' || a==='fudone'){
+    var fu = st.att && st.att.fu; if(fu){
+      if(a==='fudone') fuSet(fu, {done:true});
+      else {
+        var k = b.getAttribute('data-fk'), v = b.getAttribute('data-v'), cur = fuState(fu), pt = {};
+        if(k==='im') pt.im = cur.im===+v ? -1 : +v;
+        else if(k==='sd') pt.sd = cur.sd===v ? '' : v;
+        else { var arr = cur[k].slice(), ix = arr.indexOf(v); if(ix>=0) arr.splice(ix,1); else arr.push(v); pt[k] = arr; }
+        fuSet(fu, pt);
+      }
+    }
   }
   else if(a==='daily'){ add(b.getAttribute('data-k'), {v:parseInt(b.getAttribute('data-v'), 10)}); }
   else if(a==='hfno'){ st.hfNo = b.getAttribute('data-d'); persist(); render(); }
