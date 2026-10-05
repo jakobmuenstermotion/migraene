@@ -402,7 +402,7 @@ function fuSet(fu, patch){
   var f = {v:patch.im!=null ? patch.im : cur.im, s:(patch.fl||cur.fl).join(','), n:(patch.ch||cur.ch).join(','), i:patch.sd!=null ? patch.sd : cur.sd, d:fu.d, ref:fu.i};
   if(f.v<0) delete f.v;
   if(patch.done) f.b = 1;
-  if(e){ for(var x in f) e[x] = f[x]; if(!patch.done) delete e.b; e.u = now; persist(); }
+  if(e){ for(var x in f) e[x] = f[x]; if(f.v==null) delete e.v; /* abgewählt */ if(!patch.done) delete e.b; e.u = now; persist(); }
   else { var ne = {id:uid(), ts:now, u:now, k:'fu'}; for(var y in f) ne[y] = f[y]; st.entries.push(ne); persist(); }
   render(); sync();
 }
@@ -587,6 +587,8 @@ document.addEventListener('visibilitychange', function(){ if(document.visibility
 window.addEventListener('online', sync);
 setInterval(function(){ if(document.visibilityState==='visible' && !flash && !ask){ render(); sync(); } }, 60000);
 render(); sync();
+/* v236: offline öffnen (sw.js im selben Ordner) */
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(_){} }
 })();
 (function(){
   var SEL = 'button, summary, label.chk', pressedEl = null;
