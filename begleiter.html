@@ -139,7 +139,7 @@ h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
 'use strict';
 /* Begleit-Seite zum Migräne-Tagebuch: nur schnelle Markierungen. Alles wird verschlüsselt über ntfy.sh
    an das Haupt-Handy geschickt und dort übernommen; hier bleibt nur eine kurze Liste der letzten Tage. */
-var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, PEND_MS = 3*86400000, RESEND_MS = 6*3600000;
+var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, RESEND_MS = 6*3600000;
 var CHOICE_MS = 10000, START_LEVEL = 5;
 var ML_STEPS = [50,100,150,200,250,300,330,500];
 function mlIdx(ml){ var b = 0; ML_STEPS.forEach(function(v, i){ if(Math.abs(v-ml) < Math.abs(ML_STEPS[b]-ml)) b = i; }); return b; }
@@ -240,7 +240,8 @@ function label(e){
   if(e.k==='hf') return (early ? 'Gestern' : 'Heute')+' kopfschmerzfrei';
   return e.k;
 }
-function pending(){ var cut = Date.now()-PEND_MS; return st.entries.filter(function(e){ return e.ts>cut && st.acked[e.id]!==e.u; }); }
+/* v237: unbestätigte Einträge so lange erneut senden, wie sie gespeichert bleiben (14 Tage), nicht nur 3 Tage */
+function pending(){ var cut = Date.now()-KEEP_MS; return st.entries.filter(function(e){ return e.ts>cut && st.acked[e.id]!==e.u; }); }
 function showFlash(id, choices){
   flash = {id:id, choices:choices||null, until:Date.now()+CHOICE_MS};
   clearTimeout(flashTimer); flashTimer = setTimeout(function(){ if(typing()) return; flash = null; render(); }, CHOICE_MS);
