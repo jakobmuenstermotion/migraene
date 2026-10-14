@@ -1,7 +1,7 @@
 /* Begleit-Seite offline: Seite und Symbol liegen im iPhone. Öffnen geht sofort aus dem Speicher,
    mit Netz wird still die neueste Version für das nächste Öffnen geholt.
    Nur Dateien dieser Webseite – Anfragen an ntfy.sh laufen unverändert direkt ins Netz. */
-var CACHE = 'mt-begleiter-v1';
+var CACHE = 'mt-begleiter-v307';
 var FILES = ['./begleiter.html', './icon-180.png'];
 
 self.addEventListener('install', function(e){

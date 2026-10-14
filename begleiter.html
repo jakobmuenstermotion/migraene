@@ -155,6 +155,20 @@ var BELLY = [['bloat','Aufgebläht'],['pain','Schmerzen']];
 var BLOAT4 = [['0','nein'],['1','leicht'],['2','mittel'],['3','stark']];
 var PAIN6 = [['0','keine'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5']];
 var BLOAT_TXT = ['','leicht','mittel','stark'];
+var LOCS = [['upper','Magen/Oberbauch'],['lower','Unterbauch'],['all','Ganzer Bauch']];
+var KINDS = [['cramp','Krämpfe'],['diarr','Durchfall'],['burn','Sodbrennen'],['press','Druck']];
+function stomachExtra(e){
+  var p = [];
+  LOCS.forEach(function(x){ if(e.l===x[0]) p.push(x[1]); });
+  var ks = String(e.kd||'').split(',');
+  KINDS.forEach(function(x){ if(ks.indexOf(x[0])>=0) p.push(x[1]); });
+  return p.length ? ' · '+p.join(', ') : '';
+}
+function multiChipsHtml(id, field, items, cur){
+  var set = String(cur||'').split(',');
+  return '<div class="chips">'+items.map(function(it){
+    return '<button class="chip'+(set.indexOf(it[0])>=0?' on':'')+'" data-act="pick" data-id="'+id+'" data-f="'+field+'" data-v="'+esc(it[0])+'">'+esc(it[1])+'</button>'; }).join('')+'</div>';
+}
 var PAIN = [['2','leicht'],['5','mittel'],['8','stark']];
 var ONE5 = [['1','1'],['2','2'],['3','3'],['4','4'],['5','5']];
 var INTENS = [['light','leicht'],['hard','intensiv']];
@@ -219,14 +233,15 @@ function levelAfter(e){
     .forEach(function(x){ v = Math.max(1, Math.min(10, v + x.d)); });
   return v;
 }
+function companionMealKind(e){var labels={breakfast:'Frühstück',lunch:'Mittagessen',dinner:'Abendessen',snack:'Zwischenmahlzeit'},n=new Date(e.ts).getHours()*60+new Date(e.ts).getMinutes(),k=e.mt||(n>=240&&n<690?'breakfast':n>=690&&n<960?'lunch':n>=960&&n<1350?'dinner':'snack');return {key:k,label:labels[k]||'Mahlzeit'};}
 function label(e){
-  if(e.k==='meal') return 'Gegessen'+(e.n ? ': '+e.n : '');
+  if(e.k==='meal') return companionMealKind(e).label+(e.n ? ': '+e.n : '');
   if(e.k==='drink'){ var d = DRINKS.filter(function(x){ return x[0]===e.s; })[0]; return 'Getrunken'+(d && e.s!=='other' ? ': '+d[1] : '')+(e.ml ? ' · '+e.ml+' ml' : ''); }
   if(e.k==='move') return 'Sport'+(e.n ? ': '+e.n : '')+(e.i ? ' ('+(e.i==='hard' ? 'intensiv' : 'leicht')+')' : '');
   if(e.k==='stomach'){
-    if(e.b==null) return e.s==='bloat' ? 'Bauch: aufgebläht' : (e.v ? 'Bauchschmerzen '+e.v+'/5' : 'Bauch');
-    var bp = []; if(e.v) bp.push('Schmerzen '+e.v+'/5'); if(e.b) bp.push('aufgebläht '+BLOAT_TXT[e.b]);
-    return 'Bauch'+(bp.length ? ': '+bp.join(', ') : '');
+    if(e.b==null) return (e.s==='bloat' ? 'Bauch: aufgebläht' : (e.v ? 'Bauchschmerzen '+e.v+'/5' : 'Bauch'))+stomachExtra(e);
+    var bp = []; if(e.v) bp.push('Bauchschmerzen '+e.v+'/5'); if(e.b) bp.push('aufgebläht '+BLOAT_TXT[e.b]);
+    return (bp.length ? bp.join(' · ').replace(/^./, function(c){ return c.toUpperCase(); }) : 'Bauch')+stomachExtra(e);
   }
   if(e.k==='nausea') return 'Übelkeit'+(e.v ? ' '+e.v+'/5' : '');
   if(e.k==='med') return 'Medikament'+(e.n ? ': '+e.n : '');
@@ -305,7 +320,7 @@ function publish(){
   /* in Pakete aufteilen (älteste zuerst), damit jede Nachricht unter der ntfy-Grenze von 4 KB bleibt */
   var enc = new TextEncoder(), chunks = [[]];
   p.slice().sort(function(a,b){ return a.ts-b.ts; }).forEach(function(e){
-    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del','ml','b'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
+    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del','ml','b','l','kd'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
     var last = chunks[chunks.length-1];
     if(last.length && enc.encode(JSON.stringify({v:1, e:last.concat([o])})).length > 2800) chunks.push([o]); else last.push(o);
   });
@@ -343,6 +358,7 @@ function flashHtml(){
   if(ch==='drink') h += chipsHtml(fe.id, 's', DRINKS, fe.s)+mlHtml(fe.id, fe.ml);
   else if(ch==='pain') h += '<p class="q">Wie stark?</p>'+chipsHtml(fe.id, 'v', PAIN, cv);
   else if(ch==='meal'){
+    h+='<p class="q">Mahlzeit</p>'+chipsHtml(fe.id,'mt',[['breakfast','Frühstück'],['lunch','Mittagessen'],['dinner','Abendessen'],['snack','Zwischenmahlzeit']],companionMealKind(fe).key);
     if(list('d').length) h += chipsHtml(fe.id, 'n', list('d').map(function(x){ return [x, x]; }), fe.n);
     h += '<div class="foodrow"><input id="foodIn" data-id="'+fe.id+'" type="text" placeholder="Oder eintippen …" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"><button class="chip" data-act="foodok" data-id="'+fe.id+'">OK</button></div><div class="chips sug" id="foodSug"></div>';
   }
@@ -350,7 +366,9 @@ function flashHtml(){
   else if(ch==='move') h += '<p class="q">Wie anstrengend?</p>'+chipsHtml(fe.id, 'i', INTENS, fe.i);
   else if(ch==='moveInt') h += '<p class="q">Wie anstrengend?</p>'+chipsHtml(fe.id, 'i', INTENS, fe.i);
   else if(ch==='stomach') h += '<p class="q">Aufgebläht?</p>'+chipsHtml(fe.id, 'b', BLOAT4, fe.b!=null ? String(fe.b) : null)+
-    '<p class="q">Schmerzen? (1 = kaum, 5 = sehr)</p>'+chipsHtml(fe.id, 'v', PAIN6, fe.b!=null || fe.v!=null ? String(fe.v||0) : null);
+    '<p class="q">Schmerzen? (1 = kaum, 5 = sehr)</p>'+chipsHtml(fe.id, 'v', PAIN6, fe.b!=null || fe.v!=null ? String(fe.v||0) : null)+
+    '<p class="q">Wo? (optional)</p>'+chipsHtml(fe.id, 'l', LOCS, fe.l||null)+
+    (fe.v>0 ? '<p class="q">Wie? (optional, mehrere möglich)</p>'+multiChipsHtml(fe.id, 'kd', KINDS, fe.kd) : '');
   else if(ch==='stomachLvl' || ch==='nausea') h += '<p class="q">Wie stark? (1 = kaum, 5 = sehr)</p>'+chipsHtml(fe.id, 'v', ONE5, cv);
   else if(ch==='med' && list('m').length) h += chipsHtml(fe.id, 'n', list('m').map(function(x){ return [x, x]; }), fe.n);
   h += '<div class="timer"><i style="animation-duration:'+left+'ms"></i></div></div>';
@@ -506,8 +524,14 @@ document.addEventListener('click', function(ev){
   else if(a==='pick'){
     var f = b.getAttribute('data-f'), v = b.getAttribute('data-v'), o = {}, ch = flash && flash.choices, next = null;
     o[f] = (f==='v' || f==='b') ? parseInt(v, 10) : v;
+    if(f==='l' || f==='kd'){
+      var cs = st.entries.filter(function(y){ return y.id===id; })[0] || {};
+      if(f==='l') o.l = cs.l===v ? '' : v;
+      else { var ks = String(cs.kd||'').split(',').filter(Boolean), kx = ks.indexOf(v); if(kx>=0) ks.splice(kx,1); else ks.push(v); o.kd = ks.join(','); }
+    }
     if(ch==='move' && f==='n') next = 'moveInt';
     if(ch==='drink') next = 'drink';
+    if(ch==='meal' && f==='mt') next='meal';
     if(ch==='moveInt') next = null;
     if(ch==='stomach'){
       var ce = st.entries.filter(function(y){ return y.id===id; })[0] || {};
