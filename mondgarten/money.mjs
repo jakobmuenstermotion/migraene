@@ -1,0 +1,1 @@
+export function credit(s,amount){if(!Number.isFinite(amount)||amount<=0)return;const n=Math.min(1e280,amount);s.coins=Math.min(1e280,s.coins+n);s.stats.earned=Math.min(1e280,s.stats.earned+n);s.stats.runEarned=Math.min(1e280,s.stats.runEarned+n);}

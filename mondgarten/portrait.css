@@ -1,0 +1,25 @@
+/* One small HUD, with menus kept behind one thumb-sized button. */
+.brand,.garden-badge,.top-right,.round-widget,.duo-card,.action-dock,.zoom-controls,.wallet-divider,.star-icon,.star-count,.bag-symbol,#bagTitle,#bagHint,#warehouse,#sell{display:none!important}
+.hud-top{top:max(14px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));align-items:center}
+.wallet{min-width:0;gap:8px;padding:7px 13px 7px 7px;border-radius:24px;max-width:220px}
+.wallet #walletHint{font-size:9px;max-width:145px}.wallet strong{font-size:21px}.wallet small{font-size:9px;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coin-icon{width:32px;height:32px;font-size:26px}
+.day-chip{height:48px;min-width:100px;padding:0 15px;border-radius:24px;background:#fffdf1ec;border:1px solid #fff9;box-shadow:var(--shadow);font-weight:650;font-size:13px;white-space:nowrap}
+.day-chip.resting{background:#e6dcf0;color:#705e89}
+.hud-bottom{display:flex;flex-direction:row;flex-wrap:nowrap;bottom:max(18px,env(safe-area-inset-bottom));left:16px;right:16px;gap:10px;justify-content:flex-end;align-items:center}
+.bag-panel{position:static;transform:none;width:220px;min-width:0;padding:9px 12px;gap:8px;border-radius:24px;height:52px;margin:0;flex:0 1 220px}
+.bag-content>div:first-child{margin:0 0 6px;justify-content:space-between}.bag-content #bagCount{font-size:12px;color:#657455}.bag-content>div:first-child:before{content:'Ernte';font-size:11px;color:#7f896e}.bag-panel .progress{height:4px}
+.menu-button{height:54px;width:54px;flex:0 0 54px;display:grid;place-items:center;border:2px solid #e9dbf5;border-radius:19px;box-shadow:var(--shadow);background:#b19acf;color:#fffdf4;font-size:25px}
+.menu-button span{line-height:1}.joystick{display:block;width:102px;height:102px;left:22px;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 77px);background:#fffde73d;border:2px solid #fff9}
+.joystick>div{width:44px;height:44px;left:27px;top:27px;background:#fffcecbb}
+.tutorial{bottom:calc(max(18px,env(safe-area-inset-bottom)) + 197px);width:300px;padding:15px 30px 16px 18px;text-align:left;pointer-events:none}
+.tutorial>button{pointer-events:auto;right:0;top:0;min-width:44px;min-height:44px}.tutorial h1{font-size:19px}.tutorial p{font-size:12px;line-height:1.55}.tutorial small{display:none}.tutorial>span{font-size:8px}
+.toasts{top:calc(max(14px,env(safe-area-inset-top)) + 65px);left:50%;right:auto;transform:translateX(-50%);width:min(330px,calc(100% - 32px))}.toast{font-size:12px;padding:11px 15px}
+.pay-status{bottom:calc(max(18px,env(safe-area-inset-bottom)) + 75px);width:min(340px,calc(100% - 32px));left:50%;transform:translateX(-50%);padding:12px;gap:10px}.pay-status strong{font-size:13px}.pay-status p{font-size:11px}.pay-status>b{font-size:11px;max-width:90px}
+.night-veil{transition:none!important}
+.garden-menu{display:grid;gap:9px;margin-top:20px}.garden-menu button{display:flex;align-items:center;gap:14px;text-align:left;min-height:62px;width:100%;padding:12px 15px;background:#f1f0e3;border:1px solid #dedfc9;border-radius:15px}.garden-menu button>span{font-size:25px;width:30px;color:#9d89b3}.garden-menu strong{display:block;font-size:15px;font-weight:600}.garden-menu small{display:block;margin-top:3px;font-size:12px;color:#7f886e}.menu-route{display:flex;gap:10px}.menu-route button{flex:1}
+dialog{padding:29px 22px 24px;width:min(560px,calc(100% - 24px));max-height:calc(100dvh - max(24px,env(safe-area-inset-top)) - max(24px,env(safe-area-inset-bottom)));border-radius:23px}
+.modal-close{position:sticky;display:block;top:0;margin:-17px -13px -30px auto;width:44px;height:44px;z-index:2;background:#fcfbefed;border-radius:50%}.modal-title{font-size:26px;padding-right:16px}.modal-lead,dialog #modalBody>p{font-size:13px;color:#788165}.modal-action,.upgrade-button,.modal-tabs button,.reward-choice button{min-height:46px;font-size:13px}.upgrade-desc,.upgrade-detail,.shop-note{font-size:12px;color:#7c886b}.upgrade-level{font-size:10px}.upgrade-button b{font-size:12px}.building-card p{font-size:12px}.stock-line{font-size:13px}
+@media(max-width:600px){.shop-grid{grid-template-columns:1fr}.settings-row{flex-wrap:wrap}.settings-row>*{min-width:120px}.modal-tabs button{padding:9px 6px;font-size:12px}}
+@media(max-height:700px){.tutorial{bottom:190px;padding:12px 30px 12px 15px}.tutorial>span{display:none}.tutorial h1{margin-top:0;font-size:17px}.tutorial p{margin-top:5px}.joystick{width:92px;height:92px}.joystick>div{left:22px;top:22px}.pay-status{bottom:85px}}
+@media(min-width:700px){.hud-bottom{right:24px}.bag-panel{flex-basis:260px;width:260px}.joystick{left:30px;bottom:30px}.tutorial{bottom:130px}}
+[hidden]{display:none!important}

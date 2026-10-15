@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#a8c78a"><meta name="description" content="Euer Mondgarten: Ernten, verarbeiten und mit kleinen Schnecken ein blühendes Zuhause aufbauen.">
+  <title>Mondgarten · Ein kleines Stück Glück</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="portrait.css">
+</head>
+<body>
+  <main class="game" id="game">
+    <canvas id="world" tabindex="0" aria-label="3D Garten. Mit WASD, Pfeiltasten oder einem Klick auf den Boden bewegen. Automatisch sammeln, an der Verkaufsstelle automatisch verkaufen."></canvas>
+    <div class="world-vignette"></div>
+    <div class="night-veil" id="nightVeil" aria-hidden="true"></div>
+    <header class="hud-top">
+      <div class="top-left"><a href="#" class="brand" aria-label="Mondgarten"><span>✳</span><div>mondgarten<small>EIN KLEINES STÜCK GLÜCK</small></div></a><div class="wallet"><div class="coin-icon">✧</div><div><strong id="coins">0</strong><small id="walletHint">Sternenstaub</small></div><div class="wallet-divider"></div><span class="star-icon">◇</span><strong class="star-count" id="stars">0</strong></div></div>
+      <button class="garden-badge" id="openGardens"><span class="garden-dot"></span><span><strong id="gardenLabel">Unser Garten</strong><small id="gardenSub">AUSBAUSTUFE 1</small></span><span class="chevron">⌄</span></button>
+      <div class="top-right"><span class="save-state" id="saveStatus"><i></i> Gespeichert</span><button class="round-button" id="sound" aria-label="Klang einschalten" title="Klang einschalten">♫</button><button class="round-button" id="settings" aria-label="Einstellungen" title="Einstellungen">⚙</button></div>
+    <button class="day-chip" id="dayChip" aria-label="Aktueller Gartentag und Tagesbelohnung">☀ Tag 1</button></header>
+    <section class="round-widget" id="roundWidget" aria-label="Gartenrunde"><span class="round-eyebrow" id="roundNumber">Gartentag 1</span><strong id="roundMood">Ein Garten voller Möglichkeiten</strong><p id="roundNote">Eigenständige Spielvorschau</p><div class="progress"><span id="roundProgress"></span></div><div class="round-actions"><button id="dayGoal">Tagesbelohnung ↗</button><button id="nextRound" hidden>Nächste Runde beginnen</button></div></section>
+    <section class="mission-widget" id="missionWidget" aria-label="Aktueller Sternenauftrag"><button id="missionToggle" class="mission-heading"><span>✦ KLEINER STERNENAUFTRAG</span><span id="missionNumber">01</span></button><div class="mission-body"><strong id="missionTitle">Ein erster kleiner Schatz</strong><p id="missionDesc">Sammelt 40 Dinge.</p><div class="progress"><span id="missionBar"></span></div><div class="mission-bottom"><span id="missionProgress">0 / 40</span><button id="claimMission" disabled>+ 60 ✧</button></div></div></section>
+    <div class="event-pill" id="eventPill" hidden>✦ Sternenregen <span>2× Erntewert</span><b></b></div>
+    <div class="world-label" id="bankLabel"><span>✧</span> Hier wird euer Stapel zu Sternenstaub</div>
+    <div class="player-label" id="playerLabel">Du</div><div class="player-label companion-label" id="partnerLabel">Dein Lieblingsmensch</div><div class="stack-count" id="stackCount" hidden>0</div>
+    <div class="tutorial" id="tutorial"><button id="dismissTutorial" aria-label="Hinweis schließen">×</button><span>EUER ERSTER GARTENTAG</span><h1>Einmal durch die Blumen, bitte.</h1><p>Lauft ins Feld. Die Ernte fliegt auf euren Rücken – und euer Stapel wächst!</p><small>Mit dem Daumen lenken · automatisch ernten</small></div>
+    <div class="game-loading" id="loading"><span>✳</span><strong>Euer Garten erwacht …</strong><small>Ein kleines bisschen Sternenlicht.</small></div>
+    <div class="game-error" id="gameError" hidden><span>☾</span><h1>Der Garten konnte nicht erwachen.</h1><p>Bitte öffnet das Spiel in einem Browser mit aktivierter 3D-Grafik und ladet die Seite neu.</p><button onclick="location.reload()">Noch einmal versuchen</button></div>
+    <div class="zoom-controls"><button id="zoomOut" aria-label="Ansicht verkleinern">−</button><button id="zoomIn" aria-label="Ansicht vergrößern">+</button></div>
+    <div class="joystick" id="joystick" aria-label="Touch Joystick"><div id="joystickKnob"></div></div>
+    <footer class="hud-bottom">
+      <div class="duo-card"><button id="customize" aria-label="Eure Namen ändern"><span class="duo-icon">☾</span><span><strong id="duoLabel">Für euch zwei.</strong><small id="journeyText">Ein Garten. Große kleine Träume.</small></span><span class="edit-icon">✎</span></button><div class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>zum Laufen · Leertaste zur Bank</span></div></div>
+      <div class="bag-panel" id="bagPanel"><div class="bag-symbol">♧</div><div class="bag-content"><div><strong id="bagTitle">Dein Erntestapel</strong><span id="bagCount">0 / 80</span></div><div class="progress"><span id="bagBar"></span></div><small id="bagHint">Ein bisschen Platz für ganz viel Glück.</small></div><button id="warehouse" aria-label="Ernte zum Lager bringen"><span>Lager</span></button><button id="sell" aria-label="Zur Verkaufsstelle laufen"><span>Verkaufen</span><b>↗</b></button></div>
+      <nav class="action-dock" aria-label="Spielmenüs"><button id="gardensButton"><span>❀</span><small>Ausbauen</small></button><button id="shopButton" class="primary"><span>☽</span><small>Werkstatt</small><i id="shopDot" hidden></i></button><button id="travelButton"><span>▤</span><small>Vorräte</small></button></nav>
+    <button class="menu-button" id="gardenMenu" aria-label="Gartenmenü öffnen"><span>☰</span></button></footer>
+    <div id="floaters" aria-hidden="true"></div>
+    <section id="payStatus" class="pay-status" hidden aria-live="polite"><span id="payIcon">↑</span><div><strong id="payTitle">Verbesserung</strong><p id="payHint">Stehen bleiben zum Bezahlen</p><div class="progress"><span id="payBar"></span></div></div><b id="payAmount">0 / 0 ✧</b></section>
+    <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  </main>
+  <dialog id="modal"><button id="closeModal" class="modal-close" aria-label="Schließen">×</button><div id="modalBody"></div></dialog>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
+

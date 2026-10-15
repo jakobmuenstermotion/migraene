@@ -1,8 +1,8 @@
 /* Begleit-Seite offline: Seite und Symbol liegen im iPhone. Öffnen geht sofort aus dem Speicher,
    mit Netz wird still die neueste Version für das nächste Öffnen geholt.
    Nur Dateien dieser Webseite – Anfragen an ntfy.sh laufen unverändert direkt ins Netz. */
-var CACHE = 'mt-begleiter-v307';
-var FILES = ['./begleiter.html', './icon-180.png'];
+var CACHE = 'mt-begleiter-mondgarten-c984bb11a214';
+var FILES = ["./begleiter.html","./companion-garden.css","./companion-garden.js","./garden-assets-webp/daisy-final.webp","./garden-assets-webp/daisy-sheet.webp","./garden-assets-webp/fern-final.webp","./garden-assets-webp/fern-sheet.webp","./garden-assets-webp/hearts-final.webp","./garden-assets-webp/hearts-sheet.webp","./garden-assets-webp/lavender-final.webp","./garden-assets-webp/lavender-sheet.webp","./garden-assets-webp/lily-final.webp","./garden-assets-webp/lily-sheet.webp","./garden-assets-webp/monstera-final.webp","./garden-assets-webp/monstera-sheet.webp","./garden-assets-webp/pearls-final.webp","./garden-assets-webp/pearls-sheet.webp","./garden-assets-webp/pilea-final.webp","./garden-assets-webp/pilea-sheet.webp","./garden-assets-webp/pothos-final.webp","./garden-assets-webp/pothos-sheet.webp","./garden-assets-webp/rose-final.webp","./garden-assets-webp/rose-sheet.webp","./garden-modules/plant-renderer.js","./garden-modules/plants.js","./icon-180.png","./mondgarten/automation.mjs","./mondgarten/companion-bridge.mjs","./mondgarten/content.mjs","./mondgarten/controls.js","./mondgarten/core.mjs","./mondgarten/daily.mjs","./mondgarten/economy.mjs","./mondgarten/funding.mjs","./mondgarten/game.js","./mondgarten/harvest.mjs","./mondgarten/icon.svg","./mondgarten/index.html","./mondgarten/journey.mjs","./mondgarten/lighting.mjs","./mondgarten/money.mjs","./mondgarten/portrait.css","./mondgarten/scene.js","./mondgarten/style.css","./mondgarten/vendor/THREE-LICENSE.txt","./mondgarten/vendor/three.core.js","./mondgarten/vendor/three.module.js","./mondgarten/village-content.mjs","./mondgarten/village.mjs"];
 
 self.addEventListener('install', function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){
@@ -21,10 +21,8 @@ self.addEventListener('fetch', function(e){
   if(req.method!=='GET') return;
   var url = new URL(req.url);
   if(url.origin!==self.location.origin) return;
-  var isPage = /begleiter\.html$/.test(url.pathname);
-  var isIcon = /icon-180\.png$/.test(url.pathname);
-  if(!isPage && !isIcon) return;
-  var key = isPage ? './begleiter.html' : './icon-180.png';
+  var key=FILES.find(function(f){return new URL(f,self.registration.scope).pathname===url.pathname;});
+  if(!key)return;
   e.respondWith(caches.open(CACHE).then(function(c){
     return c.match(key).then(function(hit){
       var net = fetch(req, {cache:'no-store'}).then(function(r){

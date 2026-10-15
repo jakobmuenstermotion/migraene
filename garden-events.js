@@ -1,0 +1,2 @@
+// Only opaque entry IDs, their timestamp/deletion flag and authenticated gift counters.
+(function(){var queue=[],listener=null;window.CompanionGardenEvents={startedAt:Date.now(),snapshot:null,ack:function(entries){if(listener)listener('ack',entries);else queue.push(['ack',entries]);},gift:function(counter){if(listener)listener('gift',counter);else queue.push(['gift',counter]);},attach:function(fn){listener=fn;queue.splice(0).forEach(function(e){fn(e[0],e[1]);});}};})();

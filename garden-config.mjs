@@ -1,0 +1,1 @@
+export const GARDEN={journalKey:'mt-garden-actions-v1',plantKey:'mt-garden-plants-v1',gameKey:'mondgarten.companion.save.v1',cooldownMs:10*60*1000,gameURL:'mondgarten/index.html?embedded=1',buttons:[['pain','Kopfschmerz beginnt'],['meal','Gegessen'],['drink','Getrunken'],['move','Sport'],['med','Medikament'],['stomach','Bauch'],['nausea','Übelkeit']]};
