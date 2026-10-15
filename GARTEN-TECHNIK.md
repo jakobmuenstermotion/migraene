@@ -47,3 +47,13 @@ Mit dem bereits erspielten Wert in Geld, getragenen Stapeln, Lager, Transporten 
 Der vollständige Haupt-App-Bericht enthält zwölf bestandene Prüfgruppen. Zusätzlich bestehen zwölf gezielte Buchhaltungs-/Pflanzenprüfungen und die Spielprüfungen. Zwei vollständige Simulationen erreichen alle angebotenen Ausbauten einschließlich Bushaltestelle am geplanten letzten Tag. Es gibt weder unbezahlbare Tagesziele noch neues Einkommen nach abgearbeiteten Vorräten. Details und Grenzen stehen in gartenplanet/BALANCE.md.
 
 Die synthetische Browserprüfung bestätigt ACK-Belohnung, Sperre, Rückgängig, Geschenk, Einlösen von Pflanzenaktionen und das Öffnen des Gartens im Hochformat. Es wurden keine echten Einträge, Nachrichten oder vorhandenen Spielstände verwendet. Keine Prüfung auf einem physischen iPhone.
+
+## Direkte Bedienung auf der Begleitseite
+
+Spielstart und Nachtbesuch liegen ganz unten. Ein Nachtbesuch öffnet den bereits abgeschlossenen Tag und verbraucht keine wartende Gartenaktion. Der nächste Tag wird ausschließlich mit dem Startknopf auf der Begleitseite geöffnet. Ein unterbrochener offener Tag kann dort fortgesetzt werden.
+
+Samen und Gießkanne haben kein zusätzliches Menü. Bei einer Samenbelohnung erscheint die Sortenauswahl oberhalb der Eintragsknöpfe. Nach der Auswahl pflanzt der nächste Klick auf einen freien Knopf den Samen halb in die Erde. Bei einer Gießbelohnung folgt auf den Kauf eine Abschlussanimation; das Spiel kehrt automatisch zurück und die Gießkanne ist ausgewählt. Der nächste Klick auf eine geeignete Pflanze verbraucht genau eine Belohnung und zeigt Tropfen und Wachstum. Nur ein ausdrücklich ausgewählter Pflanzenmodus fängt den Klick vor dem medizinischen Handler ab; Später hebt ihn auf. Nach der Pflanzenaktion sind normale Einträge wieder möglich.
+
+Spiel und Begleitseite prüfen Ursprung und iframe-Fenster bei Nachrichten. Die Abschlussnachricht ist kein Gutschriftbeleg: Der Empfänger liest die bereits gespeicherte, abgeschlossene Runde und deren eindeutige Belohnung. Das Schließen entlädt das iframe nach einer Speicheraufforderung, damit kein unsichtbarer offener Gartentag im Hintergrund weiterläuft.
+
+mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Symbole. Dieselbe Erklärung wird auf den Bauflächen und in den größeren Ausbautexten benutzt. Das Lager ist der gemeinsame Zutatenvorrat der Werkstätten; ohne Werkstatt zunächst nur zusätzlicher Platz. Rohstoffe können auch wieder abgeholt und direkt verkauft werden.
