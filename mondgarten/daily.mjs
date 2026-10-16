@@ -1,3 +1,4 @@
+import { activeFeedback, activateFeedback } from "./day-feedback.mjs";
 import { capacity } from "./core.mjs";
 import { ECONOMY } from "./economy.mjs";
 import {
@@ -12,6 +13,7 @@ import { BEDS, VILLAGE } from "./village-content.mjs";
 function dayBoost(s, total) {
   const base = structuredClone(s);
   base.journey.plan = null;
+  if (base.feedback) base.feedback.active.income = 1;
   // Include the manual bonus and best owned crop, without multiplying the old boost.
   const unit = Math.max(
     ...BEDS.map((_, i) =>
@@ -23,11 +25,15 @@ function dayBoost(s, total) {
   const units =
     (ECONOMY.dailyUnits + Math.min(capacity(s), ECONOMY.dailyBagAllowance)) *
     (1 + s.tools.reach * ECONOMY.dailyReachUnits);
-  return Math.max(Number.MIN_VALUE, total / Math.max(1, units * unit));
+  return Math.max(
+    Number.MIN_VALUE,
+    total / Math.max(1, units * unit) / activeFeedback(s).effort,
+  );
 }
 
 // Quote the complete prerequisite closure, not a prescribed shopping list.
 export function prepareDay(s, tools) {
+  activateFeedback(s);
   const existing = s.journey.plan;
   if (existing?.round === s.journey.round) {
     if (existing.balanceVersion !== ECONOMY.version) {

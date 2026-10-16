@@ -1,3 +1,4 @@
+import {activeFeedback} from './day-feedback.mjs';
 import {normalizeSnailProfile} from './snail-care.mjs';
 import {freshBoutiques,normalizeBoutiques} from './boutiques.mjs';
 import {freshFarm,normalizeFarm,advanceFarm,farmFoodReserve} from './snail-farm.mjs';
@@ -28,7 +29,7 @@ export function normalizeVillage(raw,legacy={}){
 }
 export function stockCount(v){return Object.values(v.raw).reduce((a,b)=>a+b,0);}
 export function storageCapacity(s){return Math.floor(VILLAGE.warehouse.baseCapacity*Math.pow(1.4,s.village.warehouse-1));}
-export function harvestMultiplier(s){return Math.pow(ECONOMY.valueUpgrade,s.tools.value)*(1+s.totalStars*.16)*(1+s.permanent.bloom*.25)*roundYield(s)*(s.journey.plan?.boost??1);}
+export function harvestMultiplier(s){return Math.pow(ECONOMY.valueUpgrade,s.tools.value)*(1+s.totalStars*.16)*(1+s.permanent.bloom*.25)*roundYield(s)*(s.journey.plan?.boost??1)*activeFeedback(s).income;}
 export function bedYield(s,index){return COLLECTIBLES[BEDS[index].crop].value*Math.pow(ECONOMY.bedUpgrade,Math.max(0,s.village.beds[index]-1))*harvestMultiplier(s);}
 export function bedRegrow(s,index){return COLLECTIBLES[BEDS[index].crop].regrowSeconds/Math.min(8,(1+s.village.sprinkler*.15)*(1+Math.max(0,s.village.beds[index]-1)*.035));}
 export function depositRaw(s,id,count,value){const room=Math.max(0,storageCapacity(s)-stockCount(s.village)),accepted=Math.min(count,room);if(accepted<=0)return 0;s.village.raw[id]=(s.village.raw[id]??0)+accepted;s.village.rawValues[id]=(s.village.rawValues[id]??0)+value*accepted/count;return accepted;}
@@ -49,7 +50,7 @@ export function deliverWorkshop(s,w,limit=Infinity){
  if(s.bag<1e-8){s.bag=0;s.bagValue=0;s.cargo={};}return batch;
 }
 export function depositWorkshopSupplies(s,w,cargo){const m=s.village.workshops[w.id];if(!m?.level)return 0;let room=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),total=0;for(const [id,before]of Object.entries(cargo.items)){if(!acceptsIngredient(w,id)||before<=0)continue;const count=Math.min(room,before),value=(cargo.values[id]??0)*count/before;storeIngredient(m,id,count,value);cargo.items[id]-=count;cargo.values[id]-=value;room-=count;total+=count;}return total;}
-export function productionSeconds(s,w){return Math.max(4,w.seconds/Math.pow(1.12,s.village.workshops[w.id].level-1));}
+export function productionSeconds(s,w){return Math.max(4,w.seconds/Math.pow(1.12,s.village.workshops[w.id].level-1))*activeFeedback(s).workshop;}
 export function productValue(s,w){const inputs=Object.entries(w.inputs).reduce((sum,[id,count])=>{const source=WORKSHOPS.find(source=>source.product===id),bed=BEDS.findIndex(b=>b.crop===id);return sum+count*(source?productValue(s,source):bedYield(s,bed)*VILLAGE.manualBonus);},0);return inputs*(1.2+ECONOMY.workshopMarginStep*Math.max(0,s.village.workshops[w.id].level-1));}
 export function productionInputs(s,w){const stock=s.village.workshops[w.id].inputs??{};return [...(w.alternatives??[]),w.inputs].find(inputs=>Object.entries(inputs).every(([id,n])=>(stock[id]??0)>=n-1e-8))??w.inputs;}
 // Production only consumes ingredients already delivered to the workstation.
