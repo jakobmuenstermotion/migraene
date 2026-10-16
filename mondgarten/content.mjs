@@ -83,7 +83,7 @@ export const WORLD = {
     {x:-14,z:-15,columns:21,rows:19,spacing:.8},
     {x:18,z:23,columns:21,rows:15,spacing:.8}
   ],
-  stack:{maxVisible:26,itemsPerLayer:2,layerHeight:.31,width:.95,depth:.64},
+  stack:{maxVisible:26,layerHeight:.31,width:.95,depth:.64},
   camera:{height:31,distance:22,view:27,follow:.065},
   harvest:{cooldown:.14,baseBatch:7},
   selling:{unitsPerSecond:28,minimumDuration:.55},
@@ -99,7 +99,9 @@ export function generateFieldCells(fields=WORLD.fields){
     field:fieldIndex,index:i
   })));
 }
-export function stackLayers(amount,config=WORLD.stack){return amount<=0?0:Math.min(config.maxVisible,Math.ceil(amount/config.itemsPerLayer));}
+export function stackLevels(amount,bagCapacity,config=WORLD.stack){return !Number.isFinite(amount)||!Number.isFinite(bagCapacity)||amount<=0||bagCapacity<=0?0:Math.min(1,amount/bagCapacity)*config.maxVisible;}
+export function stackLayers(amount,bagCapacity,config=WORLD.stack){return Math.ceil(stackLevels(amount,bagCapacity,config));}
+export function stackHeight(amount,bagCapacity,config=WORLD.stack){return stackLevels(amount,bagCapacity,config)*config.layerHeight;}
 export function validateContent(){
   const supportedModels=new Set(['blossom','sprig','crystal','mushroom','fruit','orchard']);
   for(const [id,c]of Object.entries(COLLECTIBLES)){

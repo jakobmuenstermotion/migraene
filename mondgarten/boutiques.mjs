@@ -49,7 +49,8 @@ export const COSMETICS = [
     id: "arch",
     shop: "decor",
     name: "Blütenbogen",
-    round: 30,
+    round: 20,
+    priceRound: 30,
     base: 250000,
     description: "Ein blühender Eingang zum Garten.",
   },
@@ -66,7 +67,8 @@ export const COSMETICS = [
     id: "snailEyes",
     shop: "style",
     name: "Aufsetzbare Schneckenaugen",
-    round: 22,
+    round: 12,
+    priceRound: 22,
     base: 225000,
     description:
       "Ein grüner Haarreif mit zwei lustigen Schneckenaugen auf Fühlern.",
@@ -75,7 +77,8 @@ export const COSMETICS = [
     id: "hat",
     shop: "style",
     name: "Sonnenhut",
-    round: 24,
+    round: 12,
+    priceRound: 24,
     base: 225000,
     description: "Strohhut mit salbeigrünem Band.",
   },
@@ -83,13 +86,42 @@ export const COSMETICS = [
     id: "scarf",
     shop: "style",
     name: "Lavendelschal",
-    round: 28,
+    round: 12,
+    priceRound: 28,
     base: 400000,
     description: "Ein weicher Schal für späte Gartenstunden.",
+  },
+  {
+    id: "mushroomHat",
+    shop: "style",
+    name: "Glühpilzhut",
+    round: 12,
+    priceRound: 1,
+    base: 6000000,
+    description: "Eine leuchtend violette Pilzkappe mit hellen Tupfen.",
+  },
+  {
+    id: "moonCrown",
+    shop: "style",
+    name: "Mondkrone",
+    round: 12,
+    priceRound: 1,
+    base: 50000000,
+    description:
+      "Eine goldene Krone mit Mondsichel – ein besonders großer Wunsch.",
   },
 ];
 const definition = (id) =>
   BOUTIQUES.find((x) => x.id === id) ?? COSMETICS.find((x) => x.id === id);
+export function cosmeticAvailable(s, id) {
+  const d = definition(id);
+  return (
+    !!d &&
+    (d.shop
+      ? s.village.boutiques.built.includes(d.shop)
+      : s.journey.round >= d.round)
+  );
+}
 export const cosmeticPrice = (id) => {
   const d = definition(id);
   return d
@@ -139,10 +171,9 @@ export function contributeCosmetic(s, id, requested) {
     !d ||
     !Number.isFinite(requested) ||
     requested <= 0 ||
-    s.journey.round < d.round ||
+    !cosmeticAvailable(s, id) ||
     b.built.includes(id) ||
-    b.owned.includes(id) ||
-    (d.shop && !b.built.includes(d.shop))
+    b.owned.includes(id)
   )
     return { paid: 0, complete: false };
   const cost = cosmeticPrice(id),

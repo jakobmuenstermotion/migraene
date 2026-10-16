@@ -2,7 +2,7 @@ import {BOUTIQUES} from './boutiques.mjs';
 import {SNAILS} from './snail-farm.mjs';
 import {upgradeInfo} from './upgrade-info.mjs';
 import * as T from './vendor/three.module.js';
-import {GARDENS,WORLD,getCrop,stackLayers,COLLECTIBLES} from './content.mjs';
+import {GARDENS,WORLD,getCrop,stackLevels,COLLECTIBLES} from './content.mjs';
 import {BEDS,WORKSHOPS,PRODUCTS,VILLAGE} from './village-content.mjs';
 import {getBuildPads} from './village.mjs';
 import {cropGrowth} from './harvest.mjs';
@@ -24,6 +24,30 @@ function roundedSlab(w,h,d,r=.12){
 }
 function mergeParts(parts){const positions=[],normals=[];for(const part of parts){const g=part.geometry.index?part.geometry.toNonIndexed():part.geometry.clone();const matrix=new T.Matrix4().compose(new T.Vector3(...(part.position??[0,0,0])),new T.Quaternion().setFromEuler(new T.Euler(...(part.rotation??[0,0,0]))),new T.Vector3(...(part.scale??[1,1,1])));g.applyMatrix4(matrix);positions.push(...g.attributes.position.array);normals.push(...g.attributes.normal.array);g.dispose();}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('normal',new T.Float32BufferAttribute(normals,3));g.computeBoundingSphere();return g;}
 const smallSphere=()=>geo('flowerSphere',()=>new T.SphereGeometry(1,6,4));
+
+// Normalize each raw/product bundle to one layer, so its actual top follows
+// the fill ratio even between whole layers. Keep the mesh count bounded.
+const stackTemplates=new WeakMap();
+function stackBundle(template,height){
+  let variants=stackTemplates.get(template);if(!variants){variants=new Map();stackTemplates.set(template,variants);}
+  if(!variants.has(height)){
+    const root=new T.Group(),scaled=new T.Group(),content=template.clone(true),bounds=new T.Box3().setFromObject(content);
+    content.position.y-=bounds.min.y;scaled.scale.y=height/Math.max(.001,bounds.max.y-bounds.min.y);scaled.add(content);root.add(scaled);variants.set(height,root);
+  }
+  return variants.get(height);
+}
+export function updateStack(actor,template,amount,bagCapacity,{dt=1/60,time=0,moving=false,reducedMotion=false,config=WORLD.stack}={}){
+  if(actor.stackTemplate!==template){actor.stackTemplate=template;actor.stack.clear();actor.layers=[];}
+  const levels=stackLevels(amount,bagCapacity,config),count=Math.ceil(levels);
+  while(actor.layers.length<count){const layer=stackBundle(template,config.layerHeight).clone(true);layer.scale.set(.2,1,.2);actor.stack.add(layer);actor.layers.push(layer);}
+  while(actor.layers.length>count)actor.stack.remove(actor.layers.pop());
+  actor.layers.forEach((layer,i)=>{
+    const sway=reducedMotion?0:Math.sin(time*4-i*.23)*(moving?.09:.018)*(i+1)/Math.max(1,count);
+    layer.position.set(sway*(i+1)*.13,i*config.layerHeight,.015*Math.sin(i));layer.rotation.y=Math.sin(i*2.3)*.06;layer.rotation.z=-sway*.22;
+    const width=T.MathUtils.lerp(layer.scale.x,1,Math.min(1,dt*16));layer.scale.set(width,Math.min(1,levels-i),width);
+  });
+  return levels;
+}
 
 /** Reusable crop shape factories. A new skin normally needs only content.mjs. */
 export const CROP_MODELS={
@@ -92,7 +116,7 @@ export function makeActor(companion=false){
   const smile=geo('actorSmile',()=>new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(-.075,1.20,.312),new T.Vector3(0,1.18,.325),new T.Vector3(.075,1.20,.312)]),14,.009,5,false));mesh(smile,'#a66c59',body);
   const legs=[];for(const x of [-.15,.15]){const leg=mesh(cylinder(.105,.12,.38,7),companion?'#46514a':'#636d56',body,x,.2,0);legs.push(leg);const shoe=mesh(smooth,'#9e8465',leg,0,-.15,.06);shoe.scale.set(.13,.12,.21);}
   for(const side of [-1,1]){const arm=oval(coat,side*.35,.77,.02,.13,.3,.13);arm.rotation.z=side*.2;oval(skin,side*.41,.51,.07,.105,.105,.105);}
-  const accessories={hat:new T.Group(),flower:new T.Group(),scarf:new T.Group(),snailEyes:new T.Group()};for(const [id,g] of Object.entries(accessories)){g.name='accessory:'+id;body.add(g);g.visible=false;}
+  const accessories={hat:new T.Group(),flower:new T.Group(),scarf:new T.Group(),snailEyes:new T.Group(),mushroomHat:new T.Group(),moonCrown:new T.Group()};for(const [id,g] of Object.entries(accessories)){g.name='accessory:'+id;body.add(g);g.visible=false;}
   mesh(cylinder(.48,.48,.045,18),'#dcca9c',accessories.hat,0,1.73,0);mesh(cylinder(.30,.35,.20,14),'#d9c597',accessories.hat,0,1.84,0);mesh(cylinder(.355,.355,.055,14),'#92b4a0',accessories.hat,0,1.77,0);
   for(let i=0;i<5;i++){const a=i*Math.PI*2/5,m=mesh(smooth,'#dfa397',accessories.flower,-.29+Math.cos(a)*.055,1.49+Math.sin(a)*.055,.19);m.scale.set(.045,.045,.025);}mesh(sphere(.032),'#e7c67a',accessories.flower,-.29,1.49,.22);
   mesh(cylinder(.21,.23,.12,12),'#b59acb',accessories.scarf,0,1.075,.02);const scarfEnd=mesh(box(.13,.32,.06),'#b59acb',accessories.scarf,.13,.91,.29);scarfEnd.rotation.z=.18;
@@ -105,6 +129,13 @@ export function makeActor(companion=false){
     mesh(sphere(.042),'#343b36',stalk,0,.57,.145);
     mesh(sphere(.014),'#ffffff',stalk,-.012,.59,.179);
   }
+  const mushroomCap=mesh(geo('actorMushroomCap',()=>new T.SphereGeometry(1,18,10,0,Math.PI*2,0,Math.PI/2)),material('#9270b6',{emissive:'#71518e',emissiveIntensity:.18}),accessories.mushroomHat,0,1.8,0);mushroomCap.scale.set(.55,.34,.55);
+  mesh(cylinder(.53,.53,.035,18),'#eddfc1',accessories.mushroomHat,0,1.79,0);
+  for(const [x,y,z] of [[-.25,2.06,.14],[.20,2.08,.18],[.02,2.12,-.05],[-.12,1.98,.40],[.37,1.98,-.13]]){const spot=mesh(smooth,'#e8e9c5',accessories.mushroomHat,x,y,z);spot.scale.set(.075,.028,.065);}
+  const crownGold=material('#e2be65',{metalness:.4,roughness:.35}),crownBand=mesh(geo('actorCrownBand',()=>new T.TorusGeometry(.31,.042,6,18)),crownGold,accessories.moonCrown,0,1.72,.02);crownBand.rotation.x=Math.PI/2;
+  for(const x of [-.23,0,.23])mesh(cylinder(0,.065,.22,6),crownGold,accessories.moonCrown,x,1.85,.16);
+  const crescent=mesh(geo('actorCrescent',()=>new T.TorusGeometry(.15,.038,6,24,Math.PI*1.45)),crownGold,accessories.moonCrown,0,2.09,.09);crescent.rotation.z=-Math.PI*.725;
+  mesh(geo('actorCrownGem',()=>new T.OctahedronGeometry(.075)),'#ad9dd4',accessories.moonCrown,0,1.76,.30);
   const pack=mesh(roundedSlab(.63,.65,.35,.1),companion?'#8c8968':'#b99a69',body,0,.73,-.34);mesh(box(.1,.7,.05),'#d6bd87',pack,-.19,0,-.18);mesh(box(.1,.7,.05),'#d6bd87',pack,.19,0,-.18);
   return{root,body,stack,legs,walk:0,angle:0,layers:[],setAccessory(id){for(const [key,g]of Object.entries(accessories))g.visible=key===id;}};
 }
@@ -265,7 +296,7 @@ export class GardenScene {
   updateCamera(dt,player){if(player){const factor=1-Math.pow(1-WORLD.camera.follow,dt*60);const targetX=player.x*.9-1.0,targetZ=player.z*.9-1;this.focus.x+=(targetX-this.focus.x)*factor;this.focus.z+=(targetZ-this.focus.z)*factor;}this.camera.position.set(this.focus.x,WORLD.camera.height,this.focus.z+WORLD.camera.distance);this.camera.lookAt(this.focus.x,0,this.focus.z);this.camera.updateMatrixWorld();}
   worldToScreen(x,y,z){const p=new T.Vector3(x,y,z).project(this.camera);return{x:(p.x*.5+.5)*this.width,y:(-.5*p.y+.5)*this.height,visible:p.z>-1&&p.z<1&&Math.abs(p.x)<1.2&&Math.abs(p.y)<1.2};}
   screenToWorld(x,y){this.raycaster.setFromCamera(new T.Vector2(x/this.width*2-1,-y/this.height*2+1),this.camera);const p=this.raycaster.ray.intersectPlane(this.plane,new T.Vector3());return p?{x:p.x,z:p.z}:null;}
-  update(dt,{player,partner,bag,range,time,moving,helpers=0,snails=[],payingPad=null,coins=0,growthTime=time,productID=null}){
+  update(dt,{player,partner,bag,bagCapacity,range,time,moving,helpers=0,snails=[],payingPad=null,coins=0,growthTime=time,productID=null}){
     this.time=time;this.updateCamera(dt,player);this.growthClock+=dt;if(this.growthClock>.09){this.updatePlants(growthTime);this.growthClock=0;}
     if(this.workshopVisuals)for(const [id,visual]of this.workshopVisuals){const w=WORKSHOPS.find(w=>w.id===id),v=this.villageState.village;const raw=Object.values(v.workshops[id].inputs??{}).reduce((sum,n)=>sum+n,0);visual.input.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(raw/6)));visual.output.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(v.finished[w.product]??0)));}
     const bird=this.villageState?.village?.woodcock;if(bird){const visual=this.woodcock;visual.root.visible=bird.unlocked;visual.root.position.set(bird.x,0,bird.z);visual.root.rotation.y=bird.angle??0;visual.body.position.y=this.reducedMotion()?0:bird.moving?Math.abs(Math.sin(time*12))*.07:0;const carried=Object.values(bird.cargo.items).reduce((sum,n)=>sum+n,0)>0;if(carried&&!visual.load.children.length){const bundle=this.bundleTemplate.clone(true);bundle.scale.setScalar(.38);visual.load.add(bundle);}if(!carried)visual.load.clear();}
@@ -275,16 +306,15 @@ export class GardenScene {
       a.angle=T.MathUtils.lerp(a.angle,p.angle??a.angle,Math.min(1,dt*12));a.body.rotation.y=a.angle;a.body.position.y=this.reducedMotion()?0:Math.abs(Math.sin(a.walk))*.055;const sleeping=!i&&this.villageState?.journey?.asleep;a.body.rotation.z=sleeping?Math.PI*.43:0;if(sleeping)a.body.position.y=.05;
       a.legs.forEach((leg,j)=>leg.rotation.x=this.reducedMotion()?0:Math.sin(a.walk+j*Math.PI)*(p.moving?.5:.05));
     }
-    const actor=actors[0];if(actor.productID!==productID){actor.productID=productID;actor.stack.clear();actor.layers=[];}const template=productID?this.productBundle(productID):this.bundleTemplate;const layers=stackLayers(bag),stack=actor.stack;stack.position.set(-Math.sin(actor.angle)*.36,.84,-Math.cos(actor.angle)*.36);
-    while(actor.layers.length<layers){const layer=template.clone(true);stack.add(layer);actor.layers.push(layer);layer.scale.setScalar(.2);}
-    while(actor.layers.length>layers){stack.remove(actor.layers.pop());}
-    actor.layers.forEach((layer,i)=>{const sway=this.reducedMotion()?0:Math.sin(time*4-i*.23)*(moving?.09:.018)*(i+1)/Math.max(1,layers);layer.position.set(sway*(i+1)*.13,i*WORLD.stack.layerHeight,.015*Math.sin(i));layer.rotation.y=Math.sin(i*2.3)*.06;layer.rotation.z=-sway*.22;layer.scale.lerp(new T.Vector3(1,1,1),Math.min(1,dt*16));});this.lastStack=layers;
-    const second=actors[1];if(second.productID!==partner.productID){second.productID=partner.productID;second.stack.clear();second.layers=[];}const secondTemplate=partner.productID?this.productBundle(partner.productID):this.bundleTemplate;const secondLayers=Math.min(9,Math.ceil((partner.bag??0)/6));second.stack.position.set(0,.85,-.35);while(second.layers.length<secondLayers){const layer=secondTemplate.clone(true);second.stack.add(layer);second.layers.push(layer);}while(second.layers.length>secondLayers)second.stack.remove(second.layers.pop());second.layers.forEach((layer,i)=>layer.position.set(0,i*.31,0));
+    const actor=actors[0],template=productID?this.productBundle(productID):this.bundleTemplate;actor.stack.position.set(-Math.sin(actor.angle)*.36,.84,-Math.cos(actor.angle)*.36);
+    const levels=updateStack(actor,template,bag,bagCapacity,{dt,time,moving,reducedMotion:this.reducedMotion()});this.lastStack=levels;
+    const second=actors[1],secondTemplate=partner.productID?this.productBundle(partner.productID):this.bundleTemplate;second.stack.position.set(0,.85,-.35);
+    updateStack(second,secondTemplate,partner.bag??0,VILLAGE.partner.capacity,{dt,time,moving:partner.moving,reducedMotion:this.reducedMotion(),config:{...WORLD.stack,maxVisible:9}});
     this.range.position.set(player.x,.08,player.z);this.range.scale.set(range,range,range);
     this.sweep.position.set(player.x,0,player.z);this.sweep.scale.setScalar(range);this.sweep.rotation.y+=dt*6;this.sweepStrength=Math.max(0,this.sweepStrength-dt*3.8);this.sweepMaterial.opacity=this.reducedMotion()?0:this.sweepStrength*.65;
     this.tool.position.set(player.x,.02,player.z);this.tool.rotation.y=actor.angle+Math.sin(time*7)*.7;this.tool.visible=!this.villageState?.journey?.asleep;
     if(this.bankGem){this.bankGem.rotation.y=time*.6;this.bankGem.position.y=1.48+(this.reducedMotion()?0:Math.sin(time*1.9)*.1);}
-    for(let i=this.flights.length-1;i>=0;i--){const f=this.flights[i];f.age+=dt;const t=Math.min(1,f.age/f.duration),ease=t*t*(3-2*t);const target=f.target??(f.type==='money'?new T.Vector3(player.x+1.05,.45,player.z-.25):f.type==='pickup'?new T.Vector3(player.x,1.1+layers*WORLD.stack.layerHeight,player.z-.35):new T.Vector3(WORLD.bank.x,1.1,WORLD.bank.z-1.3));f.mesh.position.lerpVectors(f.start,target,ease);f.mesh.position.y+=Math.sin(t*Math.PI)*(f.type==='pickup'?1.5:2);f.mesh.rotation.y+=dt*4;if(t>=1){this.scene.remove(f.mesh);this.flights.splice(i,1);}}
+    for(let i=this.flights.length-1;i>=0;i--){const f=this.flights[i];f.age+=dt;const t=Math.min(1,f.age/f.duration),ease=t*t*(3-2*t);const target=f.target??(f.type==='money'?new T.Vector3(player.x+1.05,.45,player.z-.25):f.type==='pickup'?new T.Vector3(player.x,1.1+levels*WORLD.stack.layerHeight,player.z-.35):new T.Vector3(WORLD.bank.x,1.1,WORLD.bank.z-1.3));f.mesh.position.lerpVectors(f.start,target,ease);f.mesh.position.y+=Math.sin(t*Math.PI)*(f.type==='pickup'?1.5:2);f.mesh.rotation.y+=dt*4;if(t>=1){this.scene.remove(f.mesh);this.flights.splice(i,1);}}
     for(let i=this.dust.length-1;i>=0;i--){const d=this.dust[i];d.age+=dt;d.mesh.position.y+=dt*.8;d.mesh.position.x+=dt*d.vx;d.mesh.position.z+=dt*d.vz;d.mesh.rotation.y+=dt*5;d.mesh.scale.setScalar(Math.max(0,1-d.age/d.life));if(d.age>d.life){this.scene.remove(d.mesh);this.dust.splice(i,1);}}
     for(let i=0;i<this.helpers.length;i++){const helper=this.helpers[i],snail=snails[i];helper.root.visible=!!snail;if(snail){helper.upgrade(snail.level??0);helper.setSpecies(snail.species);helper.root.position.set(snail.x,0,snail.z);helper.root.rotation.y=snail.angle;const count=Math.min(3,Math.ceil(snail.bag/4));while(helper.count<count){const load=this.bundleTemplate.clone(true);load.scale.setScalar(.45);load.position.y=helper.count*.14;helper.load.add(load);helper.count++;}while(helper.count>count){helper.load.remove(helper.load.children.at(-1));helper.count--;}}}
     if(this.padVisuals)for(const [id,pad]of this.padVisuals){const active=payingPad?.id===id;pad.edgeMat.opacity=active?.7+Math.sin(time*8)*.3:.55;pad.edgeMat.color.set(active?'#fff2a5':'#fff8cf');const ratio=Math.min(1,(this.villageState.village.payments[id]??0)/pad.cost);pad.fill.scale.x=Math.max(.001,ratio*2);pad.fill.position.x=-1+ratio;}

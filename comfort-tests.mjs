@@ -23,6 +23,7 @@ import {
   BOUTIQUES,
   COSMETICS,
   cosmeticPrice,
+  cosmeticAvailable,
   contributeCosmetic,
   equipCosmetic,
 } from "./mondgarten/boutiques.mjs";
@@ -139,16 +140,14 @@ test("accessories open before farm decorations without repricing existing saving
   assert.equal(s.coins, 0);
 });
 
-test("snail eyes require a built shop and day 22, preserve instalments, and equip independently", () => {
+test("snail eyes are available after shop construction, preserve instalments, and equip independently", () => {
   let s = freshState();
-  s.journey.round = 22;
+  s.journey.round = 12;
   s.coins = 1e7;
   assert.equal(contributeCosmetic(s, "snailEyes", 100).paid, 0);
   s.village.boutiques.built.push("style");
-  s.journey.round = 21;
-  assert.equal(contributeCosmetic(s, "snailEyes", 100).paid, 0);
   assert.equal(equipCosmetic(s, 0, "snailEyes"), false);
-  s.journey.round = 22;
+  s.journey.round = 12;
   assert.deepEqual(contributeCosmetic(s, "snailEyes", 100), {
     paid: 100,
     complete: false,
@@ -165,6 +164,48 @@ test("snail eyes require a built shop and day 22, preserve instalments, and equi
   assert.deepEqual(s.village.boutiques.equipped, ["snailEyes", "snailEyes"]);
   assert.equal(equipCosmetic(s, 0, null), true);
   assert.deepEqual(s.village.boutiques.equipped, [null, "snailEyes"]);
+});
+
+test("every shop article is available after construction, with accessories ordered by savings cost", () => {
+  for (const shop of BOUTIQUES) {
+    let s = freshState();
+    s.journey.round = shop.round;
+    s.coins = 1e9;
+    const articles = COSMETICS.filter((d) => d.shop === shop.id);
+    for (const d of articles) {
+      assert.equal(cosmeticAvailable(s, d.id), false);
+      assert.equal(contributeCosmetic(s, d.id, 100).paid, 0);
+    }
+    assert.equal(contributeCosmetic(s, shop.id, 1e9).complete, true);
+    for (const d of articles) {
+      assert.equal(cosmeticAvailable(s, d.id), true);
+      assert.equal(contributeCosmetic(s, d.id, 100).paid, 100);
+    }
+    s = normalize(JSON.parse(JSON.stringify(s)));
+    for (const d of articles)
+      assert.equal(s.village.boutiques.payments[d.id], 100);
+  }
+  const prices = COSMETICS.filter((d) => d.shop === "style").map((d) =>
+    cosmeticPrice(d.id),
+  );
+  assert.equal(prices.length, 6);
+  assert.ok(prices.every((price, i) => i === 0 || price > prices[i - 1]));
+});
+
+test("both new accessories can be bought, equipped, saved and removed independently", () => {
+  for (const id of ["mushroomHat", "moonCrown"]) {
+    let s = freshState();
+    s.journey.round = 12;
+    s.coins = 1e9;
+    s.village.boutiques.built = ["style"];
+    assert.equal(contributeCosmetic(s, id, 1e9).complete, true);
+    assert.equal(equipCosmetic(s, 0, id), true);
+    assert.equal(equipCosmetic(s, 1, id), true);
+    s = normalize(JSON.parse(JSON.stringify(s)));
+    assert.deepEqual(s.village.boutiques.equipped, [id, id]);
+    assert.equal(equipCosmetic(s, 0, null), true);
+    assert.equal(s.village.boutiques.equipped[1], id);
+  }
 });
 
 test("warnings persist once each, sleep refunds only unfinished daily reward and preserves assets", () => {

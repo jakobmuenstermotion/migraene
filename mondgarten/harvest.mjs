@@ -44,6 +44,6 @@ export function cropGrowth(cell,time){
 
 export function clampWorld(position){const b=WORLD.halfSize-1;position.x=Math.max(-b,Math.min(b,position.x));position.z=Math.max(-b,Math.min(b,position.z));return position;}
 export function inBank(x,z){return Math.hypot(x-WORLD.bank.x,z-WORLD.bank.z)<WORLD.bank.radius;}
-export function visibleStack(amount){return stackLayers(amount);}
+export function visibleStack(amount,bagCapacity){return stackLayers(amount,bagCapacity);}
 
 

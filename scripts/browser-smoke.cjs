@@ -60,7 +60,7 @@ const fs = require("node:fs");
     });
     const s = freshState();
     s.tutorial = 3;
-    s.coins = 10000000;
+    s.coins = 100000000;
     s.journey.round = 50;
     s.village.farm.built = true;
     s.village.farm.discovered = ["garden", "apple"];
@@ -242,12 +242,32 @@ const fs = require("node:fs");
         await p.locator('[data-equip="snailEyes"][data-actor="1"]').innerText()
       ).includes("Ablegen"),
     );
+    for (const id of ["mushroomHat", "moonCrown"])
+      await p.locator(`[data-cosmetic="${id}"]`).last().click();
+    await p.locator('[data-equip="mushroomHat"][data-actor="0"]').click();
+    await p.locator('[data-equip="moonCrown"][data-actor="1"]').click();
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    const newAppearance = await p.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+          .boutiques,
+    );
+    assert.deepEqual(newAppearance.equipped, ["mushroomHat", "moonCrown"]);
+    assert.ok(
+      newAppearance.owned.includes("mushroomHat") &&
+        newAppearance.owned.includes("moonCrown"),
+    );
+    await boutiques();
     await p.locator("#closeModal").click();
     await p.screenshot({ path: "/tmp/mondgarten-boutiques.png" });
     // Render the actual exported character models close up, including both eye stalks.
     const modelVisibility = await p.evaluate(async () => {
       const T = await import("/mondgarten/vendor/three.module.js");
-      const { makeActor } = await import("/mondgarten/scene.js");
+      const { makeActor, updateStack, GardenScene } =
+        await import("/mondgarten/scene.js");
+      const { COLLECTIBLES, WORLD, stackHeight } =
+        await import("/mondgarten/content.mjs");
       const canvas = document.createElement("canvas");
       canvas.id = "accessoryPreview";
       canvas.style.marginTop = "48px";
@@ -269,39 +289,99 @@ const fs = require("node:fs");
       const camera = new T.OrthographicCamera(-1.4, 1.4, 1.45, -1.35, 0.1, 30);
       camera.position.set(0, 1.8, 7);
       camera.lookAt(0, 1.2, 0);
-      const visibility = [false, true].map((companion, i) => {
+      const actors = [false, true].map((companion, i) => {
         const actor = makeActor(companion);
         actor.root.position.x = i ? 0.65 : -0.65;
         actor.root.rotation.y = i ? -0.16 : 0.16;
-        actor.setAccessory("snailEyes");
-        const eyes = actor.body.getObjectByName("accessory:snailEyes");
-        const visible =
-          eyes.visible &&
-          !actor.body.getObjectByName("accessory:hat").visible &&
-          !actor.body.getObjectByName("accessory:flower").visible;
-        actor.setAccessory(null);
-        const removable = !eyes.visible;
-        actor.setAccessory("snailEyes");
         scene.add(actor.root);
-        return { visible, removable };
+        return actor;
       });
+      const ids = ["snailEyes", "mushroomHat", "moonCrown"];
+      const visibility = ids.map((id) =>
+        actors.map((actor) => {
+          actor.setAccessory(id);
+          const group = actor.body.getObjectByName("accessory:" + id);
+          const visible =
+            group.visible &&
+            ["flower", "hat", "scarf", ...ids].every(
+              (other) =>
+                other === id ||
+                !actor.body.getObjectByName("accessory:" + other).visible,
+            );
+          actor.setAccessory(null);
+          const removable = !group.visible;
+          return { visible, removable };
+        }),
+      );
+      const templates = [
+        GardenScene.prototype.makeBundle.call({}, COLLECTIBLES.moonbloom),
+        GardenScene.prototype.makeBundle.call({}, COLLECTIBLES.mushroom),
+        GardenScene.prototype.productBundle.call({}, "bouquet"),
+      ];
+      const stackMeasurements = [];
+      for (const template of templates)
+        for (const cap of [80, 272, 2768]) {
+          const actor = makeActor();
+          for (const amount of [
+            0,
+            1,
+            52,
+            53,
+            cap / 2,
+            cap / 2 + 0.25,
+            cap - 1,
+            cap,
+            cap / 2,
+          ]) {
+            updateStack(actor, template, amount, cap, {
+              dt: 1,
+              reducedMotion: true,
+            });
+            const box = new T.Box3().setFromObject(actor.stack),
+              height = actor.layers.length ? box.max.y - box.min.y : 0;
+            stackMeasurements.push({
+              height,
+              expected: stackHeight(amount, cap),
+              layers: actor.layers.length,
+            });
+          }
+        }
+      canvas.showAccessory = (id) => {
+        actors.forEach((actor) => actor.setAccessory(id));
+        renderer.render(scene, camera);
+      };
+      actors.forEach((actor) => actor.setAccessory("snailEyes"));
       renderer.render(scene, camera);
       canvas.disposePreview = () => renderer.dispose();
-      return visibility;
+      return { visibility, stackMeasurements };
     });
-    assert.deepEqual(modelVisibility, [
-      { visible: true, removable: true },
-      { visible: true, removable: true },
-    ]);
-    await p
-      .locator("#accessoryPreview")
-      .screenshot({ path: "/tmp/mondgarten-snail-eyes.png" });
+    assert.ok(
+      modelVisibility.visibility.flat().every((v) => v.visible && v.removable),
+    );
+    assert.ok(
+      modelVisibility.stackMeasurements.every(
+        (m) => Math.abs(m.height - m.expected) < 1e-8 && m.layers <= 26,
+      ),
+    );
+    for (const [id, name] of [
+      ["snailEyes", "snail-eyes"],
+      ["mushroomHat", "mushroom-hat"],
+      ["moonCrown", "moon-crown"],
+    ]) {
+      await p.evaluate(
+        (id) => document.querySelector("#accessoryPreview").showAccessory(id),
+        id,
+      );
+      await p
+        .locator("#accessoryPreview")
+        .screenshot({ path: `/tmp/mondgarten-${name}.png` });
+    }
     await p.evaluate(() =>
       document.querySelector("#accessoryPreview").disposePreview(),
     );
     await p.locator("#closeModal").click();
     console.log(
-      "Boutiques: construction, saved instalment, decorations, snail-eye purchase and persistent equipment for both actual character models OK",
+      "Boutiques: construction, saved instalment, decorations, all six accessories available after shop construction, new purchases saved, and capacity-scaled stacks match actual mesh heights",
     );
     const importState = async (value) => {
       await p.locator("#gardenMenu").click();
@@ -313,6 +393,52 @@ const fs = require("node:fs");
       });
       await p.locator("#confirmImport").click();
     };
+    const earlyShop = await p.evaluate(() => {
+      const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
+      value.journey.round = 12;
+      value.journey.elapsed = 0;
+      value.journey.plan = null;
+      value.journey.closed = false;
+      value.village.boutiques.owned = [];
+      value.village.boutiques.equipped = [null, null];
+      value.village.boutiques.payments = {};
+      return value;
+    });
+    await importState(earlyShop);
+    await boutiques();
+    for (const id of [
+      "flower",
+      "snailEyes",
+      "hat",
+      "scarf",
+      "mushroomHat",
+      "moonCrown",
+    ]) {
+      assert.equal(
+        await p
+          .locator(`[data-cosmetic="${id}"][data-amount="100"]`)
+          .isEnabled(),
+        true,
+      );
+    }
+    await p.locator("#closeModal").click();
+    await p.evaluate(async () => {
+      const { GardenScene } = await import("/mondgarten/scene.js"),
+        T = await import("/mondgarten/vendor/three.module.js");
+      const original = GardenScene.prototype.update;
+      GardenScene.prototype.update = function (dt, args) {
+        original.call(this, dt, args);
+        const box = new T.Box3().setFromObject(this.actors[0].stack);
+        window.stackProbe = {
+          amount: args.bag,
+          capacity: args.bagCapacity,
+          height: this.actors[0].layers.length ? box.max.y - box.min.y : 0,
+        };
+      };
+      window.stopStackProbe = () => {
+        GardenScene.prototype.update = original;
+      };
+    });
     // Exercise the actual import and save path for a pre-fix day-seven plan.
     const { prepareDay } = await import(
       require("node:url").pathToFileURL(path.join(root, "mondgarten/daily.mjs"))
@@ -329,6 +455,7 @@ const fs = require("node:fs");
     );
     const legacy = freshState();
     legacy.tutorial = 3;
+    legacy.reducedMotion = true;
     legacy.journey.round = 7;
     legacy.journey.goalCost = null;
     legacy.tools = { reach: 2, bag: 3, speed: 2, value: 2 };
@@ -350,6 +477,14 @@ const fs = require("node:fs");
       ]),
     );
     await importState(legacy);
+    await p.waitForFunction(
+      () =>
+        window.stackProbe?.amount === 12 && window.stackProbe?.capacity === 272,
+    );
+    const stackProbe = await p.evaluate(() => window.stackProbe);
+    assert.ok(Math.abs(stackProbe.height - (12 / 272) * 26 * 0.31) < 1e-8);
+    await p.evaluate(() => window.stopStackProbe());
+
     await p.locator("#gardenMenu").click();
     await p.locator("#menuSettings").click();
     await p.locator("#toggleSound").click();
