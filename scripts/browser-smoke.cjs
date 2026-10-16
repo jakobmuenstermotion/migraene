@@ -602,9 +602,33 @@ const fs = require("node:fs");
     assert.equal(sold.village.raw.moonbloom, 17);
     assert.deepEqual(sold.village.snailLoads[0].items, {});
     await p.locator("#closeModal").click();
+    const overflow = structuredClone(sale);
+    overflow.village.workshops.bouquet.level = 1;
+    overflow.village.workshops.bouquet.inputs = { moonbloom: 120 };
+    overflow.village.workshops.bouquet.inputValues = { moonbloom: 240 };
+    overflow.village.finished = { bouquet: 24 };
+    overflow.village.finishedValues = { bouquet: 288 };
+    await p.evaluate(() => {
+      window.logisticsProbe.events = [];
+    });
+    await importState(overflow);
+    await p.waitForFunction(() =>
+      window.logisticsProbe.events.some((e) => e.kind === "snailSale"),
+    );
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const overflowSold = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(overflowSold.coins, 48);
+    assert.equal(overflowSold.village.autoSold, 24);
+    assert.equal(overflowSold.village.workshops.bouquet.inputs.moonbloom, 120);
+    assert.equal(overflowSold.village.raw.moonbloom, 17);
+    await p.locator("#closeModal").click();
     await p.evaluate(() => window.stopLogisticsProbe());
     console.log(
-      "Logistics: direct snail delivery renders transfer, no warehouse teleportation; missing workshop sells carried value at stand and saves once",
+      "Logistics: direct snail delivery renders transfer, no warehouse teleportation; missing or full workshop sells carried value at stand and saves once",
     );
 
     // Exercise the actual import and save path for a pre-fix day-seven plan.

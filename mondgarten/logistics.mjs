@@ -14,9 +14,14 @@ export const cargoCount = (cargo) =>
 export const cargoValue = (cargo) =>
   Object.values(cargo.values).reduce((sum, n) => sum + n, 0);
 
-// A full matching workshop remains the destination: its ingredients must not be sold.
+// Snails may sell overflow; supply haulers retain ingredients for their destination.
 // Recompute every frame so construction and partially delivered legacy loads are safe.
-export function ingredientDestination(s, cargo, actor) {
+export function ingredientDestination(
+  s,
+  cargo,
+  actor,
+  { sellOverflow = false } = {},
+) {
   const id = Object.keys(cargo.items).find((id) => cargo.items[id] > 1e-8);
   if (!id) return null;
   const matches = WORKSHOPS.filter(
@@ -32,6 +37,13 @@ export function ingredientDestination(s, cargo, actor) {
     );
   });
   const workshop = matches[0];
+  if (
+    workshop &&
+    sellOverflow &&
+    workshopStock(s.village.workshops[workshop.id]) >=
+      WORKSHOP_INPUT_CAPACITY - 1e-8
+  )
+    return { kind: "sell", id, overflow: true, ...WORLD.bank };
   return workshop
     ? { kind: "workshop", workshop, ...workshopSpot(workshop, "input") }
     : { kind: "sell", id, ...WORLD.bank };

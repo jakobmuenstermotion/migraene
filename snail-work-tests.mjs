@@ -68,7 +68,7 @@ test("larger helper loads arrive intact after saving mid-transport at both upgra
   }
 });
 
-test("larger loads keep undelivered stock and its value when only part fits at the workshop", () => {
+test("partial workshop delivery preserves the remaining load through saving and sells only its value at the stand", () => {
   let { s, cells, automation } = fullLoad(10);
   const value = automation.snails[0].values.moonbloom;
   const before = WORKSHOP_INPUT_CAPACITY - 10;
@@ -94,21 +94,22 @@ test("larger loads keep undelivered stock and its value when only part fits at t
   automation.snapshot(s);
   s = normalize(JSON.parse(JSON.stringify(s)));
   automation = new GardenAutomation(s);
-  for (let i = 0; i < 30; i++)
+  assert.equal(automation.snails[0].saleCrop, "moonbloom");
+  for (let i = 0; i < 9000 && automation.snails[0].bag > 0; i++)
     automation.update(s, cells, null, 1 / 30, s.journey.growthTime);
-  assert.equal(
-    automation.snails[0].bag,
-    54,
-    "full workshops must retain the remaining load without selling",
-  );
-  s.village.workshops.bouquet.inputs = {};
-  s.village.workshops.bouquet.inputValues = {};
-  automation.update(s, cells, null, 1 / 30, s.journey.growthTime);
   assert.equal(automation.snails[0].bag, 0);
-  assert.equal(workshopStock(s.village.workshops.bouquet), 54);
+  assert.equal(
+    workshopStock(s.village.workshops.bouquet),
+    WORKSHOP_INPUT_CAPACITY,
+  );
+  assert.ok(Math.abs(s.coins - (value * 54) / 64) < 1e-8);
   assert.ok(
     Math.abs(
-      s.village.workshops.bouquet.inputValues.moonbloom - (value * 54) / 64,
+      s.village.workshops.bouquet.inputValues.moonbloom -
+        before -
+        (value * 10) / 64,
     ) < 1e-8,
   );
+  assert.equal(s.village.autoSold, 54);
+  assert.equal(stockCount(s.village), 0);
 });

@@ -37,7 +37,12 @@ function walk(actor, target, speed, dt) {
   return d < Math.max(0.2, speed * dt);
 }
 function deliverIngredients(s, actor, cargo, speed, dt, events, saleKind) {
-  const target = ingredientDestination(s, cargo, actor);
+  const snail = saleKind === "snailSale";
+  const target =
+    snail && actor.saleCrop && cargo.items[actor.saleCrop] > 1e-8
+      ? { kind: "sell", id: actor.saleCrop, ...WORLD.bank }
+      : ingredientDestination(s, cargo, actor, { sellOverflow: snail });
+  if (snail && target?.overflow) actor.saleCrop = target.id;
   if (!target || !walk(actor, target, speed, dt)) return;
   if (target.kind === "workshop") {
     const count = depositWorkshopSupplies(s, target.workshop, cargo);
@@ -49,6 +54,9 @@ function deliverIngredients(s, actor, cargo, speed, dt, events, saleKind) {
         to: { x: target.workshop.x, z: target.workshop.z },
         count,
       });
+    const next =
+      snail && ingredientDestination(s, cargo, actor, { sellOverflow: true });
+    if (next?.overflow) actor.saleCrop = next.id;
   } else {
     const count = cargo.items[target.id],
       value = cargo.values[target.id] ?? 0;
@@ -57,6 +65,7 @@ function deliverIngredients(s, actor, cargo, speed, dt, events, saleKind) {
     delete cargo.items[target.id];
     delete cargo.values[target.id];
     events.push({ kind: saleKind, value, count });
+    if (snail) actor.saleCrop = null;
   }
 }
 export class GardenAutomation {
@@ -96,6 +105,7 @@ export class GardenAutomation {
         bag: Object.values(items).reduce((a, b) => a + b, 0),
         timer: 0,
         mode: load?.mode ?? "graze",
+        saleCrop: load?.saleCrop ?? null,
       });
     }
     this.snails.length = s.village.snails;
@@ -113,6 +123,7 @@ export class GardenAutomation {
       items: { ...a.items },
       values: { ...a.values },
       mode: a.mode,
+      saleCrop: a.saleCrop,
     }));
   }
   update(s, cells, player, dt, time) {

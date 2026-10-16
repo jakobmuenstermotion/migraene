@@ -109,29 +109,35 @@ test("new construction redirects an in-flight sale to the workshop; mixed legacy
   assert.deepEqual(s.village.raw, {});
 });
 
-test("a full workshop holds a snail load without selling; menus cannot deliver or sell at zero elapsed time", () => {
-  const s = loaded(),
-    w = WORKSHOPS[0],
-    m = s.village.workshops.bouquet;
-  m.level = 1;
-  m.inputs.moonbloom = WORKSHOP_INPUT_CAPACITY;
-  m.inputValues.moonbloom = 240;
-  const automation = new GardenAutomation(s);
-  Object.assign(automation.snails[0], workshopSpot(w, "input"));
-  for (let i = 0; i < 100; i++) automation.update(s, [], null, 0.1, 0);
-  assert.equal(automation.snails[0].bag, 24);
+test("full workshop overflow goes to the stand; the sale survives reload and new room, while zero elapsed time pauses it", () => {
+  let s = loaded();
+  const w = WORKSHOPS[0];
+  s.village.workshops.bouquet.level = 1;
+  s.village.workshops.bouquet.inputs.moonbloom = WORKSHOP_INPUT_CAPACITY;
+  s.village.workshops.bouquet.inputValues.moonbloom = 240;
+  let a = new GardenAutomation(s);
+  Object.assign(a.snails[0], workshopSpot(w, "input"));
+  a.update(s, [], null, 0.1, 0);
+  assert.equal(a.snails[0].saleCrop, "moonbloom");
+  assert.equal(a.snails[0].bag, 24);
   assert.equal(s.coins, 0);
-  m.inputs = {};
-  m.inputValues = {};
-  assert.deepEqual(automation.update(s, [], null, 0, 0), []);
-  assert.equal(automation.snails[0].bag, 24);
-  automation.update(s, [], null, 0.1, 0);
-  assert.equal(m.inputs.moonbloom, 24);
-  const selling = loaded(),
-    a = new GardenAutomation(selling);
+  a.snapshot(s);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  a = new GardenAutomation(s);
+  // Finishing the chosen trip avoids oscillation when production frees a slot.
+  s.village.workshops.bouquet.inputs = {};
+  s.village.workshops.bouquet.inputValues = {};
   Object.assign(a.snails[0], WORLD.bank);
-  a.update(selling, [], null, 0, 0);
-  assert.equal(selling.coins, 0);
+  assert.deepEqual(a.update(s, [], null, 0, 0), []);
+  assert.equal(s.coins, 0);
+  assert.equal(a.snails[0].bag, 24);
+  a.update(s, [], null, 0.1, 0);
+  near(s.coins, 48);
+  assert.equal(a.snails[0].bag, 0);
+  assert.deepEqual(s.village.raw, {});
+  assert.equal(workshopStock(s.village.workshops.bouquet), 0);
+  a.update(s, [], null, 0.1, 0);
+  near(s.coins, 48);
 });
 
 test("player deposits stay in storage during production and offline time; Schnecki must physically pick up and deliver", () => {
@@ -252,4 +258,31 @@ test("woodcock also carries intermediate ingredients, preserves house reserves a
   assert.equal(s.village.workshops.elixir.inputs.tea, 1);
   near(s.village.workshops.elixir.inputValues.tea, 20);
   assert.deepEqual(s.village.raw, {});
+});
+
+test("a saved overflow trip sells only the chosen crop even when normalization reorders a mixed load", () => {
+  let s = loaded(
+    { lavender: 8, moonbloom: 24 },
+    { lavender: 32, moonbloom: 48 },
+  );
+  s.village.workshops.tea.level = 1;
+  s.village.workshops.bouquet.level = 1;
+  s.village.workshops.tea.inputs.lavender = WORKSHOP_INPUT_CAPACITY;
+  s.village.workshops.tea.inputValues.lavender = 240;
+  let a = new GardenAutomation(s);
+  a.update(s, [], null, 0.1, 0);
+  assert.equal(a.snails[0].saleCrop, "lavender");
+  a.snapshot(s);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  a = new GardenAutomation(s);
+  assert.equal(Object.keys(a.snails[0].items)[0], "moonbloom");
+  Object.assign(a.snails[0], WORLD.bank);
+  a.update(s, [], null, 0.1, 0);
+  near(s.coins, 32);
+  assert.equal(a.snails[0].bag, 24);
+  Object.assign(a.snails[0], workshopSpot(WORKSHOPS[0], "input"));
+  a.update(s, [], null, 0.1, 0);
+  assert.equal(s.village.workshops.bouquet.inputs.moonbloom, 24);
+  near(s.coins, 32);
+  assert.equal(a.snails[0].bag, 0);
 });
