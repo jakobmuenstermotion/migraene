@@ -56,12 +56,12 @@ Die Logiktests prüfen außerdem seltene Pflanzen, den Tag-7-Verkauf mit mehrere
 
 - Werkstätten brauchen 12/16/20/26 Sekunden Grundzeit, mit Verbesserungen mindestens vier Sekunden. Zutaten werden tatsächlich verbraucht, bei zusammengesetzten Rezepten auch zuvor hergestellte Produkte. Der Zutatenwert wächst bei Verarbeitung um 20 % plus zwei Prozentpunkte je weiterer Werkstattstufe. Die Hausabschnitte benötigen vier Sträuße, vier Tees und drei Öle.
 - Nachtproduktion verarbeitet nur vorhandene Zutaten: höchstens zwölf simulierte Produktionssekunden je längerer Pause. Es gibt kein Offline-Ernten oder automatisches Offline-Geld. Farmaufzucht erhält unabhängig davon höchstens 90 Sekunden Pflegefortschritt pro Pause.
-- Helferschnecken lassen Pflanzen innerhalb von acht Welteinheiten um die Figur für deren eigene Ernte stehen. Außerhalb arbeiten sie weiter.
+- Helferschnecken lassen Pflanzen innerhalb von acht Welteinheiten um die Figur für deren eigene Ernte stehen. Außerhalb arbeiten sie weiter. Gekaufte Sonnenhüte, Glühpilzhüte und Mondkronen können ihnen einzeln oder gemeinsam aufgesetzt werden. Das kostet keine weitere Währung und hat keinen Einfluss auf Ernte, Laufgeschwindigkeit, Tragkraft oder Ablieferung. Die gemessenen Beispielraten und genauen Arbeitsregeln stehen in GARTEN-TECHNIK.md.
 - Zusätzliche Ausbaustufen sind bis zu drei Runden früher verfügbar, zum ursprünglichen Preis. Erstkäufe bleiben zeitlich unverändert: Farm 18, Waldschnepfe 32, Obstgarten 47. Freiwillige Käufe bleiben nach dem Pflanzenkauf bis zum Einschlafen möglich.
 - Warnungen erscheinen nach 8:00 und 9:00 Minuten, Einschlafen folgt nach 10:00. Menüs, versteckte Tabs und Abwesenheit zählen nicht mit. Bei verpasstem Abschluss wird nur dessen unvollständige Anzahlung erstattet. Bereits erworbene Pflanzenbelohnungen bleiben erhalten.
 
 ```sh
-node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs garden-ledger-tests.mjs
+node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs snail-hat-tests.mjs garden-ledger-tests.mjs
 node scripts/balance.mjs
 node scripts/balance.mjs --cosmetics
 node scripts/balance.mjs --choices

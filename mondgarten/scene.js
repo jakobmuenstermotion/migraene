@@ -74,6 +74,19 @@ function blob(parent,x,z,scale=1,opacity=.5){const mat=new T.MeshBasicMaterial({
 
 function makeWoodcock(){const root=new T.Group(),body=new T.Group();root.add(body);blob(root,0,0,1.2,.45);const belly=mesh(sphere(1),'#ac8965',body,0,.52,0);belly.scale.set(.38,.4,.55);const head=mesh(sphere(.24),'#967658',body,0,.95,.3);for(const x of [-.13,.13])mesh(sphere(.035),'#3f352f',body,x,1,.47);const beak=mesh(new T.ConeGeometry(.045,.65,6),'#b4926c',body,0,.91,.82);beak.rotation.x=Math.PI/2;for(const side of [-1,1]){const wing=mesh(sphere(1),'#735c49',body,side*.28,.65,-.08);wing.scale.set(.13,.26,.4);for(let i=0;i<3;i++){const stripe=mesh(box(.035,.035,.4),'#d0ae84',body,side*.37,.53+i*.1,-.08);stripe.rotation.x=-.25;}mesh(cylinder(.025,.035,.3,5),'#ae9473',body,side*.13,.15,.05);}const load=new T.Group();load.position.set(0,1.02,-.12);root.add(load);return{root,body,load};}
 
+function makeHatModels(){
+  const accessories={hat:new T.Group(),mushroomHat:new T.Group(),moonCrown:new T.Group()},smooth=geo('actorSmooth',()=>new T.SphereGeometry(1,18,12));
+  mesh(cylinder(.48,.48,.045,18),'#dcca9c',accessories.hat,0,1.73,0);mesh(cylinder(.30,.35,.20,14),'#d9c597',accessories.hat,0,1.84,0);mesh(cylinder(.355,.355,.055,14),'#92b4a0',accessories.hat,0,1.77,0);
+  const mushroomCap=mesh(geo('actorMushroomCap',()=>new T.SphereGeometry(1,18,10,0,Math.PI*2,0,Math.PI/2)),material('#9270b6',{emissive:'#71518e',emissiveIntensity:.18}),accessories.mushroomHat,0,1.8,0);mushroomCap.scale.set(.55,.34,.55);
+  mesh(cylinder(.53,.53,.035,18),'#eddfc1',accessories.mushroomHat,0,1.79,0);
+  for(const [x,y,z] of [[-.25,2.06,.14],[.20,2.08,.18],[.02,2.12,-.05],[-.12,1.98,.40],[.37,1.98,-.13]]){const spot=mesh(smooth,'#e8e9c5',accessories.mushroomHat,x,y,z);spot.scale.set(.075,.028,.065);}
+  const crownGold=material('#e2be65',{metalness:.4,roughness:.35}),crownBand=mesh(geo('actorCrownBand',()=>new T.TorusGeometry(.31,.042,6,18)),crownGold,accessories.moonCrown,0,1.72,.02);crownBand.rotation.x=Math.PI/2;
+  for(const x of [-.23,0,.23])mesh(cylinder(0,.065,.22,6),crownGold,accessories.moonCrown,x,1.85,.16);
+  const crescent=mesh(geo('actorCrescent',()=>new T.TorusGeometry(.15,.038,6,24,Math.PI*1.45)),crownGold,accessories.moonCrown,0,2.09,.09);crescent.rotation.z=-Math.PI*.725;
+  mesh(geo('actorCrownGem',()=>new T.OctahedronGeometry(.075)),'#ad9dd4',accessories.moonCrown,0,1.76,.30);
+  return accessories;
+}
+
 export function makeActor(companion=false){
   const root=new T.Group(),body=new T.Group(),stack=new T.Group();root.add(body,stack);
   root.userData.character=companion?'Schnecki':'Hauptfigur';
@@ -116,8 +129,8 @@ export function makeActor(companion=false){
   const smile=geo('actorSmile',()=>new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(-.075,1.20,.312),new T.Vector3(0,1.18,.325),new T.Vector3(.075,1.20,.312)]),14,.009,5,false));mesh(smile,'#a66c59',body);
   const legs=[];for(const x of [-.15,.15]){const leg=mesh(cylinder(.105,.12,.38,7),companion?'#46514a':'#636d56',body,x,.2,0);legs.push(leg);const shoe=mesh(smooth,'#9e8465',leg,0,-.15,.06);shoe.scale.set(.13,.12,.21);}
   for(const side of [-1,1]){const arm=oval(coat,side*.35,.77,.02,.13,.3,.13);arm.rotation.z=side*.2;oval(skin,side*.41,.51,.07,.105,.105,.105);}
-  const accessories={hat:new T.Group(),flower:new T.Group(),scarf:new T.Group(),snailEyes:new T.Group(),mushroomHat:new T.Group(),moonCrown:new T.Group()};for(const [id,g] of Object.entries(accessories)){g.name='accessory:'+id;body.add(g);g.visible=false;}
-  mesh(cylinder(.48,.48,.045,18),'#dcca9c',accessories.hat,0,1.73,0);mesh(cylinder(.30,.35,.20,14),'#d9c597',accessories.hat,0,1.84,0);mesh(cylinder(.355,.355,.055,14),'#92b4a0',accessories.hat,0,1.77,0);
+  const accessories={...makeHatModels(),flower:new T.Group(),scarf:new T.Group(),snailEyes:new T.Group()};for(const [id,g] of Object.entries(accessories)){g.name='accessory:'+id;body.add(g);g.visible=false;}
+
   for(let i=0;i<5;i++){const a=i*Math.PI*2/5,m=mesh(smooth,'#dfa397',accessories.flower,-.29+Math.cos(a)*.055,1.49+Math.sin(a)*.055,.19);m.scale.set(.045,.045,.025);}mesh(sphere(.032),'#e7c67a',accessories.flower,-.29,1.49,.22);
   mesh(cylinder(.21,.23,.12,12),'#b59acb',accessories.scarf,0,1.075,.02);const scarfEnd=mesh(box(.13,.32,.06),'#b59acb',accessories.scarf,.13,.91,.29);scarfEnd.rotation.z=.18;
   const eyeBand=mesh(geo('snailEyeBand',()=>new T.TorusGeometry(.30,.035,6,18)),'#8faa73',accessories.snailEyes,0,1.70,.02);eyeBand.rotation.x=Math.PI/2;
@@ -129,17 +142,10 @@ export function makeActor(companion=false){
     mesh(sphere(.042),'#343b36',stalk,0,.57,.145);
     mesh(sphere(.014),'#ffffff',stalk,-.012,.59,.179);
   }
-  const mushroomCap=mesh(geo('actorMushroomCap',()=>new T.SphereGeometry(1,18,10,0,Math.PI*2,0,Math.PI/2)),material('#9270b6',{emissive:'#71518e',emissiveIntensity:.18}),accessories.mushroomHat,0,1.8,0);mushroomCap.scale.set(.55,.34,.55);
-  mesh(cylinder(.53,.53,.035,18),'#eddfc1',accessories.mushroomHat,0,1.79,0);
-  for(const [x,y,z] of [[-.25,2.06,.14],[.20,2.08,.18],[.02,2.12,-.05],[-.12,1.98,.40],[.37,1.98,-.13]]){const spot=mesh(smooth,'#e8e9c5',accessories.mushroomHat,x,y,z);spot.scale.set(.075,.028,.065);}
-  const crownGold=material('#e2be65',{metalness:.4,roughness:.35}),crownBand=mesh(geo('actorCrownBand',()=>new T.TorusGeometry(.31,.042,6,18)),crownGold,accessories.moonCrown,0,1.72,.02);crownBand.rotation.x=Math.PI/2;
-  for(const x of [-.23,0,.23])mesh(cylinder(0,.065,.22,6),crownGold,accessories.moonCrown,x,1.85,.16);
-  const crescent=mesh(geo('actorCrescent',()=>new T.TorusGeometry(.15,.038,6,24,Math.PI*1.45)),crownGold,accessories.moonCrown,0,2.09,.09);crescent.rotation.z=-Math.PI*.725;
-  mesh(geo('actorCrownGem',()=>new T.OctahedronGeometry(.075)),'#ad9dd4',accessories.moonCrown,0,1.76,.30);
   const pack=mesh(roundedSlab(.63,.65,.35,.1),companion?'#8c8968':'#b99a69',body,0,.73,-.34);mesh(box(.1,.7,.05),'#d6bd87',pack,-.19,0,-.18);mesh(box(.1,.7,.05),'#d6bd87',pack,.19,0,-.18);
   return{root,body,stack,legs,walk:0,angle:0,layers:[],setAccessory(id){for(const [key,g]of Object.entries(accessories))g.visible=key===id;}};
 }
-function makeSnail(index){
+export function makeSnail(index){
   const root=new T.Group(),load=new T.Group();blob(root,0,0,2.1,.4);
   const smooth=geo('snailSmooth',()=>new T.SphereGeometry(1,20,14)),cream='#ecd5af';
   const body=mesh(smooth,cream,root,0,.22,0);body.scale.set(.42,.22,.78);
@@ -149,11 +155,13 @@ function makeSnail(index){
   mesh(geo('snailSpiral',()=>new T.TubeGeometry(new T.CatmullRomCurve3(points),65,.032,7,false)),'#8e78b1',root);
   for(const x of [-.2,.2]){const stalk=mesh(cylinder(.028,.04,.34,8),cream,root,x,.94,.61);stalk.rotation.z=x*.6;mesh(sphere(.075),cream,root,x*1.18,1.11,.62);mesh(sphere(.043),'#554534',root,x*1.18,1.12,.682);mesh(sphere(.014),'#fffef2',root,x*1.18-.012,1.136,.719);const cheek=mesh(sphere(.07),'#eaa99e',root,x,.44,.845);cheek.scale.set(1,.5,.3);}
   const smile=new T.CatmullRomCurve3([new T.Vector3(-.075,.47,.87),new T.Vector3(0,.43,.89),new T.Vector3(.075,.47,.87)]);mesh(geo('snailSmile',()=>new T.TubeGeometry(smile,12,.012,5,false)),'#785e4f',root);
-  const leaf=new T.Group();root.add(leaf);const hat=mesh(smooth,'#98b07f',leaf,0,1.19,.54);hat.scale.set(.33,.055,.18);hat.rotation.z=.25;
+  const leaf=new T.Group();leaf.name='snail-default-leaf';root.add(leaf);const hat=mesh(smooth,'#98b07f',leaf,0,1.19,.54);hat.scale.set(.33,.055,.18);hat.rotation.z=.25;
   const flowers=new T.Group();root.add(flowers);for(let j=0;j<5;j++){const a=j*1.25;const f=mesh(sphere(.10),j%2?'#f4d3a1':'#e6cee9',flowers,Math.cos(a)*.33,1.17+Math.sin(a)*.08,-.19+Math.sin(a)*.21);f.scale.y=.6;mesh(sphere(.038),'#e2bd6e',flowers,f.position.x,f.position.y+.06,f.position.z);}
+  const hats=makeHatModels(),hatRoot=new T.Group();hatRoot.position.set(0,.10,.55);hatRoot.scale.setScalar(.65);root.add(hatRoot);let currentHat=null,upgradeLevel=0;
+  for(const [id,model]of Object.entries(hats)){model.name='snail-hat:'+id;model.visible=false;hatRoot.add(model);}
   const cart=new T.Group();cart.position.set(0,0,-1.18);root.add(cart);mesh(roundedSlab(.83,.27,.65,.08),'#bc996f',cart,0,.35,0);for(const x of [-.43,.43]){const wheel=mesh(cylinder(.17,.17,.07,12),'#8d765a',cart,x,.22,0);wheel.rotation.z=Math.PI/2;}mesh(box(.06,.06,.65),'#a98c65',cart,0,.25,.5);
   load.position.set(0,1.23,-.15);root.add(load);
-  return{root,load,count:0,setSpecies(id){shell.material.color.set(SNAILS.find(n=>n.id===id)?.color??['#b69bda','#d9ba94','#a9c9b1'][index%3]);},upgrade(level){leaf.visible=level>=2;flowers.visible=level>=4;cart.visible=level>=6;load.position.set(0,level>=6?.57:1.23,level>=6?-1.18:-.15);}};
+  return{root,load,count:0,setHat(id){currentHat=Object.hasOwn(hats,id)?id:null;for(const [key,model]of Object.entries(hats))model.visible=key===currentHat;leaf.visible=upgradeLevel>=2&&!currentHat;},setSpecies(id){shell.material.color.set(SNAILS.find(n=>n.id===id)?.color??['#b69bda','#d9ba94','#a9c9b1'][index%3]);},upgrade(level){upgradeLevel=level;leaf.visible=level>=2&&!currentHat;flowers.visible=level>=4;cart.visible=level>=6;load.position.set(0,level>=6?.57:1.23,level>=6?-1.18:-.15);}};
 }
 
 export class GardenScene {
@@ -316,7 +324,7 @@ export class GardenScene {
     if(this.bankGem){this.bankGem.rotation.y=time*.6;this.bankGem.position.y=1.48+(this.reducedMotion()?0:Math.sin(time*1.9)*.1);}
     for(let i=this.flights.length-1;i>=0;i--){const f=this.flights[i];f.age+=dt;const t=Math.min(1,f.age/f.duration),ease=t*t*(3-2*t);const target=f.target??(f.type==='money'?new T.Vector3(player.x+1.05,.45,player.z-.25):f.type==='pickup'?new T.Vector3(player.x,1.1+levels*WORLD.stack.layerHeight,player.z-.35):new T.Vector3(WORLD.bank.x,1.1,WORLD.bank.z-1.3));f.mesh.position.lerpVectors(f.start,target,ease);f.mesh.position.y+=Math.sin(t*Math.PI)*(f.type==='pickup'?1.5:2);f.mesh.rotation.y+=dt*4;if(t>=1){this.scene.remove(f.mesh);this.flights.splice(i,1);}}
     for(let i=this.dust.length-1;i>=0;i--){const d=this.dust[i];d.age+=dt;d.mesh.position.y+=dt*.8;d.mesh.position.x+=dt*d.vx;d.mesh.position.z+=dt*d.vz;d.mesh.rotation.y+=dt*5;d.mesh.scale.setScalar(Math.max(0,1-d.age/d.life));if(d.age>d.life){this.scene.remove(d.mesh);this.dust.splice(i,1);}}
-    for(let i=0;i<this.helpers.length;i++){const helper=this.helpers[i],snail=snails[i];helper.root.visible=!!snail;if(snail){helper.upgrade(snail.level??0);helper.setSpecies(snail.species);helper.root.position.set(snail.x,0,snail.z);helper.root.rotation.y=snail.angle;const count=Math.min(3,Math.ceil(snail.bag/4));while(helper.count<count){const load=this.bundleTemplate.clone(true);load.scale.setScalar(.45);load.position.y=helper.count*.14;helper.load.add(load);helper.count++;}while(helper.count>count){helper.load.remove(helper.load.children.at(-1));helper.count--;}}}
+    for(let i=0;i<this.helpers.length;i++){const helper=this.helpers[i],snail=snails[i];helper.root.visible=!!snail;if(snail){helper.setHat(snail.hat);helper.upgrade(snail.level??0);helper.setSpecies(snail.species);helper.root.position.set(snail.x,0,snail.z);helper.root.rotation.y=snail.angle;const count=Math.min(3,Math.ceil(snail.bag/4));while(helper.count<count){const load=this.bundleTemplate.clone(true);load.scale.setScalar(.45);load.position.y=helper.count*.14;helper.load.add(load);helper.count++;}while(helper.count>count){helper.load.remove(helper.load.children.at(-1));helper.count--;}}}
     if(this.padVisuals)for(const [id,pad]of this.padVisuals){const active=payingPad?.id===id;pad.edgeMat.opacity=active?.7+Math.sin(time*8)*.3:.55;pad.edgeMat.color.set(active?'#fff2a5':'#fff8cf');const ratio=Math.min(1,(this.villageState.village.payments[id]??0)/pad.cost);pad.fill.scale.x=Math.max(.001,ratio*2);pad.fill.position.x=-1+ratio;}
     if(this.destinationRing.visible){this.destinationRing.scale.setScalar(1+Math.sin(time*5)*.1);}
     this.moneyGlow=Math.max(0,this.moneyGlow-dt*.25);this.moneyRing.position.set(player.x,0,player.z);const coinCount=coins>0?Math.min(42,Math.max(1,Math.ceil(Math.log10(1+coins)*5))):0;this.moneyCoins.forEach((coin,i)=>{coin.visible=i<coinCount;const column=i%3,layer=Math.floor(i/3);coin.position.set(.95+column*.21,.14+layer*.064+this.moneyGlow*.035,-.25+(column%2)*.16);coin.rotation.y=column*.7+layer*.13;});

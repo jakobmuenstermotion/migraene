@@ -113,6 +113,7 @@ export const COSMETICS = [
 ];
 const definition = (id) =>
   BOUTIQUES.find((x) => x.id === id) ?? COSMETICS.find((x) => x.id === id);
+export const SNAIL_HATS = ["hat", "mushroomHat", "moonCrown"];
 export function cosmeticAvailable(s, id) {
   const d = definition(id);
   return (
@@ -135,6 +136,7 @@ export const freshBoutiques = () => ({
   owned: [],
   payments: {},
   equipped: [null, null],
+  snailHats: [],
 });
 export function normalizeBoutiques(raw) {
   const b = freshBoutiques();
@@ -162,7 +164,27 @@ export function normalizeBoutiques(raw) {
     )
       b.equipped[i] = id;
   }
+  b.snailHats = Array.isArray(raw?.snailHats)
+    ? raw.snailHats
+        .slice(0, 12)
+        .map((id) =>
+          SNAIL_HATS.includes(id) && b.owned.includes(id) ? id : null,
+        )
+    : [];
   return b;
+}
+export function equipSnailHat(s, index, id) {
+  const b = s.village.boutiques;
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= Math.min(12, s.village.snails) ||
+    (id !== null && (!SNAIL_HATS.includes(id) || !b.owned.includes(id)))
+  )
+    return false;
+  while (b.snailHats.length < s.village.snails) b.snailHats.push(null);
+  b.snailHats[index] = id;
+  return true;
 }
 export function contributeCosmetic(s, id, requested) {
   const d = definition(id),

@@ -1,5 +1,5 @@
 import {DAY_RHYTHM,advanceDayRhythm} from './day-rhythm.mjs';
-import {BOUTIQUES,COSMETICS,cosmeticPrice,cosmeticAvailable,contributeCosmetic,equipCosmetic} from './boutiques.mjs';
+import {BOUTIQUES,COSMETICS,cosmeticPrice,cosmeticAvailable,contributeCosmetic,equipCosmetic,SNAIL_HATS,equipSnailHat} from './boutiques.mjs';
 import {SNAILS,FARM,advanceFarm,discoverShell,moveShellToFarm,makeSnailFood,feedSnail,releaseSnail,farmHelperLimit} from './snail-farm.mjs';
 import {WOODCOCK_TASKS} from './woodcock.mjs';
 import {upgradeInfo} from './upgrade-info.mjs';
@@ -143,10 +143,29 @@ function openBoutiques(){
  const b=state.village.boutiques;
  let html=title('KLEINE WÜNSCHE BLEIBEN','Eure Gartenläden.','Teurere Läden baut ihr einmal. Danach könnt ihr immer wieder etwas für Deko oder Accessoires einzahlen. Im fertigen Laden sind alle Artikel sofort verfügbar. Große Wünsche kosten mehr. Jede Anzahlung bleibt über Tage und Pausen erhalten. Alles ist freiwillig und verändert eure Erträge nicht.');
  const funding=(d,construction=false)=>{const paid=b.payments[d.id]??0,cost=cosmeticPrice(d.id),locked=!cosmeticAvailable(state,d.id);return `<article class="upgrade-card"><h3>${esc(d.name)}${construction?' · Laden bauen':''}</h3><p>${esc(d.description)}</p><p>${locked?'Ab Gartentag '+d.round:format(paid)+' / '+format(cost)+' ✧ angespart'}</p>${locked?'':`<progress max="${cost}" value="${paid}" aria-label="${esc(d.name)} angespart"></progress><div class="settings-row">${[100,1000].map(n=>`<button class="modal-action secondary" data-cosmetic="${d.id}" data-amount="${n}" ${state.coins<=0?'disabled':''}>Bis zu ${format(n)} ✧</button>`).join('')}</div><button class="modal-action secondary" data-cosmetic="${d.id}" data-amount="${cost-paid}" ${state.coins<=0?'disabled':''}>Rest einzahlen · ${format(cost-paid)} ✧</button>`}</article>`;};
- for(const shop of BOUTIQUES){if(!b.built.includes(shop.id)){html+=funding(shop,true);continue;}html+='<h3>'+esc(shop.name)+' · Gebaut ✓</h3>';for(const d of COSMETICS.filter(d=>d.shop===shop.id)){if(!b.owned.includes(d.id)){html+=funding(d);continue;}html+=`<article class="upgrade-card"><h3>${esc(d.name)} ✓</h3><p>${esc(d.description)}</p>${d.shop==='decor'?'<p>Steht in eurem Garten.</p>':[0,1].map(i=>`<button class="modal-action secondary" data-equip="${d.id}" data-actor="${i}">${esc(state.names[i])}: ${b.equipped[i]===d.id?'Ablegen':'Anziehen'}</button>`).join('')}</article>`;}}
+ for(const shop of BOUTIQUES){if(!b.built.includes(shop.id)){html+=funding(shop,true);continue;}html+='<h3>'+esc(shop.name)+' · Gebaut ✓</h3>';for(const d of COSMETICS.filter(d=>d.shop===shop.id)){if(!b.owned.includes(d.id)){html+=funding(d);continue;}html+=`<article class="upgrade-card"><h3>${esc(d.name)} ✓</h3><p>${esc(d.description)}</p>${d.shop==='decor'?'<p>Steht in eurem Garten.</p>':[0,1].map(i=>`<button class="modal-action secondary" data-equip="${d.id}" data-actor="${i}">${esc(state.names[i])}: ${b.equipped[i]===d.id?'Ablegen':'Anziehen'}</button>`).join('')}${SNAIL_HATS.includes(d.id)?`<button class="modal-action secondary" data-snail-hats="${d.id}">Schnecken ausstatten</button>`:''}</article>`;}}
  openModal(html,'boutiques');
  modal.querySelectorAll('[data-cosmetic]').forEach(el=>el.onclick=()=>{const result=contributeCosmetic(state,el.dataset.cosmetic,Number(el.dataset.amount));if(result.paid){refreshWorld(false);save();if(result.complete){sound('build');toast('Ein Wunsch ist fertig: '+[...BOUTIQUES,...COSMETICS].find(d=>d.id===el.dataset.cosmetic).name,true);}openBoutiques();}});
+ modal.querySelectorAll('[data-snail-hats]').forEach(el=>el.onclick=()=>openSnailHats(el.dataset.snailHats));
  modal.querySelectorAll('[data-equip]').forEach(el=>el.onclick=()=>{const actor=Number(el.dataset.actor),id=el.dataset.equip;equipCosmetic(state,actor,b.equipped[actor]===id?null:id);save();openBoutiques();});
+}
+
+function openSnailHats(id){
+ const b=state.village.boutiques,d=COSMETICS.find(d=>d.id===id);if(!d||!SNAIL_HATS.includes(id)||!b.owned.includes(id))return;
+ let html=title('HÜTE FÜR KLEINE HELFER',d.name,'Einmal gekauft, kann der Hut gleichzeitig von Figuren und Schnecken getragen werden. Hüte verändern die Arbeitsleistung nicht.');
+ if(!state.village.snails)html+='<p>Du hast noch keine Helferschnecke. Sobald eine eingezogen ist, kannst du sie hier ausstatten.</p>';
+ else{
+  html+='<button class="modal-action secondary" id="hatAllSnails">Allen diesen Hut aufsetzen</button>';
+  for(let i=0;i<state.village.snails;i++){
+   const species=SNAILS.find(n=>n.id===state.village.farm.helpers[i]),hat=COSMETICS.find(d=>d.id===b.snailHats[i]);
+   html+=`<article class="upgrade-card"><h3>${esc(species?.name??'Ernteschnecke')} ${i+1}</h3><p>${hat?esc(hat.name):'Kein gekaufter Hut aufgesetzt.'}</p><button class="modal-action secondary" data-hat-snail="${i}">${b.snailHats[i]===id?'Hut abnehmen':'Hut aufsetzen'}</button></article>`;
+  }
+ }
+ html+='<button class="modal-action secondary" id="snailHatsBack">Zurück zum Laden</button>';openModal(html,'snail-hats');
+ const finish=()=>{automation.sync(state);save();openSnailHats(id);};
+ modal.querySelectorAll('[data-hat-snail]').forEach(el=>el.onclick=()=>{const i=Number(el.dataset.hatSnail);if(equipSnailHat(state,i,b.snailHats[i]===id?null:id))finish();});
+ if($('hatAllSnails'))$('hatAllSnails').onclick=()=>{for(let i=0;i<state.village.snails;i++)equipSnailHat(state,i,id);finish();};
+ $('snailHatsBack').onclick=openBoutiques;
 }
 
 function openSleep(){

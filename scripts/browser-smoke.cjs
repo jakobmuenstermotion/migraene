@@ -244,8 +244,13 @@ const fs = require("node:fs");
     );
     for (const id of ["mushroomHat", "moonCrown"])
       await p.locator(`[data-cosmetic="${id}"]`).last().click();
+    await p.locator('[data-cosmetic="hat"]').last().click();
     await p.locator('[data-equip="mushroomHat"][data-actor="0"]').click();
     await p.locator('[data-equip="moonCrown"][data-actor="1"]').click();
+    await p.locator('[data-snail-hats="mushroomHat"]').click();
+    await p.locator('[data-hat-snail="0"]').click();
+    await p.locator("#snailHatsBack").click();
+
     await p.reload();
     await p.waitForFunction(() => !document.querySelector("#loading"));
     const newAppearance = await p.evaluate(
@@ -254,6 +259,7 @@ const fs = require("node:fs");
           .boutiques,
     );
     assert.deepEqual(newAppearance.equipped, ["mushroomHat", "moonCrown"]);
+    assert.deepEqual(newAppearance.snailHats, ["mushroomHat"]);
     assert.ok(
       newAppearance.owned.includes("mushroomHat") &&
         newAppearance.owned.includes("moonCrown"),
@@ -264,7 +270,7 @@ const fs = require("node:fs");
     // Render the actual exported character models close up, including both eye stalks.
     const modelVisibility = await p.evaluate(async () => {
       const T = await import("/mondgarten/vendor/three.module.js");
-      const { makeActor, updateStack, GardenScene } =
+      const { makeActor, makeSnail, updateStack, GardenScene } =
         await import("/mondgarten/scene.js");
       const { COLLECTIBLES, WORLD, stackHeight } =
         await import("/mondgarten/content.mjs");
@@ -351,9 +357,40 @@ const fs = require("node:fs");
         renderer.render(scene, camera);
       };
       actors.forEach((actor) => actor.setAccessory("snailEyes"));
+      const snails = [0, 1].map((i) => {
+        const snail = makeSnail(i);
+        snail.root.position.x = i ? 0.65 : -0.65;
+        snail.root.visible = false;
+        snail.upgrade(6);
+        scene.add(snail.root);
+        return snail;
+      });
+      const snailVisibility = ["hat", "mushroomHat", "moonCrown"].map((id) =>
+        snails.map((snail) => {
+          snail.setHat(id);
+          const visible = snail.root.getObjectByName("snail-hat:" + id).visible;
+          const leafHidden =
+            !snail.root.getObjectByName("snail-default-leaf").visible;
+          snail.setHat(null);
+          const removable =
+            !snail.root.getObjectByName("snail-hat:" + id).visible &&
+            snail.root.getObjectByName("snail-default-leaf").visible;
+          return { visible, leafHidden, removable };
+        }),
+      );
+      canvas.showSnailHat = (id) => {
+        actors.forEach((a) => (a.root.visible = false));
+        snails.forEach((snail) => {
+          snail.root.visible = true;
+          snail.setHat(id);
+        });
+        camera.position.set(0, 1.7, 6);
+        camera.lookAt(0, 0.75, 0);
+        renderer.render(scene, camera);
+      };
       renderer.render(scene, camera);
       canvas.disposePreview = () => renderer.dispose();
-      return { visibility, stackMeasurements };
+      return { visibility, stackMeasurements, snailVisibility };
     });
     assert.ok(
       modelVisibility.visibility.flat().every((v) => v.visible && v.removable),
@@ -376,6 +413,20 @@ const fs = require("node:fs");
         .locator("#accessoryPreview")
         .screenshot({ path: `/tmp/mondgarten-${name}.png` });
     }
+    assert.ok(
+      modelVisibility.snailVisibility
+        .flat()
+        .every((v) => v.visible && v.leafHidden && v.removable),
+    );
+    for (const id of ["hat", "mushroomHat", "moonCrown"]) {
+      await p.evaluate(
+        (id) => document.querySelector("#accessoryPreview").showSnailHat(id),
+        id,
+      );
+      await p
+        .locator("#accessoryPreview")
+        .screenshot({ path: `/tmp/mondgarten-snails-${id}.png` });
+    }
     await p.evaluate(() =>
       document.querySelector("#accessoryPreview").disposePreview(),
     );
@@ -395,6 +446,7 @@ const fs = require("node:fs");
     };
     const earlyShop = await p.evaluate(() => {
       const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
+      value.village.snails = 3;
       value.journey.round = 12;
       value.journey.elapsed = 0;
       value.journey.plan = null;
@@ -421,6 +473,27 @@ const fs = require("node:fs");
         true,
       );
     }
+    await p.locator('[data-cosmetic="hat"]').last().click();
+    await p.locator('[data-snail-hats="hat"]').click();
+    await p.locator("#hatAllSnails").click();
+    assert.deepEqual(
+      await p.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+            .boutiques.snailHats,
+      ),
+      ["hat", "hat", "hat"],
+    );
+    await p.locator('[data-hat-snail="1"]').click();
+    assert.deepEqual(
+      await p.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+            .boutiques.snailHats,
+      ),
+      ["hat", null, "hat"],
+    );
+    await p.locator("#snailHatsBack").click();
     await p.locator("#closeModal").click();
     await p.evaluate(async () => {
       const { GardenScene } = await import("/mondgarten/scene.js"),

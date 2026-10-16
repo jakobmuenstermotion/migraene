@@ -72,7 +72,7 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs garden-ledger-tests.mjs` prüft in 55 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs snail-hat-tests.mjs garden-ledger-tests.mjs` prüft in 59 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -142,3 +142,27 @@ Die Rückenladung erreicht ihre maximale Höhe erst mit einem vollständig gefü
 Die Hauptfigur verwendet ihre aktuelle Korbkapazität samt permanenten Boni. Rohstoffe und getragene Produkte zählen gemeinsam. Schnecki verwendet seine Transportkapazität. Abhol-/Verkaufsanimationen und das Mengenetikett folgen derselben Höhe. Die Darstellung verändert keine Mengen, Geldwerte oder gespeicherten Vorräte.
 
 Die Logiktests prüfen streng zunehmende Höhe bis zum letzten Platz über mehrere Korbstufen und permanente Kapazitätsboni hinweg. Der Browser prüft echte Modellhöhen für Rohstoffe, Kisten und Produkte sowie den Kapazitätswert und die resultierende Stapelhöhe im laufenden Spiel. Er prüft außerdem alle sechs Accessoires im fertigen Laden an Tag 12, Kauf und Speicherung der beiden neuen Artikel sowie die Modelle beider Figuren in Nahansicht.
+
+
+### Hüte für Helferschnecken
+
+Ein gekaufter Sonnenhut, Glühpilzhut oder eine Mondkrone ist unter „Schnecken ausstatten“ auch für die aktiven Helferschnecken auswählbar. Jede Schnecke bekommt eine eigene Wahl; „Allen diesen Hut aufsetzen“ übernimmt sie für die ganze Gruppe. Einzelne Hüte können wieder abgenommen oder durch einen anderen gekauften Hut ersetzt werden. Ein Kauf gilt gleichzeitig für beide Figuren und sämtliche Helfer, ohne weiteren Preis. Baby-Schnecken in der Aufzucht werden darüber nicht ausgestattet.
+
+`boutiques.snailHats` speichert die Auswahl nach Helferplatz. Die Normalisierung akzeptiert nur gekaufte Hüte aus der Hutliste, höchstens zwölf Einträge und nur vorhandene Helferplätze. Alte Spielstände starten ohne gekaufte Schneckenhüte. Charakterausrüstung, Waren und Helferladungen bleiben unabhängig davon erhalten. Die Automatisierung übergibt die Wahl an das Schneckenmodell. Alle drei Hutmodelle werden mit den Figuren geteilt, für Schnecken passend verkleinert und platziert. Beim Abnehmen erscheint ab Ausbaustufe zwei wieder die automatische Blattmütze. Blumenkranz und Erntewagen als Ausbauanzeige bleiben erhalten. Hüte verändern keine Arbeitswerte.
+
+### Was Helferschnecken tatsächlich tun
+
+Helfer werden gleichmäßig auf vorhandene Beete verteilt (Helferindex modulo Beetanzahl). Dort suchen sie reife Pflanzen außerhalb eines Abstands von acht Welteinheiten zur Spielfigur. Sie ernten normale Pflanzen einzeln, seltene geben zwei Einheiten. Mit voller Ladung oder wenn keine geeignete reife Pflanze übrig ist, bringen sie den Vorrat ins Lager. Ist das Lager voll, warten sie. Die Lagervorräte können nach Ankunft der ersten Helfer die passenden gebauten Werkstätten automatisch versorgen. Die Schnecken verkaufen selbst nichts; dafür braucht es die Spielfigur oder später Schnecki beziehungsweise einen Verkaufsauftrag für die Waldschnepfe.
+
+Schneckenzauber verbessert alle Helfer gemeinsam. Pro Stufe wird die Laufgeschwindigkeit mit 1,18 multipliziert (höchstens drei Welteinheiten pro Sekunde), die Pflückzeit durch 1,18 geteilt und die Transportkapazität um zwei erhöht. Auf dem Transportweg laufen sie 25 % schneller. Die normale Pflückzeit beginnt bei 0,8 Sekunden, im Obstgarten bei 1,2 Sekunden. Die regulären Verbesserungen reichen von Stufe null bis zehn. Alle zehn Arten haben dieselben Arbeitswerte.
+
+| Schneckenzauber | Normale Pflückzeit ohne Laufweg | Transportkapazität | Beispielernte pro aktiver Minute |
+|---|---:|---:|---:|
+| 0 | 0,80 s | 12 | ca. 21 |
+| 3 | 0,49 s | 18 | ca. 40 |
+| 6 | 0,30 s | 24 | ca. 69 |
+| 10 | 0,15 s | 32 | ca. 96 |
+
+Die Beispielwerte sind mit der echten Automatisierung über fünf aktive Minuten in 1/30-Sekunden-Schritten gemessen: eine einzelne Schnecke im ersten Mondblumenbeet, alle Pflanzen zunächst reif, Spielfigur bei (-30, 30), ausreichend Lagerplatz, keine konkurrierenden Helfer. Laufwege und Lagerfahrten sind enthalten. Gemessene Erntemengen waren 103, 198, 343 beziehungsweise 480 Einheiten, davon im Lager 96, 198, 336 beziehungsweise 480; der Rest war noch unterwegs. Das ist keine feste Förderrate. Größere Entfernungen, belegte Pflanzen, die Nähe der Spielfigur, fehlendes Nachwachsen und ein volles Lager können den Ertrag senken. Seltene Pflanzen können Ladungen um eine Einheit über die nominelle Schwelle bringen.
+
+Schnecken ernten nur bei aktivem Spiel. Während Menüs, Abwesenheit und Schlaf laufen keine Erntezeiten weiter. Nach Minute neun dürfen noch reife Pflanzen gesammelt werden; neues Wachstum bleibt bis zum nächsten Tag aus. Die begrenzte Offline-Produktion verarbeitet nur schon vorhandene Zutaten. Die neuen Prüfungen vergleichen Ernte und Ablieferung mit und ohne alle drei Hüte bei niedriger und maximaler Ausbaustufe; alle Ergebnisse sind identisch. Die Browserprüfung kontrolliert Einzelwahl, Gruppenwahl, Abnehmen, Reload und die echten Modelle einschließlich wieder sichtbarer Blattmütze nach dem Absetzen.
