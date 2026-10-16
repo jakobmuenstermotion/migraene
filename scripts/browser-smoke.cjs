@@ -7,7 +7,7 @@ const assert = require("node:assert/strict");
 const http = require("node:http");
 const fs = require("node:fs");
 (async () => {
-  const { freshState } = await import(
+  const { freshState, normalize } = await import(
     require("node:url").pathToFileURL(path.join(root, "mondgarten/core.mjs"))
       .href
   );
@@ -60,6 +60,7 @@ const fs = require("node:fs");
     });
     const s = freshState();
     s.tutorial = 3;
+    s.coins = 10000000;
     s.journey.round = 50;
     s.village.farm.built = true;
     s.village.farm.discovered = ["garden", "apple"];
@@ -180,6 +181,83 @@ const fs = require("node:fs");
     );
     assert.equal(imported.village.snails, saved.village.snails);
     assert.equal(imported.village.farm.nursery.length, 2);
+    // Shops keep deposits and accessories across reloads without touching farm stock.
+    const boutiques = async () => {
+      await p.locator("#gardenMenu").click();
+      await p.locator("#menuBoutiques").click();
+    };
+    await boutiques();
+    await p.locator('[data-cosmetic="style"][data-amount="100"]').click();
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    const deposit = await p.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("mondgarten.save.v1")).village.boutiques
+          .payments.style,
+    );
+    assert.equal(deposit, 100);
+    await boutiques();
+    await p.locator('[data-cosmetic="style"]').last().click();
+    await p.locator('[data-cosmetic="flower"]').last().click();
+    await p.locator('[data-equip="flower"][data-actor="0"]').click();
+    await p.locator('[data-equip="flower"][data-actor="1"]').click();
+    await p.locator('[data-cosmetic="decor"]').last().click();
+    await p.locator('[data-cosmetic="lanterns"]').last().click();
+    const appearance = await p.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+          .boutiques,
+    );
+    assert.deepEqual(appearance.equipped, ["flower", "flower"]);
+    assert.ok(appearance.owned.includes("lanterns"));
+    await p.locator("#closeModal").click();
+    await p.screenshot({ path: "/tmp/mondgarten-boutiques.png" });
+    console.log(
+      "Boutiques: construction, saved instalment, decorations and both character accessories OK",
+    );
+    // At the time limit, only the unfinished daily reward payment is refunded.
+    const sleepFixture = await p.evaluate(() => {
+      const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
+      value.journey.elapsed = 1799.95;
+      value.journey.closed = false;
+      value.journey.pending = 1;
+      value.journey.rewards = [];
+      value.coins = 100;
+      value.village.payments.endDay = 75;
+      value.savedAt = Date.now();
+      return value;
+    });
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p
+      .locator("#saveFile")
+      .setInputFiles({
+        name: "sleep-test.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(sleepFixture)),
+      });
+    await p.locator("#confirmImport").click();
+    await p.waitForSelector("#sleepRounds");
+    const sleeping = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(sleeping.journey.asleep, true);
+    assert.equal(sleeping.journey.rewards.length, 0);
+    assert.equal(sleeping.coins, 175);
+    assert.deepEqual(
+      sleeping.village.boutiques,
+      normalize(sleepFixture).village.boutiques,
+    );
+    await p.locator("#sleepRounds").click();
+    await p.locator("#useRound").click();
+    const awake = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(awake.journey.asleep, false);
+    assert.equal(awake.journey.round, sleeping.journey.round + 1);
+    console.log(
+      "Day rhythm: automatic sleep, reward refund, preserved belongings and earned next day OK",
+    );
     assert.deepEqual(externalRequests, []);
     assert.deepEqual(errors, []);
     console.log(

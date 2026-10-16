@@ -1,3 +1,4 @@
+import {freshBoutiques,normalizeBoutiques} from './boutiques.mjs';
 import {freshFarm,normalizeFarm,advanceFarm} from './snail-farm.mjs';
 import {neededMaterials} from './funding.mjs';
 import {ECONOMY} from './economy.mjs';
@@ -7,12 +8,12 @@ import {credit} from './money.mjs';
 import {pacePad,roundYield,closeDay,dayPrice} from './journey.mjs';
 const n=(v,fallback=0,max=1e100)=>Number.isFinite(v)&&v>=0?Math.min(v,max):fallback;
 const ids=[...Object.keys(COLLECTIBLES),...Object.keys(PRODUCTS)];
-export function freshVillage(){return {schema:1,farm:freshFarm(),seeds:BEDS.map((_,i)=>!i),house:0,bus:false,fieldCuts:{},beds:BEDS.map((_,i)=>i?0:1),workshops:Object.fromEntries(WORKSHOPS.map(w=>[w.id,{level:0,progress:0,running:false,outputValue:0,inputs:{},inputValues:{}}])),woodcock:{unlocked:false,task:'supply',x:-25,z:1,angle:0,timer:0,searchIndex:0,treasures:0,cargo:{kind:'',workshop:'',items:{},values:{}}},warehouse:1,snails:0,snailLevel:0,partner:false,sprinkler:0,raw:{},rawValues:{},finished:{},finishedValues:{},payments:{},hauler:{kind:'',items:{},values:{}},snailLoads:[],produced:0,autoSold:0};}
+export function freshVillage(){return {schema:1,boutiques:freshBoutiques(),farm:freshFarm(),seeds:BEDS.map((_,i)=>!i),house:0,bus:false,fieldCuts:{},beds:BEDS.map((_,i)=>i?0:1),workshops:Object.fromEntries(WORKSHOPS.map(w=>[w.id,{level:0,progress:0,running:false,outputValue:0,inputs:{},inputValues:{}}])),woodcock:{unlocked:false,task:'supply',x:-25,z:1,angle:0,timer:0,searchIndex:0,treasures:0,cargo:{kind:'',workshop:'',items:{},values:{}}},warehouse:1,snails:0,snailLevel:0,partner:false,sprinkler:0,raw:{},rawValues:{},finished:{},finishedValues:{},payments:{},hauler:{kind:'',items:{},values:{}},snailLoads:[],produced:0,autoSold:0};}
 export function normalizeVillage(raw,legacy={}){
   const v=freshVillage();
   if(!raw||raw.schema!==1){v.snails=Math.min(12,Math.floor(n(legacy.helpers)));for(let i=1;i<=Math.min(5,n(legacy.unlocked));i++)v.beds[i]=1;return v;}
   v.beds=BEDS.map((_,i)=>Math.floor(n(raw.beds?.[i],i?0:1,1000)));v.beds[0]=Math.max(1,v.beds[0]);
-  v.farm=normalizeFarm(raw.farm);v.bus=raw.bus===true;v.seeds=BEDS.map((_,i)=>!!v.beds[i]||raw.seeds?.[i]===true);v.seeds[0]=true;v.house=raw.partner?3:Math.floor(n(raw.house,0,3));
+  v.boutiques=normalizeBoutiques(raw.boutiques);v.farm=normalizeFarm(raw.farm);v.bus=raw.bus===true;v.seeds=BEDS.map((_,i)=>!!v.beds[i]||raw.seeds?.[i]===true);v.seeds[0]=true;v.house=raw.partner?3:Math.floor(n(raw.house,0,3));
   for(const [key,c]of Object.entries(raw.fieldCuts??{}).slice(0,2000))if(/^[a-z]+:\d{1,4}$/.test(key)&&Number.isFinite(c?.readyAt)&&Number.isFinite(c?.cutAt))v.fieldCuts[key]={readyAt:n(c.readyAt),cutAt:c.cutAt};
   for(const w of WORKSHOPS){const r=raw.workshops?.[w.id];v.workshops[w.id]={level:Math.floor(n(r?.level,0,1000)),progress:n(r?.progress,0,1e5),running:r?.running===true,outputValue:n(r?.outputValue),inputs:{},inputValues:{}};for(const id of ids){if(r?.inputs?.[id]>0){v.workshops[w.id].inputs[id]=n(r.inputs[id]);v.workshops[w.id].inputValues[id]=n(r.inputValues?.[id]);}}}
   for(const k of ['warehouse','snailLevel','sprinkler'])v[k]=Math.floor(n(raw[k],k==='warehouse'?1:0,1000));v.warehouse=Math.max(1,v.warehouse);v.snails=Math.floor(n(raw.snails,0,12));v.partner=raw.partner===true;v.farm.helpers=v.farm.helpers.slice(0,v.snails);

@@ -1,4 +1,10 @@
 import {
+  BOUTIQUES,
+  COSMETICS,
+  contributeCosmetic,
+} from "../mondgarten/boutiques.mjs";
+import { advanceDayRhythm } from "../mondgarten/day-rhythm.mjs";
+import {
   advanceFarm,
   discoverShell,
   moveShellToFarm,
@@ -7,9 +13,9 @@ import {
   releaseSnail,
   FARM,
   farmHelperLimit,
-} from '../mondgarten/snail-farm.mjs';
-import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+} from "../mondgarten/snail-farm.mjs";
+import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
 import {
   freshState,
   TOOLS,
@@ -17,21 +23,21 @@ import {
   moveSpeed,
   harvestRate,
   normalize,
-} from '../mondgarten/core.mjs';
-import { BEDS, VILLAGE, WORKSHOPS } from '../mondgarten/village-content.mjs';
-import { WORLD } from '../mondgarten/content.mjs';
-import { prepareDay } from '../mondgarten/daily.mjs';
+} from "../mondgarten/core.mjs";
+import { BEDS, VILLAGE, WORKSHOPS } from "../mondgarten/village-content.mjs";
+import { WORLD } from "../mondgarten/content.mjs";
+import { prepareDay } from "../mondgarten/daily.mjs";
 import {
   tickJourney,
   startRound,
   grantRound,
   growthFactor,
-} from '../mondgarten/journey.mjs';
+} from "../mondgarten/journey.mjs";
 import {
   createVillageField,
   harvestAt,
   unload,
-} from '../mondgarten/harvest.mjs';
+} from "../mondgarten/harvest.mjs";
 import {
   getBuildPads,
   payBuild,
@@ -44,8 +50,8 @@ import {
   productCargoCount,
   sellCarriedProducts,
   offlineVillage,
-} from '../mondgarten/village.mjs';
-import { GardenAutomation } from '../mondgarten/automation.mjs';
+} from "../mondgarten/village.mjs";
+import { GardenAutomation } from "../mondgarten/automation.mjs";
 const DT = 0.5;
 function walk(p, target, s) {
   const dx = target.x - p.x,
@@ -64,6 +70,10 @@ function walk(p, target, s) {
   return false;
 }
 function run(style) {
+  const farmStyle = ["farm", "cosmetics"].includes(style);
+  let cosmeticEarned = 0,
+    cosmeticAllowance = 0,
+    cosmeticSpent = 0;
   let s = freshState(),
     cells = createVillageField(s),
     actor = { ...WORLD.spawn, angle: 0, moving: false },
@@ -85,34 +95,56 @@ function run(style) {
     while (!s.journey.closed && steps++ < 14400) {
       const previousPosition = { x: actor.x, z: actor.z };
       tickJourney(s, DT);
+      const rhythm = advanceDayRhythm(s);
+      assert.notEqual(
+        rhythm?.kind,
+        "sleep",
+        `${style} missed the reward by sleeping on day ${round}`,
+      );
       time += DT;
+      if (style === "cosmetics") {
+        cosmeticAllowance += Math.max(0, s.stats.earned - cosmeticEarned) * 0.1;
+        cosmeticEarned = s.stats.earned;
+        const item = [...BOUTIQUES, ...COSMETICS].find(
+          (d) =>
+            s.journey.round >= d.round &&
+            !s.village.boutiques.built.includes(d.id) &&
+            !s.village.boutiques.owned.includes(d.id) &&
+            (!d.shop || s.village.boutiques.built.includes(d.shop)),
+        );
+        if (item && cosmeticAllowance > 0) {
+          const paid = contributeCosmetic(s, item.id, cosmeticAllowance).paid;
+          cosmeticAllowance -= paid;
+          cosmeticSpent += paid;
+        }
+      }
       harvestClock += DT;
       advanceProduction(s, DT);
-      if (style === 'farm') {
+      if (farmStyle) {
         advanceFarm(s, DT);
         discoverShell(s, 0, DT);
         const f = s.village.farm;
         for (const [id, n] of Object.entries(f.shells))
           if (n) moveShellToFarm(s, id);
         if (f.food < 6) {
-          if (!makeSnailFood(s, 'fruit')) makeSnailFood(s);
+          if (!makeSnailFood(s, "fruit")) makeSnailFood(s);
         }
         for (const n of [...f.nursery]) {
           if (n.growth >= FARM.growSeconds)
             releaseSnail(
               s,
               n.id,
-              s.village.snails < farmHelperLimit(s) ? 'helper' : 'sell',
+              s.village.snails < farmHelperLimit(s) ? "helper" : "sell",
             );
           else if (n.meal <= 0) feedSnail(s, n.id);
         }
       }
-      if (style === 'farm' && goal?.kind === 'buy') {
+      if (farmStyle && goal?.kind === "buy") {
         const live = getBuildPads(s, TOOLS).find((p) => p.id === goal.pad.id);
         if (!live || live.level !== goal.pad.level || live.max || live.locked)
           goal = null;
       }
-      if (style !== 'manual')
+      if (style !== "manual")
         automation.update(s, cells, actor, DT, s.journey.growthTime);
       if (!goal) {
         const pads = getBuildPads(s, TOOLS),
@@ -121,14 +153,14 @@ function run(style) {
               p.visible &&
               !p.max &&
               !p.locked &&
-              p.id !== 'endDay' &&
+              p.id !== "endDay" &&
               s.coins >= p.cost - p.paid,
           );
-        if (buy) goal = { ...buy, kind: 'buy', pad: buy };
+        if (buy) goal = { ...buy, kind: "buy", pad: buy };
         else if (s.bag || productCargoCount(s)) {
           const home = pads.find(
               (p) =>
-                p.kind === 'partner' &&
+                p.kind === "partner" &&
                 p.visible &&
                 !p.max &&
                 p.requiredRound <= round,
@@ -142,21 +174,21 @@ function run(style) {
                   Object.keys(w.inputs).some((id) => s.cargo[id]?.count > 0),
               );
           goal = w
-            ? { kind: 'deliver', workshop: w, ...workshopSpot(w, 'input') }
-            : { kind: 'sell', ...WORLD.bank };
+            ? { kind: "deliver", workshop: w, ...workshopSpot(w, "input") }
+            : { kind: "sell", ...WORLD.bank };
         } else {
           const remaining = pads.filter(
               (p) =>
                 p.visible &&
                 !p.max &&
-                p.id !== 'endDay' &&
+                p.id !== "endDay" &&
                 (p.requiredRound ?? 1) <= round,
             ),
-            end = pads.find((p) => p.id === 'endDay');
+            end = pads.find((p) => p.id === "endDay");
           if (!remaining.length && s.coins >= end.cost - end.paid)
-            goal = { ...end, kind: 'buy', pad: end };
+            goal = { ...end, kind: "buy", pad: end };
           else {
-            const home = remaining.find((p) => p.kind === 'partner'),
+            const home = remaining.find((p) => p.kind === "partner"),
               need =
                 home &&
                 Object.entries(
@@ -164,7 +196,7 @@ function run(style) {
                 ).find(([id, n]) => (s.village.finished[id] ?? 0) < n),
               w = need && WORKSHOPS.find((w) => w.product === need[0]);
             const hungry =
-              style === 'farm' &&
+              farmStyle &&
               s.village.farm.nursery.some(
                 (n) => n.growth < FARM.growSeconds && n.meal <= 0,
               ) &&
@@ -174,7 +206,7 @@ function run(style) {
                   BEDS.some((b) => b.crop === id),
                 )
               : hungry
-                ? 'moonbloom'
+                ? "moonbloom"
                 : null;
             const bed = BEDS.map((b, i) => ({ ...b, index: i }))
               .filter(
@@ -192,13 +224,13 @@ function run(style) {
               );
             const cell = candidates[0];
             goal = cell
-              ? { kind: 'harvest', cell, ...cell }
-              : { kind: 'wait', x: actor.x, z: actor.z };
+              ? { kind: "harvest", cell, ...cell }
+              : { kind: "wait", x: actor.x, z: actor.z };
           }
         }
       }
       if (walk(actor, goal, s)) {
-        if (goal.kind === 'buy') {
+        if (goal.kind === "buy") {
           const result = payBuild(s, goal.pad, DT);
           if (result.complete) {
             firstBuy ??= time;
@@ -206,11 +238,11 @@ function run(style) {
             cells = createVillageField(s, cells);
             goal = null;
           }
-        } else if (goal.kind === 'sell') {
+        } else if (goal.kind === "sell") {
           unload(s, 28 * DT);
           sellCarriedProducts(s);
           if (s.bag <= 0) goal = null;
-        } else if (goal.kind === 'deliver') {
+        } else if (goal.kind === "deliver") {
           deliverWorkshop(s, goal.workshop, 24 * DT);
           if (
             !Object.keys(goal.workshop.inputs).some(
@@ -218,7 +250,7 @@ function run(style) {
             )
           )
             goal = null;
-        } else if (goal.kind === 'wait') {
+        } else if (goal.kind === "wait") {
           goal = null;
           stalled += DT;
         }
@@ -233,21 +265,21 @@ function run(style) {
           moving: actor.moving,
           dt: elapsed,
         });
-        if (style === 'farm')
+        if (farmStyle)
           discoverShell(
             s,
             picks.reduce((sum, p) => sum + p.units, 0),
             0,
           );
         if (
-          goal?.kind === 'harvest' &&
+          goal?.kind === "harvest" &&
           (picks.length ||
             s.bag + productCargoCount(s) >= capacity(s) ||
             goal.cell.readyAt > s.journey.growthTime)
         )
           goal = null;
       }
-      assert.ok(Number.isFinite(s.coins) && s.coins >= 0, 'invalid money');
+      assert.ok(Number.isFinite(s.coins) && s.coins >= 0, "invalid money");
     }
     if (!s.journey.closed)
       throw Error(
@@ -278,7 +310,7 @@ function run(style) {
     assert.equal(offline.amount, 0);
     assert.ok(
       offline.produced <= WORKSHOPS.length * 8,
-      'overnight production runaway',
+      "overnight production runaway",
     );
     if (round % 10 === 0 || round === 77)
       console.log(
@@ -288,7 +320,7 @@ function run(style) {
       s.village.snails <= 12 &&
         s.village.farm.nursery.length <= 6 &&
         s.village.farm.food <= 100,
-      'farm limit exceeded',
+      "farm limit exceeded",
     );
     s.village.fieldCuts = Object.fromEntries(
       cells
@@ -304,10 +336,14 @@ function run(style) {
       goal = null;
     }
   }
-  assert.equal(s.village.bus, true, 'bus never reached');
-  assert.equal(s.journey.rewards.length, 77, 'missing rewards');
-  assert.equal(s.journey.rewards.filter((r) => r.kind === 'seed').length, 7);
-  assert.equal(s.journey.rewards.filter((r) => r.kind === 'water').length, 70);
+  assert.equal(s.village.bus, true, "bus never reached");
+  if (style === "cosmetics") {
+    assert.equal(s.village.boutiques.built.length, 2);
+    assert.equal(s.village.boutiques.owned.length, COSMETICS.length);
+  }
+  assert.equal(s.journey.rewards.length, 77, "missing rewards");
+  assert.equal(s.journey.rewards.filter((r) => r.kind === "seed").length, 7);
+  assert.equal(s.journey.rewards.filter((r) => r.kind === "water").length, 70);
   const sorted = days.map((d) => d.activeSeconds).sort((a, b) => a - b);
   return {
     style,
@@ -316,6 +352,8 @@ function run(style) {
     maximum: sorted.at(-1),
     totalSeconds: time,
     finalCoins: Math.round(s.coins),
+    cosmeticSpent,
+    cosmeticOwned: s.village.boutiques.owned.length,
     farmSpecies: s.village.farm.discovered.length,
     farmSold: s.village.farm.sold,
     farmHelpers: s.village.farm.helpers.filter(Boolean).length,
@@ -323,14 +361,21 @@ function run(style) {
   };
 }
 const results = [];
-for (const style of process.argv.includes('--manual')
-  ? ['manual']
-  : process.argv.includes('--farm')
-    ? ['farm']
-    : ['manual', 'helpers', 'farm'])
+for (const style of process.argv.includes("--cosmetics")
+  ? ["cosmetics"]
+  : process.argv.includes("--manual")
+    ? ["manual"]
+    : process.argv.includes("--farm")
+      ? ["farm"]
+      : ["manual", "helpers", "farm"])
   results.push(run(style));
 writeFileSync(
-  new URL('../balance-results.json', import.meta.url),
+  new URL(
+    process.argv.includes("--cosmetics")
+      ? "../cosmetic-balance-results.json"
+      : "../balance-results.json",
+    import.meta.url,
+  ),
   JSON.stringify(
     { generatedAt: new Date().toISOString(), dt: DT, results },
     null,

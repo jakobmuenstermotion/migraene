@@ -19,7 +19,7 @@ Diese Regeln laufen lokal im Browser. Sie sind kein serverseitiger Schutz vor ab
 - mt-garden-plants-v1: sieben Knopfpflanzen und eindeutig verbuchte Samen-/Gießbelohnungen.
 - mondgarten.companion.save.v1: unabhängiger Spielstand des eingebetteten Gartens.
 
-Das Spiel startet ohne kostenlosen Tag. Die erste verdiente Runde öffnet Tag 1. Der Tagesabschluss wird im Spiel gekauft und erzeugt genau eine Pflanzenbelohnung. Sieben Samen und siebzig Gießaktionen lassen sieben Pflanzen vom Samen bis zur zehnten Wachstumsstufe wachsen. Zusätzliche Gartentage erlauben einen späteren Spielabschluss, erzeugen aber keine zusätzlichen Pflanzenaktionen. Im Spiel steht keine Gesamtzahl der Tage.
+Das Spiel startet ohne kostenlosen Tag. Die erste verdiente Runde öffnet Tag 1. Der Tagesabschluss wird im Spiel gekauft und erzeugt genau eine Pflanzenbelohnung. Sieben Samen und siebzig Gießaktionen lassen sieben Pflanzen vom Samen bis zur zehnten Wachstumsstufe wachsen. Zusätzliche verdiente Gartentage erlauben einen späteren Spielabschluss und das Nachholen verpasster Belohnungen; insgesamt bleiben es höchstens sieben Samen und siebzig Gießaktionen. Im Spiel steht keine Gesamtzahl der Tage.
 
 Ein JSON-Export des Gartenspiels enthält dessen Spielstand, nicht die getrennte Eintragssperre oder die bereits verwendeten Pflanzenaktionen. Bestehende Haupt-App-Sicherungen bleiben unverändert; die zusätzlichen Browserstände sind nicht automatisch Teil dieser Sicherungen.
 
@@ -67,12 +67,12 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 - Offline werden ausschließlich vorhandene Zutaten verarbeitet: 2,5 % Tempo, höchstens eine Stunde Abwesenheit angerechnet (= höchstens 90 Produktionssekunden pro Werkstatt und Pause). Bei 20 Minuten sind es 30 Sekunden. Es gibt offline keine frische Ernte und keinen automatischen Verkauf. Bereits getragene Helferlieferungen bleiben erhalten. Häufigere Besuche erhöhen die Summe der zeitproportionalen Verarbeitung, lange einzelne Pausen bleiben begrenzt.
 - Das Lager liegt nun bei (-14, -7), deutlich weiter vom Verkauf. Ablieferanimationen zielen aufs Lager bzw. die Werkstatt. Der Knopf ▤ öffnet direkt Lager und Verwaltung, einschließlich Wegen zur Zutatenabgabe.
 - Tagespläne begrenzen die Ernte nicht mehr. Ab vier aktiven Minuten wird das Nachwachsen allmählich langsamer, mit einer Untergrenze von 2,5 %; vorhandene Pflanzen dürfen weiter geerntet werden. Das gilt nach Tagesabschluss ebenso. Neue Bau-Stufen werden weiterhin erst mit neuen verdienten Runden zugänglich. Ein noch nicht verdienter erster Tag bleibt gesperrt.
-- Der Tagesabschluss vergibt weiter höchstens eine Pflanzenbelohnung. Danach kann man im Garten bleiben oder zur Begleitseite zurückkehren. Der kostenlose Nachtbesuch bleibt bestehen.
+- Der Tagesabschluss vergibt weiter höchstens eine Pflanzenbelohnung. Danach kann man im Garten bleiben oder zur Begleitseite zurückkehren. Der Nachtbesuch bleibt bis zum Einschlafen nach 30 aktiven Minuten möglich.
 - Ab acht aktiven Minuten beginnt ein langsamer Sonnenuntergang; Einkommen beeinflusst die Beleuchtung nicht. Vor dem Tagesabschluss wird es höchstens abendlich. Nach Abschluss dauert die volle Überblendung zur Nacht mindestens drei Minuten. Warmes Licht geht an Wegen, Lager und Werkstätten an.
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs` prüft in 25 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs comfort-tests.mjs` prüft in 31 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -99,3 +99,17 @@ Die neu kalibrierte Ertragsquote verwendet in den ersten vier Runden 600 statt 3
 Das Spiel speichert automatisch alle zehn Sekunden sowie beim Verlassen auf diesem Gerät. In den Einstellungen lassen sich JSON-Sicherungen exportieren und wieder laden. Es gibt keine Online-Spielstandverbindung. Browserdaten zu löschen entfernt auch den lokalen Spielstand; vorher eine Datei exportieren.
 
 `PLAYWRIGHT_CORE_PATH=/pfad/zu/playwright-core node scripts/browser-smoke.cjs` prüft Farmbedienung, lokale Speicherung nach Neuladen und Datei-Export/-Import. Auch mit alten Verbindungseinstellungen im Browserspeicher darf das eigenständige Spiel keine externen Anfragen mehr senden.
+
+### Gartenläden und Accessoires
+
+Gartenglück (ab Tag 12) und Faden & Blüte (ab Tag 20) sind teure, einmalige Ladenbauten. Anschließend können Dekorationen und Accessoires mit frei gewählten Teilzahlungen gekauft werden: bis zu 100, bis zu 1000 oder den ganzen Rest einzahlen. Niemals wird mehr als das vorhandene Geld oder der Restpreis abgezogen. Anzahlungen überstehen Tagwechsel, Einschlafen, Speichern, Import und Pausen. Keine Kosten verschwinden bei einem neuen Tag. Die Läden stehen sichtbar im nördlichen Mittelteil des Gartens; vor dem Stand stehen bleiben oder im Gartenmenü „Dekoration & Kleidung“ wählen.
+
+Mondlaternen, eine Bank für zwei und ein Blütenbogen werden an festen Plätzen aufgebaut. Blüte, Sonnenhut und Lavendelschal lassen sich für beide Figuren unabhängig an- und ablegen. Die Artikel haben keine Ertragsboni. Ihre Preise hängen nur von der Definition und Freischaltrunde ab. Optionale Einkäufe erhöhen keine Tagespreise und sind nicht Teil der notwendigen Ausbauquote. Die Hauptfigur hat lange blonde Haare, grünblaue Augen, kleine goldene Ohrringe und eine olivgrüne Jacke; Schnecki trägt kurze dunkle Haare, Schnurrbart und eine grüne karierte Jacke. Das Referenzfoto wird nicht mit ausgeliefert.
+
+### Verbindliches Einschlafen
+
+Nach 27 und 29 Minuten aktiver Spielzeit gibt es einmalige Warnungen, nach 30 Minuten schläft die Hauptfigur am aktuellen Ort ein. Der Kauf der Tagesbelohnung schließt den Tag weiterhin regulär ab; danach ist der verbleibende Nachtbesuch möglich. Auch ein schon bezahlter Tag endet durch Einschlafen. Menüs, versteckte Browser-Tabs und Abwesenheit zählen nicht zum Tageslimit. Im Schlaf pausieren Bewegung, Ernte, Helfer und aktive Produktion. Aufzucht im Farmmenü pausiert dann ebenfalls.
+
+Wer ohne Abschluss einschläft, erhält für diesen Tag keine neue Pflanzenbelohnung. Nur eine noch nicht abgeschlossene Anzahlung für die Tagesbelohnung wird zurückgebucht. Geld, Inventar, Waren, Bauten und sonstige Anzahlungen bleiben bestehen; bereits verdiente Pflanzenbelohnungen werden nicht entfernt. Eine weitere verdiente Runde ist zum Aufwachen nötig; das Spiel erzeugt keinen kostenlosen nächsten Tag. Der Rückweg zur Begleitseite bleibt auch ohne Belohnung verfügbar. Fehlende Samen/Gießaktionen lassen sich durch weitere verdiente Tage nach Tag 77 vervollständigen. Ein Migrationstag mit früher bereits mehr als 27 aktiven Minuten bekommt noch drei Minuten Vorwarnzeit; seine Erntezeiten bleiben erhalten.
+
+Die neue Browserprüfung verwendet echte lokale Datei-Importe, damit laufende Speicherereignisse beim Neuladen Testdaten nicht überschreiben. Sie prüft Ladenbau, Anzahlungen über Reload, Deko, Accessoires beider Figuren, Einschlafen ohne Belohnung, Erstattung und Aufwachen durch eine verdiente Runde. Die reine Logik prüft zusätzlich den normalen Kauf vor dem Einschlafen, Quoten-Nachholung, Warnungen und Altspielstände.
