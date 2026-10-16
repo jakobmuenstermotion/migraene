@@ -141,7 +141,7 @@ h2{font-family:var(--serif);font-size:19px;font-weight:600;margin:22px 2px 8px}
 /* Begleit-Seite zum Migräne-Tagebuch: nur schnelle Markierungen. Alles wird verschlüsselt über ntfy.sh
    an das Haupt-Handy geschickt und dort übernommen; hier bleibt nur eine kurze Liste der letzten Tage. */
 // Only opaque entry IDs, their timestamp/deletion flag and authenticated gift counters.
-(function(){var queue=[],listener=null;window.CompanionGardenEvents={startedAt:Date.now(),snapshot:null,ack:function(entries){if(listener)listener('ack',entries);else queue.push(['ack',entries]);},gift:function(counter){if(listener)listener('gift',counter);else queue.push(['gift',counter]);},attach:function(fn){listener=fn;queue.splice(0).forEach(function(e){fn(e[0],e[1]);});}};}());
+(function(){var queue=[],listener=null;window.CompanionGardenEvents={startedAt:Date.now(),snapshot:null,entries:function(entries){if(listener)listener('entries',entries);else queue.push(['entries',entries]);},gift:function(counter){if(listener)listener('gift',counter);else queue.push(['gift',counter]);},attach:function(fn){listener=fn;queue.splice(0).forEach(function(e){fn(e[0],e[1]);});}};}());
 
 var NTFY = 'https://ntfy.sh/', STORE = 'mt-begleiter-v1', KEEP_MS = 14*86400000, RESEND_MS = 6*3600000;
 var CHOICE_MS = 10000, START_LEVEL = 5;
@@ -204,7 +204,12 @@ function parseLink(h){
   return {t:p.t, k:p.k, m:p.m ? p.m.split('|').filter(Boolean).slice(0,12) : []};
 }
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE)) || {}; }catch(_){ return {}; } }
-function persist(){ try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(_){} }
+function persist(){
+  try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(_){ return false; }
+  // A local save earns the garden action; delivery to the other phone is independent.
+  try{ var garden = window.CompanionGardenEvents; if(garden.snapshot) garden.entries(garden.snapshot()); }catch(_){}
+  return true;
+}
 var st = load(), cfg = parseLink(location.hash) || st.cfg || null;
 if(cfg && location.hash && parseLink(location.hash)){
   if(st.cfg && (st.cfg.t!==cfg.t || st.cfg.k!==cfg.k)){ st.entries = []; st.acked = {}; }
@@ -213,7 +218,7 @@ if(cfg && location.hash && parseLink(location.hash)){
 st.cfg = cfg; st.entries = st.entries || []; st.acked = st.acked || {}; st.lists = st.lists || {};
 if(cfg && cfg.m && cfg.m.length && !(st.lists.m && st.lists.m.length)) st.lists.m = cfg.m;
 persist();
-window.CompanionGardenEvents.snapshot=function(){return st.entries.filter(function(e){return st.acked[e.id]===e.u;}).map(function(e){return{id:e.id,ts:e.ts,deleted:!!e.del};});};
+window.CompanionGardenEvents.snapshot=function(){return st.entries.map(function(e){return{id:e.id,ts:e.ts,deleted:!!e.del};});};
 
 var flash = null, flashTimer = null, net = '', syncing = false, ask = null;
 function list(k){ return (st.lists && st.lists[k]) || []; }
@@ -313,7 +318,6 @@ function fetchAcks(){
       if(x.p.gardenGift) window.CompanionGardenEvents.gift(x.p.gardenGift);
       if(x.p.at) st.lastSeen = Math.max(st.lastSeen||0, x.p.at);
     });
-    window.CompanionGardenEvents.ack(window.CompanionGardenEvents.snapshot());
     /* alte Bestätigungen aufräumen */
     var ids = {}; st.entries.forEach(function(e){ ids[e.id] = 1; });
     Object.keys(st.acked).forEach(function(k){ if(!ids[k]) delete st.acked[k]; });

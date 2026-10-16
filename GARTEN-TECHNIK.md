@@ -1,12 +1,12 @@
 # Mondgarten-Anbindung · v308
 
-Die ursprüngliche Begleitseite entspricht dem am 15.10.2026 heruntergeladenen GitHub-Stand (abgesehen von Zeilenenden). Die medizinischen Eintragsfunktionen bleiben erhalten. Garten und Pflanzen haben eigene Speicherschlüssel. Die Haupt-App erhält ausschließlich den Geschenkknopf und das zusätzliche verschlüsselte Geschenkzählerfeld.
+Die medizinischen Eintrags- und Übertragungsfunktionen bleiben erhalten. Die Gartenanbindung verarbeitet lokal ausschließlich Eintrags-IDs, Erstellzeiten und Löschkennzeichen. Garten und Pflanzen haben eigene Speicherschlüssel. Die Haupt-App erhält ausschließlich den Geschenkknopf und das zusätzliche verschlüsselte Geschenkzählerfeld.
 
 ## Einträge und Geschenke
 
-Erst wenn das vorhandene entschlüsselte ACK den aktuellen Änderungsstand eines Eintrags bestätigt, wird dessen ID an die Gartenbuchhaltung übergeben. Diese verarbeitet jede ID einmal. Gelöschte Einträge, Änderungen und Wiederholungen erzeugen keine weitere Runde. Historische Einträge vor Einrichtung des Gartens werden nicht rückwirkend belohnt.
+Sobald ein Eintrag erfolgreich auf ihrem Gerät gespeichert wurde, wird seine ID unmittelbar an die lokale Gartenbuchhaltung übergeben. Sie braucht dafür weder Internet noch eine Empfangsbestätigung des anderen Handys. Diese verarbeitet jede ID einmal. Die medizinische Anzeige „unterwegs“/„angekommen“ richtet sich weiterhin nach der tatsächlichen Übertragung. Gelöschte Einträge, Änderungen und Wiederholungen erzeugen keine weitere Runde. Historische Einträge vor Einrichtung des Gartens werden nicht rückwirkend belohnt.
 
-Nach einer Eintragsbelohnung gilt eine dauerhafte Sperre von 600.000 ms. In der Sperre entstandene oder bestätigte Einträge werden als bearbeitet gespeichert, ohne eine spätere Belohnung anzustauen. Der medizinische Eintrag und seine Übertragung bleiben jederzeit möglich. Rückgängig erzeugt keine Aktion; eine bereits gutgeschriebene Runde wird nicht wieder entzogen.
+Nach einer Eintragsbelohnung gilt eine dauerhafte Sperre von 600.000 ms. In der Sperre entstandene Einträge werden als bearbeitet gespeichert, ohne eine spätere Belohnung anzustauen. Der medizinische Eintrag und seine Übertragung bleiben jederzeit möglich. Rückgängig erzeugt keine Aktion; eine bereits gutgeschriebene Runde wird nicht wieder entzogen.
 
 Die Haupt-App speichert einen kumulativen gardenGiftCount und sendet gardenGift:{epoch,count} im vorhandenen AES-GCM-verschlüsselten Vokabularpaket. Die Begleitseite schreibt nur die bisher nicht gesehenen Zählerwerte gut. Wiederholte Abfragen duplizieren keine Geschenke. Geschenke umgehen die Eintragssperre. Die bestehenden Verbindungsschlüssel und ntfy-Themen werden weiterverwendet.
 
@@ -72,7 +72,7 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs comfort-tests.mjs` prüft in 37 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs comfort-tests.mjs garden-ledger-tests.mjs` prüft in 43 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -125,3 +125,11 @@ Helferschnecken lassen Pflanzen innerhalb von acht Welteinheiten um die Spielfig
 `growthFactor` beschreibt ausschließlich das Nachwachsen, `harvestingAllowed` die Erlaubnis zu ernten. Hauptfigur und Helferschnecken dürfen nach Minute neun noch reife Pflanzen ernten. `tickJourney` integriert die beiden linearen Abfallphasen exakt, auch wenn ein Zeitschritt eine Grenze überschreitet. Der Wachstumszähler bleibt ab Minute neun stehen. Erntezeiten werden mit diesem Zähler gespeichert, sodass angeschnittene Pflanzen vor der nächsten Runde nicht neu reifen.
 
 `node scripts/balance.mjs --choices` prüft zusätzlich drei Spezialisierungen, die tatsächliche frühe Käufe nutzen. Der Browser-Test prüft Ernte bei eingefrorenem Wachstum und den Kauf einer freiwilligen Stufe nach bereits bezahltem Tagesabschluss.
+
+### Sofortige lokale Eintragsbelohnung
+
+`persist` schreibt zuerst den medizinischen Browserstand. Nur nach erfolgreichem Schreiben übergibt es einen Snapshot aus ID, Erstellzeit und Löschkennzeichen an `CompanionGardenEvents.entries`. Dadurch werden auch direkte Neuanlagen in Nachfragen und spätere Änderungen über denselben Weg behandelt. Die Gartenbuchhaltung dedupliziert anhand der ID: Feldänderungen, Empfangsbestätigungen, Rückgängig und Neuladen erzeugen keine weitere Aktion für denselben Eintrag. Eine fehlgeschlagene Speicherung erzeugt keine Gutschrift. Ist das Gartenmodul noch nicht geladen, bleiben lokale Ereignisse bis zu dessen Start in einer Warteschlange erhalten.
+
+Der Initialsnapshot enthält auch unbestätigte lokale Einträge. Historische Einträge vor Einrichtung des Gartens bleiben ausgeschlossen. Die vorhandene Zehn-Minuten-Sperre und verschlüsselten Geschenkzähler bleiben erhalten. Einträge aus der Sperrzeit werden als behandelt markiert, damit sie nach Warten oder Neuladen nicht nachträglich zusätzliche Tage erzeugen.
+
+`PLAYWRIGHT_CORE_PATH=/pfad/zu/playwright-core node scripts/companion-smoke.cjs` prüft die echte Begleitseite bei blockierten externen Anfragen. Der Test zeichnet einen Eintrag auf, während das Gartenbundle noch lädt, und prüft die sofortige Freischaltung ohne ACK. Ein späteres echtes AES-GCM-verschlüsseltes Test-ACK bestätigt die medizinischen Einträge ohne doppelte Aktion. Änderungen, Neuladen, Löschung, Sperrzeit und fehlgeschlagene lokale Speicherung werden ebenfalls geprüft. Sämtliche Netzwerkanfragen werden abgefangen; es werden keine Testdaten nach außen gesendet.

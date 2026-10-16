@@ -17,7 +17,7 @@ try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.
 function write(key,s){try{localStorage.setItem(key,JSON.stringify(s));issue='';return true;}catch{issue='Der Garten konnte nicht gespeichert werden. Bitte schaffe Speicherplatz.';return false;}}
 function gameState(){try{return JSON.parse(localStorage.getItem(C.gameKey)||'null');}catch{return null;}}
 function collectRewards(){if(issue)return;try{const next=receiveRewards(read(C.plantKey,emptyPlants),gameState()?.journey?.rewards);if(write(C.plantKey,next))ledger=next;}catch{issue='Der Gartenstand konnte nicht gelesen werden.';}}
-function receive(kind,data){if(issue)return;try{const current=read(C.journalKey,()=>emptyJournal(events.startedAt)),next=kind==='ack'?acceptEntries(current,data,Date.now(),C.cooldownMs):acceptGiftCounter(current,data);if(write(C.journalKey,next))journal=next;}catch{issue='Die Gartenaktion konnte nicht gespeichert werden.';}mount();}
+function receive(kind,data){if(issue)return;try{const current=read(C.journalKey,()=>emptyJournal(events.startedAt)),next=kind==='entries'?acceptEntries(current,data,Date.now(),C.cooldownMs):acceptGiftCounter(current,data);if(write(C.journalKey,next))journal=next;}catch{issue='Die Gartenaktion konnte nicht gespeichert werden.';}mount();}
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function button(text,fn){const b=node('button','garden-control',text);b.type='button';b.onclick=fn;return b;}
 function eligible(id){const p=ledger?.beds[id],type=plants.find(x=>x.id===p?.id);return mode==='seed'?!p:mode==='water'?!!type&&p.stage<type.stages.length:false;}
@@ -30,7 +30,7 @@ function mount(){
  const next=JSON.stringify([mode,selection,notice,ledger.tokens,ledger.beds]);if(next!==signature){signature=next;renderToolbar();}
  const game=gameState(),active=!!game?.journey?.round&&!game.journey.closed,pending=Math.max(0,journal.actions.length-(game?.journey?.round??0));
  const [start,night]=footer.querySelectorAll('button');start.textContent=active?'☀ Gartentag fortsetzen':'☀ Nächsten Gartentag starten'+(pending>1?' · '+pending:'');start.disabled=!!issue||!active&&!pending;night.disabled=!!issue||!game?.journey?.round||!game.journey.closed;
- const wait=Math.max(0,journal.lastRewardAt+C.cooldownMs-Date.now());status.textContent=issue||((pending?pending+' Gartentag'+(pending===1?'':'e')+' bereit. ':'')+(wait?'Neue Eintragsbelohnung in '+Math.ceil(wait/60000)+' Min. Eintragen geht weiterhin.':'Ein bestätigter Eintrag schenkt einen Gartentag.'));
+ const wait=Math.max(0,journal.lastRewardAt+C.cooldownMs-Date.now());status.textContent=issue||((pending?pending+' Gartentag'+(pending===1?'':'e')+' bereit. ':'')+(wait?'Neue Eintragsbelohnung in '+Math.ceil(wait/60000)+' Min. Eintragen geht weiterhin.':'Ein auf diesem Gerät gespeicherter Eintrag schenkt sofort einen Gartentag.'));
  for(const [id]of C.buttons){const b=app.querySelector('.big[data-act="'+id+'"]');if(!b)continue;let place=b.querySelector('.garden-plants');if(!place){place=node('span','garden-plants');place.setAttribute('aria-hidden','true');b.append(place);}mountPlant(place,ledger.beds[id]);b.classList.toggle('with-garden-plant',!!ledger.beds[id]);b.classList.toggle('garden-eligible',!!mode&&eligible(id));b.classList.toggle('garden-target-muted',!!mode&&!eligible(id));}
 }
 function renderToolbar(){
@@ -67,6 +67,6 @@ window.addEventListener('message',e=>{
 });
 events.mount=()=>{try{mount();}catch{issue='Die Gartenansicht konnte nicht geladen werden. Eintragen bleibt möglich.';}};
 window.addEventListener('storage',e=>{if([C.gameKey,C.plantKey,C.journalKey].includes(e.key)){try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);}catch{}events.mount();}});
-events.attach(receive);if(events.snapshot)events.ack(events.snapshot());events.mount();setInterval(()=>{if(!document.hidden)events.mount();},15000);
+events.attach(receive);if(events.snapshot)events.entries(events.snapshot());events.mount();setInterval(()=>{if(!document.hidden)events.mount();},15000);
 
 })();

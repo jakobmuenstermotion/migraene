@@ -1,4 +1,4 @@
-> Stand 16. Oktober 2026: Die aktuelle Werkstatt-, Obstgarten- und Helferlogik steht in [GARTEN-TECHNIK.md](GARTEN-TECHNIK.md). Die folgenden Abschnitte beschreiben teilweise den vorherigen Stand. Aktuelle Regressionstests: `node --test tests.mjs farm-tests.mjs comfort-tests.mjs`.
+> Stand 16. Oktober 2026: Die aktuelle Werkstatt-, Obstgarten- und Helferlogik steht in [GARTEN-TECHNIK.md](GARTEN-TECHNIK.md). Die folgenden Abschnitte beschreiben teilweise den vorherigen Stand. Aktuelle Regressionstests: `node --test tests.mjs farm-tests.mjs comfort-tests.mjs garden-ledger-tests.mjs`.
 
 # Sammelarten schnell austauschen
 
