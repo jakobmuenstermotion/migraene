@@ -22,13 +22,13 @@ Geld, gekaufte Ausbauten, Anzahlungen und die Werte bereits vorhandener Waren bl
 
 ## Aktuelle Langzeitprüfung
 
-Sieben vollständige Durchläufe mit jeweils 77 Runden erreichen sämtliche regulären Ausbauten und die Bushaltestelle. Jede Runde kauft alle regulär vorgesehenen Verbesserungen und anschließend die Pflanzenbelohnung. Alle **539 Abschlüsse** gelingen vor dem Einschlafen. Es entstehen genau sieben Samen und siebzig Gießaktionen je Durchlauf. Speichern und Normalisierung erhalten Vorräte, Anzahlungen und Belohnungen.
+Die bisherige Gesamtprüfung aus sieben vollständigen Durchläufen mit jeweils 77 Runden erreicht sämtliche regulären Ausbauten und die Bushaltestelle. Jede Runde kauft alle regulär vorgesehenen Verbesserungen und anschließend die Pflanzenbelohnung. Alle **539 Abschlüsse** gelangen vor dem Einschlafen. Es entstehen genau sieben Samen und siebzig Gießaktionen je Durchlauf. Speichern und Normalisierung erhalten Vorräte, Anzahlungen und Belohnungen.
 
 | Spielweise | Median | Längster Tag | Verpasste Abschlüsse |
 |---|---:|---:|---:|
 | Manuell | 3:04,5 | 4:39,5 | 0 |
 | Mit Helfern | 2:35,5 | 3:54,0 | 0 |
-| Helfer + Farm | 2:38,5 | 3:54,0 | 0 |
+| Helfer + Farm | 2:41,5 | 3:54,0 | 0 |
 | Freiwillige Kosmetikausgaben | 2:53,5 | 4:49,5 | 0 |
 | Spezialisierung: eigene Ernte | 2:40,0 | 3:54,0 | 0 |
 | Spezialisierung: Werkstätten | 2:49,5 | 4:22,0 | 0 |
@@ -75,3 +75,6 @@ Die aktuellen Rohdaten stehen in [balance-results.json](balance-results.json), [
 Die regulären Begleit-Samen werden an Gartentag 1, 5, 12, 20, 30, 40 und 50 angeboten. Jeder der sieben Langzeitdurchläufe prüft vier erhaltene Samen bis Tag 20 und sieben bis Tag 50; insgesamt bleiben es sieben Samen und siebzig Gießaktionen. Zusätzliche Nachholkäufe für Altstände kosten 35 % des aktuellen Tagesabschluss-Preises und gehören nicht zu den notwendigen Tageskosten. Der separate Altstand-Test an Tag 7 erhält die vorhandenen Gießaktionen und erlaubt genau einen fehlenden Zusatzsamen. Die neue Werkzeuganordnung mit größeren Abständen ist in den tatsächlichen Laufwegen der Simulation enthalten. Nachtverkauf durch schlafende Schnecken wird separat mit tatsächlichem Beleuchtungswert und vorhandener Fracht geprüft; die Tagesziel-Simulation endet weiterhin beim regulären Abschluss.
 
 Die Aufzucht dauert jetzt 40 versorgte Minuten statt zwölf, aufgeteilt in vier Mahlzeiten à zehn Minuten. Futter erfordert Verarbeitung: 60 Mondblüten + drei Mondsträuße ergeben zwei Portionen; später 30 Mondblüten + acht Sternenfrüchte + ein Sternentee drei Portionen. Eine Standardschnecke bindet dadurch 120 Mondblüten und sechs Sträuße statt früher 18 Mondblüten. Ein kleiner Futtervorrat an Werkstattprodukten bleibt vor automatischem Verkauf und Weiterverarbeitung geschützt, Hausbaumaterialien bleiben zusätzlich erhalten. Die Farmspielweisen verwenden diese echten Zutaten, Produktionszeiten und langsamere Aufzucht. Ein separater Besuchstest erreicht die Reife beim siebten Fünf-Minuten-Besuch mit begrenzter Nachtpflege. Bereits erwachsene Alttiere und alle bestehenden Warenwerte bleiben erhalten.
+
+
+Mit der Futterküche wurden die drei Grundspielweisen erneut über jeweils 77 Tage geprüft: alle **231 Abschlüsse** gelingen, maximal 279,5 Sekunden manuell und jeweils 234 Sekunden mit Helfern beziehungsweise Farm. Der Farm-Median liegt nun bei 161,5 Sekunden. Der Bot berücksichtigt 45 Sekunden Chargenherstellung und bewusstes Einsammeln; die Wege zum neuen Küchengebäude und das Annähern an Jungtiere werden zusätzlich im Browser geprüft. Kosmetik- und Spezialisierungsläufe wurden für diese Änderung nicht erneut ausgeführt; ihre Tabellenwerte stammen aus der vorherigen Gesamtprüfung.

@@ -11,12 +11,36 @@ export const SNAIL_LOOKS = {
   amber: { pattern: "diamonds", ink: "#81552e", shape: [0.45, 0.7, 0.43] },
   star: { pattern: "stars", ink: "#fff0b2", shape: [0.51, 0.63, 0.46] },
 };
+export const FARM_PLACES = {
+  kitchen: [4.7, -2.7],
+  input: [3.1, -0.9],
+  output: [6.3, -0.9],
+  visit: [0, 3.4],
+};
+// A gentle circuit: doorstep, cave, climbing branch, hill, shallow bath, flowers.
+const stops = [
+  [-2.6, -1.55, 0, "home"],
+  [-2.35, 0.2, 0.06, "cave"],
+  [-0.7, -0.7, 0.24, "climb"],
+  [1.05, -0.2, 0.3, "hill"],
+  [2.65, 1.1, -0.06, "bath"],
+  [-0.4, 1.5, 0, "flowers"],
+];
 export function nurseryPose(index, id, clock, progress) {
-  const phase = clock * 0.32 + id * 2.399963;
+  const phase = (((clock + id * 13.7) % 120) + 120) % 120,
+    segment = Math.floor(phase / 20),
+    t = phase % 20;
+  const a = stops[segment],
+    b = stops[(segment + 1) % stops.length],
+    u = Math.max(0, Math.min(1, (t - 6) / 14)),
+    ease = u * u * (3 - 2 * u);
+  const offset = ((index % 3) - 1) * 0.16;
   return {
-    x: ((index % 3) - 1) * 1.45 + Math.cos(phase) * 0.32,
-    z: (index < 3 ? -0.86 : 0.86) + Math.sin(phase) * 0.27,
-    angle: Math.atan2(-Math.sin(phase) * 0.32, Math.cos(phase) * 0.27),
+    x: a[0] + (b[0] - a[0]) * ease + offset,
+    z: a[1] + (b[1] - a[1]) * ease,
+    y: a[2] + (b[2] - a[2]) * ease,
+    angle: Math.atan2(b[0] - a[0], b[1] - a[1]),
     scale: 0.3 + 0.35 * Math.max(0, Math.min(1, progress)),
+    activity: t < 6 ? a[3] : "explore",
   };
 }

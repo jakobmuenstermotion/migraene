@@ -14,6 +14,8 @@ export const SNAILS = [
 ];
 export const FARM = {
   slots: 6,
+  cookSeconds: 45,
+  foodMax: 100,
   maxShells: 30,
   careVersion: 2,
   growSeconds: 40 * 60,
@@ -26,6 +28,17 @@ export const FARM = {
 const num = (x, max = 1e9) =>
   Number.isFinite(x) && x >= 0 ? Math.min(x, max) : 0;
 const species = (id) => SNAILS.some((s) => s.id === id);
+export function freshKitchen() {
+  return {
+    recipe: "flowers",
+    inputs: {},
+    values: {},
+    running: false,
+    progress: 0,
+    ready: 0,
+    readyValue: 0,
+  };
+}
 export function freshFarm() {
   return {
     careVersion: FARM.careVersion,
@@ -36,6 +49,9 @@ export function freshFarm() {
     discovered: [],
     food: 0,
     foodValue: 0,
+    storedFood: 0,
+    storedFoodValue: 0,
+    kitchen: freshKitchen(),
     nextID: 1,
     findProgress: 0,
     findClock: 0,
@@ -52,7 +68,39 @@ export function normalizeFarm(raw) {
   for (const key of ["food", "nextID", "findRound", "findsToday", "sold"])
     f[key] = Math.floor(num(raw[key]));
   f.nextID = Math.max(1, f.nextID);
-  f.foodValue = num(raw.foodValue);
+  f.food = Math.min(FARM.foodMax, f.food);
+  f.foodValue = f.food ? num(raw.foodValue) : 0;
+  f.storedFood = Math.floor(num(raw.storedFood, FARM.foodMax - f.food));
+  f.storedFoodValue = f.storedFood ? num(raw.storedFoodValue) : 0;
+  const k = raw.kitchen;
+  if (k && Object.hasOwn(FOOD_RECIPES, k.recipe)) {
+    f.kitchen.recipe = k.recipe;
+    const recipe = FOOD_RECIPES[k.recipe];
+    f.kitchen.ready = Math.floor(
+      num(
+        k.ready,
+        Math.min(recipe.portions, FARM.foodMax - f.food - f.storedFood),
+      ),
+    );
+    f.kitchen.readyValue = f.kitchen.ready ? num(k.readyValue) : 0;
+    if (!f.kitchen.ready) {
+      for (const [id, count] of Object.entries(recipe.inputs)) {
+        const amount = num(k.inputs?.[id], count);
+        if (amount) {
+          f.kitchen.inputs[id] = amount;
+          f.kitchen.values[id] = num(k.values?.[id]);
+        }
+      }
+      f.kitchen.running =
+        k.running === true &&
+        Object.entries(recipe.inputs).every(
+          ([id, n]) => f.kitchen.inputs[id] === n,
+        );
+      f.kitchen.progress = f.kitchen.running
+        ? num(k.progress, FARM.cookSeconds)
+        : 0;
+    }
+  }
   f.findProgress = num(raw.findProgress, FARM.findEvery);
   f.findClock = num(raw.findClock, FARM.findCooldown);
   f.rng = Math.floor(num(raw.rng, 0xffffffff)) || 2463534242;
@@ -202,7 +250,11 @@ export function farmFoodReserve(s, id) {
   const f = s.village.farm;
   if (
     !f?.built ||
-    f.food >= 2 ||
+    f.food +
+      f.storedFood +
+      f.kitchen.ready +
+      (f.kitchen.running ? FOOD_RECIPES[f.kitchen.recipe].portions : 0) >=
+      2 ||
     !f.nursery.some((n) => n.growth < FARM.growSeconds)
   )
     return 0;
@@ -235,26 +287,154 @@ function takeFoodIngredient(s, id, count) {
   }
   return value;
 }
-export function makeSnailFood(s, recipe = "flowers") {
-  const f = s.village.farm,
-    definition = Object.hasOwn(FOOD_RECIPES, recipe)
-      ? FOOD_RECIPES[recipe]
-      : null;
+export function kitchenEmpty(k) {
+  return !k.running && !k.ready && !Object.values(k.inputs).some((n) => n > 0);
+}
+export function selectFoodRecipe(s, recipe) {
+  const f = s.village.farm;
   if (
     !f.built ||
-    !definition ||
-    f.food + definition.portions > 100 ||
-    !Object.entries(definition.inputs).every(
-      ([id, count]) => foodIngredientCount(s, id) >= count,
+    !Object.hasOwn(FOOD_RECIPES, recipe) ||
+    (recipe === "fruit" && !s.village.beds[4]) ||
+    !kitchenEmpty(f.kitchen)
+  )
+    return false;
+  f.kitchen.recipe = recipe;
+  return true;
+}
+export function kitchenIngredientCount(s, id, source = "all") {
+  if (source === "carried")
+    return productIDs.has(id)
+      ? (s.productCargo?.items?.[id] ?? 0)
+      : (s.cargo?.[id]?.count ?? 0);
+  if (source === "storage")
+    return productIDs.has(id)
+      ? availableProducts(s, id, true, { forFarm: true })
+      : (s.village.raw[id] ?? 0);
+  return foodIngredientCount(s, id);
+}
+function takeKitchenIngredient(s, id, count, source) {
+  if (source === "all") return takeFoodIngredient(s, id, count);
+  if (source === "storage") {
+    const v = s.village,
+      quantities = productIDs.has(id) ? v.finished : v.raw,
+      values = productIDs.has(id) ? v.finishedValues : v.rawValues;
+    const value = ((values[id] ?? 0) * count) / quantities[id];
+    quantities[id] -= count;
+    values[id] = (values[id] ?? 0) - value;
+    return value;
+  }
+  if (productIDs.has(id)) {
+    const c = s.productCargo,
+      value = (c.values[id] * count) / c.items[id];
+    c.items[id] -= count;
+    c.values[id] -= value;
+    return value;
+  }
+  const c = s.cargo[id],
+    value = (c.value * count) / c.count;
+  c.count -= count;
+  c.value -= value;
+  s.bag = Math.max(0, s.bag - count);
+  s.bagValue = Math.max(0, s.bagValue - value);
+  if (c.count < 1e-8) delete s.cargo[id];
+  return value;
+}
+export function supplyFoodKitchen(s, source = "carried") {
+  const f = s.village.farm,
+    k = f.kitchen,
+    recipe = FOOD_RECIPES[k.recipe];
+  if (
+    !f.built ||
+    k.running ||
+    k.ready ||
+    !["all", "carried", "storage"].includes(source) ||
+    f.food + f.storedFood + recipe.portions > FARM.foodMax
+  )
+    return 0;
+  let supplied = 0;
+  for (const [id, needed] of Object.entries(recipe.inputs)) {
+    const amount = Math.min(
+      Math.max(0, needed - (k.inputs[id] ?? 0)),
+      kitchenIngredientCount(s, id, source),
+    );
+    if (amount > 0) {
+      const value = takeKitchenIngredient(s, id, amount, source);
+      k.inputs[id] = (k.inputs[id] ?? 0) + amount;
+      k.values[id] = (k.values[id] ?? 0) + value;
+      supplied += amount;
+    }
+  }
+  if (
+    Object.entries(recipe.inputs).every(([id, n]) => (k.inputs[id] ?? 0) >= n)
+  )
+    k.running = true;
+  return supplied;
+}
+// Explicit full-batch action; production remains timed and awaits collection.
+export function makeSnailFood(s, recipe = "flowers") {
+  const f = s.village.farm;
+  if (
+    !f.built ||
+    !Object.hasOwn(FOOD_RECIPES, recipe) ||
+    !kitchenEmpty(f.kitchen) ||
+    f.food + f.storedFood + FOOD_RECIPES[recipe].portions > FARM.foodMax ||
+    !Object.entries(FOOD_RECIPES[recipe].inputs).every(
+      ([id, n]) => foodIngredientCount(s, id) >= n,
     )
   )
     return false;
-  let value = 0;
-  for (const [id, count] of Object.entries(definition.inputs))
-    value += takeFoodIngredient(s, id, count);
-  f.foodValue = (f.foodValue ?? 0) + value;
-  f.food += definition.portions;
+  f.kitchen.recipe = recipe;
+  supplyFoodKitchen(s, "all");
   return true;
+}
+export function collectSnailFood(s) {
+  const f = s.village.farm,
+    k = f.kitchen;
+  if (!f.built || !k.ready) return 0;
+  const count = k.ready;
+  f.food += count;
+  f.foodValue += k.readyValue;
+  f.kitchen = freshKitchen();
+  f.kitchen.recipe = k.recipe;
+  return count;
+}
+export function storeSnailFood(s) {
+  const f = s.village.farm,
+    count = f.food;
+  if (!f.built || !count) return 0;
+  f.storedFood += count;
+  f.storedFoodValue += f.foodValue;
+  f.food = 0;
+  f.foodValue = 0;
+  return count;
+}
+export function withdrawSnailFood(s) {
+  const f = s.village.farm,
+    count = f.storedFood;
+  if (!f.built || !count) return 0;
+  f.food += count;
+  f.foodValue += f.storedFoodValue;
+  f.storedFood = 0;
+  f.storedFoodValue = 0;
+  return count;
+}
+export function feedNearbySnail(s, player, targets, radius = 3) {
+  if (
+    s.journey.asleep ||
+    (s.journey.light ?? 0) >= 0.68 ||
+    s.village.farm.food < 1
+  )
+    return null;
+  const nearby = targets
+    .filter((n) => Math.hypot(player.x - n.x, player.z - n.z) <= radius)
+    .sort(
+      (a, b) =>
+        Math.hypot(player.x - a.x, player.z - a.z) -
+        Math.hypot(player.x - b.x, player.z - b.z),
+    );
+  for (const n of nearby) if (feedSnail(s, n.id)) return n;
+  return null;
 }
 export function feedSnail(s, id) {
   const f = s.village.farm,
@@ -271,6 +451,17 @@ export function feedSnail(s, id) {
 export function advanceFarm(s, dt) {
   const f = s.village.farm;
   if (!f?.built) return;
+  const k = f.kitchen;
+  if (k.running) {
+    k.progress = Math.min(FARM.cookSeconds, k.progress + num(dt));
+    if (k.progress >= FARM.cookSeconds) {
+      k.running = false;
+      k.ready = FOOD_RECIPES[k.recipe].portions;
+      k.readyValue = Object.values(k.values).reduce((a, b) => a + b, 0);
+      k.inputs = {};
+      k.values = {};
+    }
+  }
   for (const n of f.nursery) {
     const growth = Math.min(
       Math.max(0, dt),

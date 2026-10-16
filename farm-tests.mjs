@@ -8,6 +8,12 @@ import {
   discoverShell,
   moveShellToFarm,
   makeSnailFood,
+  collectSnailFood,
+  supplyFoodKitchen,
+  selectFoodRecipe,
+  storeSnailFood,
+  withdrawSnailFood,
+  feedNearbySnail,
   feedSnail,
   advanceFarm,
   releaseSnail,
@@ -32,6 +38,12 @@ function raw(s, count = 120) {
   s.village.rawValues.moonbloom = count * 2;
   s.village.finished.bouquet = 6;
   s.village.finishedValues.bouquet = 180;
+}
+function cookFood(s, recipe = "flowers") {
+  if (!makeSnailFood(s, recipe)) return false;
+  advanceFarm(s, FARM.cookSeconds);
+  collectSnailFood(s);
+  return true;
 }
 test("farm is a purchased mid-game upgrade, and old saves get empty safe defaults", () => {
   const s = freshState();
@@ -68,11 +80,11 @@ test("four ten-minute meals grow a snail; hunger pauses without loss and a matur
   assert.ok(moveShellToFarm(s, "garden"));
   assert.equal(moveShellToFarm(s, "garden"), false);
   const n = f.nursery[0];
-  assert.ok(makeSnailFood(s));
+  assert.ok(cookFood(s));
   advanceFarm(s, 10000);
   assert.equal(n.growth, 0);
   for (let meal = 0; meal < 4; meal++) {
-    if (!f.food) makeSnailFood(s);
+    if (!f.food) cookFood(s);
     assert.ok(feedSnail(s, n.id));
     assert.equal(feedSnail(s, n.id), false);
     advanceFarm(s, FARM.mealSeconds);
@@ -93,7 +105,7 @@ test("food consumes real raw and crafted ingredients from carried goods, storage
   s.productCargo = { items: { bouquet: 1 }, values: { bouquet: 30 } };
   s.village.finished = { bouquet: 2 };
   s.village.finishedValues = { bouquet: 60 };
-  assert.equal(makeSnailFood(s), true);
+  assert.equal(cookFood(s), true);
   assert.equal(s.bag, 0);
   assert.equal(s.village.raw.moonbloom, 0);
   assert.equal(s.productCargo.items.bouquet, 0);
@@ -102,14 +114,14 @@ test("food consumes real raw and crafted ingredients from carried goods, storage
   assert.equal(s.village.farm.foodValue, 210);
   const before = structuredClone(s);
   for (const recipe of ["fruit", "missing", "toString", "__proto__", null]) {
-    assert.equal(makeSnailFood(s, recipe), false);
+    assert.equal(cookFood(s, recipe), false);
     assert.deepEqual(s, before);
   }
   s.village.raw = { moonbloom: 30, starfruit: 8 };
   s.village.rawValues = { moonbloom: 60, starfruit: 80 };
   s.village.finished = { tea: 1 };
   s.village.finishedValues = { tea: 20 };
-  assert.equal(makeSnailFood(s, "fruit"), true);
+  assert.equal(cookFood(s, "fruit"), true);
   assert.equal(s.village.farm.food, 5);
   assert.equal(s.village.farm.foodValue, 370);
 });
@@ -135,7 +147,7 @@ test("farm food, care, species and shipment compatibility survive save/load and 
   s.village.farm.shells.garden = 1;
   moveShellToFarm(s, "garden");
   raw(s);
-  makeSnailFood(s);
+  cookFood(s);
   feedSnail(s, 1);
   advanceFarm(s, 100);
   const restored = normalize(JSON.parse(JSON.stringify(s)));
@@ -168,7 +180,7 @@ test("feed cannot be made from flowers alone; hungry babies reserve crafted feed
   s.village.finished.bouquet = 4;
   s.village.finishedValues.bouquet = 120;
   const before = structuredClone(s);
-  assert.equal(makeSnailFood(s), false);
+  assert.equal(cookFood(s), false);
   assert.deepEqual(s, before);
   assert.equal(farmFoodReserve(s, "bouquet"), 3);
   assert.equal(availableProducts(s, "bouquet", true), 0);
@@ -179,7 +191,7 @@ test("feed cannot be made from flowers alone; hungry babies reserve crafted feed
     0,
     "automatic sellers must leave food and home ingredients",
   );
-  assert.equal(makeSnailFood(s), true);
+  assert.equal(cookFood(s), true);
   assert.equal(s.village.finished.bouquet, 4);
   assert.equal(s.village.finishedValues.bouquet, 120);
   assert.equal(farmFoodReserve(s, "bouquet"), 0);
@@ -223,4 +235,139 @@ test("forty minutes of fed growth spans seven five-minute visits with bounded ov
   assert.equal(s.village.farm.nursery[0].growth, 2400);
   assert.equal(s.village.farm.food, 0);
   assert.equal(s.village.farm.nursery[0].investment, 420);
+});
+
+test("kitchen takes 45 seconds, stops for collection and survives saving during cooking and waiting", () => {
+  let s = state();
+  raw(s);
+  assert.ok(makeSnailFood(s));
+  assert.equal(s.village.farm.food, 0);
+  assert.equal(s.village.farm.kitchen.running, true);
+  assert.equal(makeSnailFood(s), false);
+  advanceFarm(s, 20);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.village.farm.kitchen.progress, 20);
+  advanceFarm(s, 24.9);
+  assert.equal(collectSnailFood(s), 0);
+  advanceFarm(s, 0.1);
+  assert.equal(s.village.farm.kitchen.ready, 2);
+  advanceFarm(s, 900);
+  assert.equal(s.village.farm.kitchen.ready, 2);
+  assert.equal(s.village.raw.moonbloom, 60);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(collectSnailFood(s), 2);
+  assert.equal(collectSnailFood(s), 0);
+  assert.equal(s.village.farm.food, 2);
+  assert.equal(s.village.farm.foodValue, 210);
+  assert.equal(s.village.farm.kitchen.running, false);
+});
+test("walking past kitchen deposits only carried ingredients, supports several trips and does not draw from storage", () => {
+  let s = state();
+  raw(s);
+  const f = s.village.farm;
+  s.bag = 20;
+  s.bagValue = 40;
+  s.cargo = { moonbloom: { count: 20, value: 40 } };
+  s.productCargo = { items: { bouquet: 2 }, values: { bouquet: 60 } };
+  assert.equal(supplyFoodKitchen(s), 22);
+  assert.equal(s.village.raw.moonbloom, 120);
+  assert.equal(s.village.finished.bouquet, 6);
+  assert.equal(f.kitchen.running, false);
+  assert.equal(selectFoodRecipe(s, "fruit"), false);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  s.bag = 40;
+  s.bagValue = 80;
+  s.cargo = { moonbloom: { count: 40, value: 80 } };
+  s.productCargo = { items: { bouquet: 1 }, values: { bouquet: 30 } };
+  supplyFoodKitchen(s);
+  assert.equal(s.village.farm.kitchen.running, true);
+  advanceFarm(s, 45);
+  collectSnailFood(s);
+  assert.equal(s.village.farm.foodValue, 210);
+  assert.equal(s.bag, 0);
+  assert.equal(s.bagValue, 0);
+});
+test("explicit storage fill preserves carried goods and house reservations, and only accepts missing ingredients", () => {
+  const s = state();
+  s.village.house = 0;
+  raw(s);
+  s.village.finished.bouquet = 5;
+  s.village.finishedValues.bouquet = 150;
+  s.bag = 10;
+  s.bagValue = 20;
+  s.cargo = { moonbloom: { count: 10, value: 20 } };
+  supplyFoodKitchen(s, "storage");
+  assert.equal(s.village.farm.kitchen.inputs.moonbloom, 60);
+  assert.equal(s.village.farm.kitchen.inputs.bouquet, 1);
+  assert.equal(s.village.finished.bouquet, 4);
+  assert.equal(s.village.farm.kitchen.running, false);
+  assert.equal(s.bag, 10);
+  s.village.finished.bouquet = 6;
+  s.village.finishedValues.bouquet = 180;
+  supplyFoodKitchen(s, "storage");
+  assert.equal(s.village.farm.kitchen.running, true);
+  assert.equal(s.village.raw.moonbloom, 60);
+  assert.equal(s.village.finished.bouquet, 4);
+  assert.equal(supplyFoodKitchen(s, "storage"), 0);
+});
+test("food remains at its physical location, storage cannot feed remotely and transfers preserve value exactly", () => {
+  let s = state();
+  const f = s.village.farm;
+  f.food = 4;
+  f.foodValue = 420;
+  f.shells.garden = 2;
+  moveShellToFarm(s, "garden");
+  moveShellToFarm(s, "garden");
+  assert.equal(storeSnailFood(s), 4);
+  assert.equal(storeSnailFood(s), 0);
+  assert.equal(feedSnail(s, 1), false);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.village.farm.storedFood, 4);
+  assert.equal(s.village.farm.storedFoodValue, 420);
+  assert.equal(withdrawSnailFood(s), 4);
+  assert.equal(withdrawSnailFood(s), 0);
+  const targets = [
+    { id: 1, x: 1, z: 0 },
+    { id: 2, x: 2, z: 0 },
+  ];
+  assert.equal(feedNearbySnail(s, { x: 8, z: 8 }, targets), null);
+  assert.equal(feedNearbySnail(s, { x: 0, z: 0 }, targets).id, 1);
+  assert.equal(s.village.farm.food, 3);
+  assert.equal(s.village.farm.nursery[0].investment, 105);
+  s.journey.light = 0.8;
+  assert.equal(feedNearbySnail(s, { x: 0, z: 0 }, targets), null);
+  s.journey.light = 0;
+  assert.equal(feedNearbySnail(s, { x: 0, z: 0 }, targets).id, 2);
+  assert.equal(feedNearbySnail(s, { x: 0, z: 0 }, targets), null);
+  assert.equal(s.village.farm.foodValue, 210);
+});
+test("old food migrates to carried pouch and normalization is stable without duplicating kitchen or stored stock", () => {
+  const s = state();
+  s.village.farm.food = 9;
+  s.village.farm.foodValue = 99;
+  delete s.village.farm.kitchen;
+  delete s.village.farm.storedFood;
+  delete s.village.farm.storedFoodValue;
+  let restored = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(restored.village.farm.food, 9);
+  assert.equal(restored.village.farm.foodValue, 99);
+  assert.equal(restored.village.farm.storedFood, 0);
+  assert.deepEqual(normalize(restored).village.farm, restored.village.farm);
+});
+test("recipe choice locks when filled and total food cap includes storage and the next batch", () => {
+  const s = state();
+  s.village.beds[4] = 1;
+  assert.equal(selectFoodRecipe(s, "fruit"), true);
+  assert.equal(selectFoodRecipe(s, "toString"), false);
+  s.village.farm.food = 50;
+  s.village.farm.storedFood = 49;
+  raw(s);
+  assert.equal(makeSnailFood(s), false);
+  assert.equal(supplyFoodKitchen(s, "storage"), 0);
+  s.village.farm.storedFood = 48;
+  selectFoodRecipe(s, "flowers");
+  assert.ok(makeSnailFood(s));
+  advanceFarm(s, 45);
+  collectSnailFood(s);
+  assert.equal(s.village.farm.food + s.village.farm.storedFood, 100);
 });

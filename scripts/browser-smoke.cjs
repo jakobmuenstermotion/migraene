@@ -152,7 +152,49 @@ const fs = require("node:fs");
     await p.waitForFunction(() => !document.querySelector("#loading"));
     await p.locator("#stockShortcut").click();
     await p.locator("#openFarm").click();
-    await p.locator('[data-food="flowers"]').click();
+    await p.evaluate(async () => {
+      const { GardenScene } = await import("/mondgarten/scene.js");
+      const original = GardenScene.prototype.update;
+      GardenScene.prototype.update = function (dt, args) {
+        window.farmTestState = this.villageState;
+        return original.call(this, dt, args);
+      };
+    });
+    await p.locator("#openKitchen").click();
+    await p.locator("#fillKitchen").click();
+    assert.ok(
+      (await p.locator("#kitchenIngredients").innerText()).includes("60 / 60"),
+    );
+    await p.locator("#bringKitchen").click();
+    await p.waitForFunction(
+      () => window.farmTestState?.village.farm.kitchen.running,
+      {},
+      { timeout: 90000 },
+    );
+    await p.locator("#kitchenButton").click();
+    await p.waitForFunction(
+      () => document.querySelector("#kitchenProgress").value > 0,
+    );
+    assert.equal(await p.locator("#collectKitchen").isDisabled(), true);
+    // Unit tests verify the complete 45 s duration; advance the same live simulation
+    // near completion so browser rendering does not have to idle for the whole batch.
+    await p.evaluate(async () => {
+      const { advanceFarm } = await import("/mondgarten/snail-farm.mjs");
+      advanceFarm(window.farmTestState, 44);
+    });
+    await p.waitForFunction(
+      () => !document.querySelector("#collectKitchen").disabled,
+      {},
+      { timeout: 30000 },
+    );
+    await p.locator("#collectKitchen").click();
+    await p.waitForFunction(
+      () => window.farmTestState.village.farm.food === 2,
+      {},
+      { timeout: 30000 },
+    );
+    assert.equal(await p.locator("#foodPouch").innerText(), "🍃 2");
+    await p.locator("#foodPouch").click();
     await p.locator('[data-snail-feed="1"]').click();
     await p.locator('[data-snail-helper="2"]').click();
     await p.locator('[data-snail-sell="3"]').click();
@@ -503,11 +545,9 @@ const fs = require("node:fs");
           document.querySelector("#accessoryPreview").showSpeciesPair(ids),
         pair,
       );
-      await p
-        .locator("#accessoryPreview")
-        .screenshot({
-          path: "/tmp/mondgarten-species-" + pair.join("-") + ".png",
-        });
+      await p.locator("#accessoryPreview").screenshot({
+        path: "/tmp/mondgarten-species-" + pair.join("-") + ".png",
+      });
     }
     await p.evaluate(() =>
       document.querySelector("#accessoryPreview").disposePreview(),
@@ -796,14 +836,18 @@ const fs = require("node:fs");
           }
           if (window.previewFarm) {
             args = { ...args, player: { ...args.player, x: -28, z: -4 } };
-            this.focus.set(-26.2, 0, -4.6);
-            if (this.zoom !== 1.4) {
-              this.zoom = 1.4;
+            this.focus.set(-26, 0, -6.8);
+            if (this.zoom !== 1.0) {
+              this.zoom = 1.0;
               this.resize();
             }
           }
           original.call(this, dt, args);
           const helper = this.helpers[0];
+          window.farmModelNames = [];
+          this.construction.traverse((o) => {
+            if (o.name.startsWith("snail-")) window.farmModelNames.push(o.name);
+          });
           window.careProbe = {
             sleeping: args.snails[0]?.sleeping,
             faceVisible: helper.root.getObjectByName("snail-face").visible,
@@ -969,12 +1013,14 @@ const fs = require("node:fs");
     await p.locator("#gardenMenu").click();
     await p.locator("#menuFarm").click();
     assert.equal(await p.locator("#visitFarm").count(), 1);
+    await p.locator("#openKitchen").click();
     assert.ok(
-      (await p.locator('[data-food="flowers"]').innerText()).includes(
+      (await p.locator('[data-recipe="flowers"]').innerText()).includes(
         "60 Mondblüten + 3 Mondsträuße",
       ),
     );
-    assert.equal(await p.locator('[data-food="flowers"]').isDisabled(), true);
+    assert.equal(await p.locator("#fillKitchen").isDisabled(), true);
+    await p.locator("#kitchenBack").click();
     await p.locator("#visitFarm").click();
     await p.waitForFunction(() => window.careProbe?.farm.length === 6);
     const crawling = await p.evaluate(() => window.careProbe.farm);
@@ -983,9 +1029,20 @@ const fs = require("node:fs");
       crawling[0].x,
     );
     assert.ok(
-      crawling.every((n) => Math.abs(n.x) < 1.8 && Math.abs(n.z) < 1.15),
+      crawling.every((n) => Math.abs(n.x) < 3.5 && Math.abs(n.z) < 2.2),
     );
     assert.ok(crawling[0].scale < crawling[5].scale);
+    assert.ok(
+      await p.evaluate(() =>
+        [
+          "snail-cottage",
+          "snail-feed-kitchen",
+          "snail-bath",
+          "snail-climbing-branch",
+          "snail-cave",
+        ].every((n) => window.farmModelNames.includes(n)),
+      ),
+    );
     assert.equal(new Set(crawling.map((n) => n.pattern)).size, 6);
     await p
       .locator("#world")

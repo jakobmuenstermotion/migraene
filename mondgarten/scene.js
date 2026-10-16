@@ -1,4 +1,4 @@
-import {SNAIL_LOOKS,nurseryPose} from './snail-appearance.mjs';
+import {SNAIL_LOOKS,nurseryPose,FARM_PLACES} from './snail-appearance.mjs';
 import {snailsResting} from './snail-care.mjs';
 import {padIcon,drawPadIcon} from './pad-design.mjs';
 import {BOUTIQUES} from './boutiques.mjs';
@@ -267,7 +267,7 @@ export class GardenScene {
   }
   refreshConstruction(state,toolDefs=this.toolDefs){
     if(this.construction){this.world.remove(this.construction);this.construction.traverse(o=>{if(o.userData.temporaryTexture)o.material.map?.dispose();if(o.userData.ownedMaterial)o.material.dispose();});}
-    this.construction=new T.Group();this.world.add(this.construction);this.padVisuals=new Map();this.workshopVisuals=new Map();this.farmVisuals=[];const v=state.village;
+    this.construction=new T.Group();this.world.add(this.construction);this.padVisuals=new Map();this.workshopVisuals=new Map();this.farmVisuals=[];this.kitchenVisual=null;const v=state.village;
     this.makeBoutiques(state);this.makeStructure('storage',VILLAGE.warehouse.x,VILLAGE.warehouse.z-1.5,v.warehouse);
     if(v.bus)this.makeBusStop();if(v.farm.built)this.makeStructure('farm',VILLAGE.farm.x,VILLAGE.farm.z,1);
     this.makeStructure('house',VILLAGE.partner.x,VILLAGE.partner.z,v.house);
@@ -296,7 +296,7 @@ export class GardenScene {
   makeStructure(kind,x,z,level){
     const root=new T.Group();root.position.set(x,0,z);this.construction.add(root);
     if(!level){mesh(roundedSlab(4,.07,3,.35),'#c5ccb0',root,0,.03,0,{shadow:false});for(const [a,b]of [[-1.5,-1],[1.5,-1],[-1.5,1],[1.5,1]]){const post=mesh(box(.1,1.5,.1),material('#e6e7d7',{transparent:true,opacity:.45}),root,a,.75,b,{shadow:false});}return;}
-    if(kind==='farm'){root.name='snail-nursery';mesh(roundedSlab(5.2,.3,3.8,.3),'#b89a73',root,0,.2,0);mesh(roundedSlab(4.9,.1,3.5,.28),'#9ab77d',root,0,.4,0);for(const [a,b]of [[-2.25,-1.45],[2.25,-1.45],[-2.25,1.45],[2.25,1.45]]){const leaf=mesh(sphere(.24),'#b6c58a',root,a,.49,b);leaf.scale.y=.25;}this.farmVisuals=[];for(let i=0;i<FARM.slots;i++){const snail=makeSnail(i);snail.root.position.y=.45;snail.upgrade(0);snail.crawlClock=0;root.add(snail.root);this.farmVisuals.push(snail);}return;}
+    if(kind==='farm'){this.makeFarmHabitat(root);return;}
     if(kind==='storage'){mesh(roundedSlab(2.7,1.2,1.8,.15),'#b7956b',root,0,.62,0);for(let i=0;i<4;i++)mesh(box(2.8,.09,1.85),'#d6b58a',root,0,.16+i*.3,0);for(const a of [-1,1])mesh(box(.12,1.3,1.92),'#e2c79c',root,a,.64,0);const map=labelTexture('LAGER',{color:'#fff6da'}),sign=mesh(new T.PlaneGeometry(2,.5),new T.MeshBasicMaterial({map,transparent:true}),root,0,.8,.94,{shadow:false});return;}
     if(kind==='house'){if(level<3){mesh(roundedSlab(3.8,.16,3,.18),'#d2baa0',root,0,.12,0);for(const a of [-1.7,1.7])for(const b of [-1.3,1.3])mesh(box(.12,level===1?1.25:2.3,.12),'#b69772',root,a,level===1?.7:1.25,b);if(level===2){mesh(box(3.5,1.7,.12),'#ead8b5',root,0,.95,-1.3);for(const a of [-1.7,1.7])mesh(box(.12,1.7,2.6),'#ead8b5',root,a,.95,0);}const plank=mesh(box(2.4,.1,.3),'#b6956e',root,0,.3,1.7);plank.rotation.y=.2;return;}mesh(roundedSlab(3.8,2.1,3.0,.17),'#f0dfbc',root,0,1.05,0);const roof=mesh(new T.ConeGeometry(3.1,1.6,4),'#b39acb',root,0,2.8,0);roof.rotation.y=Math.PI/4;mesh(roundedSlab(.85,1.4,.1,.09),'#aa8968',root,.5,.7,1.57);for(const a of [-1.15,1.15])mesh(box(.62,.66,.1),'#d0e4d3',root,a,1.25,1.55);mesh(cylinder(.2,.22,.7,7),'#caaf90',root,-1.0,3.05,-.3);return;}
     if(kind==='sprinkler'){mesh(cylinder(.6,.75,.3,10),'#c4c7a3',root,0,.2,0);mesh(cylinder(.1,.17,1.15,8),'#8baea3',root,0,.8,0);mesh(new T.TorusGeometry(.54,.06,6,16),'#d2e2cf',root,0,1.35,0).rotation.x=Math.PI/2;const drop=mesh(sphere(.22),'#a6dcd6',root,0,1.65,0);drop.scale.y=1.4;return;}
@@ -306,6 +306,55 @@ export class GardenScene {
     if(kind==='oil'){mesh(cylinder(.63,.7,.9,12),'#ce9d6e',root,0,1.65,0);const dome=mesh(sphere(.65),'#dcad7c',root,0,2.1,0);dome.scale.y=.65;mesh(cylinder(.11,.18,.7,9),'#d5a477',root,0,2.55,0);const pipe=mesh(new T.TorusGeometry(.65,.07,7,18,Math.PI),'#d7ae82',root,.65,2.83,0);for(const a of [-1.2,1.2]){mesh(cylinder(.20,.22,.6,8),'#c6d6a1',root,a,1.5,.35);mesh(cylinder(.12,.12,.16,8),'#a88a65',root,a,1.87,.35);}}
     if(kind==='elixir'){for(const a of [-1.7,1.7])for(const b of [-1.1,1.1])mesh(box(.1,2.7,.1),'#ddd7b6',root,a,1.45,b);mesh(roundedSlab(3.6,.12,2.5,.2),'#a2b1a1',root,0,2.8,0);const glass=material('#d2e6cf',{transparent:true,opacity:.27,roughness:.25});mesh(box(3.3,1.65,.03),glass,root,0,1.85,-1.1,{shadow:false});for(let i=0;i<5;i++){const a=(i-2)*.55;mesh(cylinder(.16,.25,.55,9),i%2?'#b69fd8':'#9bc5b4',root,a,1.55,0);mesh(cylinder(.08,.08,.2,7),'#e5d1a0',root,a,1.94,0);}}
   }
+  makeFarmHabitat(root){
+    root.name='snail-nursery';
+    mesh(roundedSlab(8,.24,5.4,.65),'#c6ad7e',root,0,.17,0);
+    mesh(roundedSlab(7.7,.1,5.1,.6),'#a6bd83',root,0,.33,0);
+    // Low rounded posts keep the view into the little habitat open.
+    for(const x of [-3.65,3.65])for(const z of [-2.25,-.9,.5,2.25]){mesh(cylinder(.09,.12,.42,7),'#c7aa7a',root,x,.54,z);mesh(sphere(.11),'#e8cf9f',root,x,.77,z);}
+    for(const z of [-2.35,2.35])mesh(box(7.3,.08,.08),'#d9c094',root,0,.52,z);
+    // A tiny cream cottage with a curved, mossy roof and round front door.
+    const home=new T.Group();home.position.set(-2.45,0,-2.65);home.name='snail-cottage';root.add(home);
+    mesh(roundedSlab(2.45,1.45,1.65,.25),'#f2dfb4',home,0,.85,0);
+    const roof=mesh(sphere(1),'#97ae7d',home,0,1.65,0);roof.scale.set(1.55,.68,1.12);
+    mesh(roundedSlab(.85,1.05,.08,.3),'#937453',home,0,.66,.87);
+    mesh(sphere(.055),'#e7ce83',home,.24,.65,.94);
+    for(const x of [-.78,.78]){const frame=mesh(cylinder(.24,.24,.08,24),'#c19e6b',home,x,1.12,.87);frame.rotation.x=Math.PI/2;const window=mesh(cylinder(.17,.17,.09,24),'#e8edc5',home,x,1.12,.92);window.rotation.x=Math.PI/2;}
+    for(let i=0;i<3;i++)mesh(roundedSlab(.85,.06,.4,.1),'#dcd6b3',root,-2.5,.4,-1.75+i*.4);
+    // A smooth hill and a hollow terracotta hideaway.
+    const hill=mesh(sphere(1),'#8fae74',root,1.05,.29,-.2);hill.scale.set(1.0,.43,.8);
+    const cave=mesh(sphere(1),'#b7ad8c',root,-2.35,.58,.05);cave.scale.set(.85,.6,.65);cave.name='snail-cave';
+    const opening=mesh(sphere(1),'#6c7058',root,-2.35,.48,.59);opening.scale.set(.48,.35,.08);
+    const moss=mesh(sphere(.4),'#8ba779',root,-2.55,.99,-.02);moss.scale.set(1.3,.3,.8);
+    // Small fallen branches and a leaf to perch on.
+    const branch=mesh(cylinder(.15,.18,1.8,9),'#aa8159',root,-.7,.48,-.7);branch.rotation.z=Math.PI/2;branch.rotation.y=-.22;branch.name='snail-climbing-branch';
+    const twig=mesh(cylinder(.07,.1,.8,7),'#b79467',root,-.3,.59,-.95);twig.rotation.z=.9;twig.rotation.x=.5;
+    const leaf=mesh(sphere(.36),'#bfd093',root,-1.1,.65,-.7);leaf.scale.set(1.6,.14,.6);
+    // A shallow pebble bath, without a high rim in front of the snails.
+    const pond=mesh(cylinder(.98,1.06,.1,32),'#d5ccb0',root,2.65,.4,1.1);pond.scale.z=.7;pond.name='snail-bath';
+    const water=mesh(cylinder(.87,.87,.035,32),material('#a4d9d2',{roughness:.3}),root,2.65,.46,1.1);water.scale.z=.68;
+    for(let i=0;i<7;i++){const a=i/7*Math.PI*2,stone=mesh(sphere(.13),'#e3dbbf',root,2.65+Math.cos(a),.45,1.1+Math.sin(a)*.72);stone.scale.y=.45;}
+    for(const [x,z]of [[-3.3,1.4],[-.8,1.8],[.1,1.8],[1.85,-1.7]]){const l=mesh(sphere(.18),'#b5c68b',root,x,.42,z);l.scale.y=.4;for(let i=0;i<3;i++)mesh(sphere(.065),i%2?'#ebd0cd':'#f5e6ad',root,x+(i-1)*.1,.54,z);}
+    // The feed kitchen is a separate, smaller building alongside the cottage.
+    const kitchen=new T.Group();kitchen.name='snail-feed-kitchen';kitchen.position.set(FARM_PLACES.kitchen[0],0,FARM_PLACES.kitchen[1]);root.add(kitchen);
+    mesh(roundedSlab(2.7,1.15,1.8,.2),'#efdbb6',kitchen,0,.7,0);
+    const kitchenRoof=mesh(new T.ConeGeometry(2.0,.9,4),'#ba9dbd',kitchen,0,1.65,0);kitchenRoof.rotation.y=Math.PI/4;kitchenRoof.scale.z=.82;
+    mesh(roundedSlab(2.3,.1,1.05,.14),'#bd9b71',kitchen,0,.65,1.0);
+    const pot=mesh(sphere(.4),'#96ac7d',kitchen,0,.97,.75);pot.scale.y=.7;
+    mesh(cylinder(.3,.35,.07,16),'#d7deb1',kitchen,0,1.24,.75);
+    mesh(cylinder(.09,.13,.7,9),'#c3ad91',kitchen,-.65,1.94,-.18);
+    const barBack=mesh(box(2.25,.15,.08),'#e7dfc5',kitchen,0,2.2,.7);
+    const bar=mesh(box(1,.11,.1),'#89ac72',kitchen,-1.08,2.2,.77);bar.scale.x=.001;
+    const portions=new T.Group();portions.position.set(1.2,.9,1);kitchen.add(portions);
+    for(let i=0;i<3;i++){const food=mesh(sphere(.16),'#9eaf70',portions,0,i*.17,0);food.scale.set(1.2,.65,1);}
+    for(const [key,text]of [['input','ZUTATEN ↓'],['output','FUTTER ↑']]){const spot=FARM_PLACES[key],mat=key==='input'?'#c6cda9':'#d2bdcf';mesh(roundedSlab(1.6,.06,1.15,.2),mat,root,spot[0],.05,spot[1]);const map=labelTexture(text,{color:'#5a6049'}),sign=new T.Sprite(new T.SpriteMaterial({map,depthTest:true}));sign.userData.temporaryTexture=true;sign.scale.set(2.0,.48,1);sign.position.set(spot[0],.5,spot[1]+.7);root.add(sign);}
+    this.kitchenVisual={root:kitchen,bar,portions};
+    this.farmVisuals=[];
+    for(let i=0;i<FARM.slots;i++){const snail=makeSnail(i);snail.upgrade(0);snail.crawlClock=0;snail.snackTime=0;const markerMap=labelTexture('♡',{color:'#b57e8a'}),marker=new T.Sprite(new T.SpriteMaterial({map:markerMap,depthTest:false}));marker.name='snail-food-heart';marker.position.set(0,1.9,0);marker.scale.set(1,.65,1);marker.userData.temporaryTexture=true;marker.visible=false;snail.root.add(marker);snail.foodMarker=marker;root.add(snail.root);this.farmVisuals.push(snail);}
+  }
+  nurseryTargets(){return(this.farmVisuals??[]).filter(v=>v.root.visible&&v.nurseryID).map(v=>({id:v.nurseryID,x:VILLAGE.farm.x+v.root.position.x,z:VILLAGE.farm.z+v.root.position.z,y:v.root.position.y}));}
+  makeFoodFlight(source,target){if(this.reducedMotion()||this.flights.length>28)return;const food=new T.Group();const bite=mesh(sphere(.16),'#9db477',food);bite.scale.set(1.3,.65,1);mesh(sphere(.06),'#d6b68b',food,.04,.04,.08);food.position.set(source.x,1.1,source.z);this.scene.add(food);this.flights.push({mesh:food,start:food.position.clone(),target:new T.Vector3(target.x,target.y??.65,target.z),age:0,duration:.75,type:'food'});}
+  feedNursery(source,target){this.makeFoodFlight(source,target);const v=this.farmVisuals.find(v=>v.nurseryID===target.id);if(v)v.snackTime=2.5;}
   makeDecor(){
     const trees=[[-18,9,1.0],[-19,13,1.1],[-19,17,.8],[-22,15,.9],[-5,-13,1.2],[-3,-16,.9],[19,-15,1.0],[22,-13,1.15],[25,7,.9],[24,11,1.15],[4,21,.8],[-2,23,1.1],[-24,-13,1.2],[-31,-14,.9],[29,29,1.1],[-15,31,.9],[7,-28,1.3]];
     for(const [x,z,s]of trees){if(this.villageState&&getBuildPads(this.villageState,this.toolDefs).some(p=>Math.hypot(p.x-x,p.z-z)<3))continue;const root=new T.Group();root.position.set(x,0,z);root.scale.setScalar(s);this.world.add(root);blob(root,0,0,4,.55);mesh(cylinder(.18,.26,2.3,7),'#a98d61',root,0,1.15,0);for(const [a,b,c,r]of [[0,3,0,1.35],[-.8,2.6,.1,1],[.7,2.7,.3,1.1],[.1,3.6,-.15,.9]]){const leaf=mesh(geo('treeLeaves',()=>new T.IcosahedronGeometry(1,1)),(x+z)%3?'#88ab6c':'#a2bb7b',root,a,b,c);leaf.scale.set(r,r*.78,r);}}
@@ -340,12 +389,15 @@ export class GardenScene {
     this.time=time;this.updateCamera(dt,player);this.growthClock+=dt;if(this.growthClock>.09){this.updatePlants(growthTime);this.growthClock=0;}
     if(this.workshopVisuals)for(const [id,visual]of this.workshopVisuals){const w=WORKSHOPS.find(w=>w.id===id),v=this.villageState.village;const raw=Object.values(v.workshops[id].inputs??{}).reduce((sum,n)=>sum+n,0);visual.input.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(raw/6)));visual.output.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(v.finished[w.product]??0)));}
     const bird=this.villageState?.village?.woodcock;if(bird){const visual=this.woodcock;visual.root.visible=bird.unlocked;visual.root.position.set(bird.x,0,bird.z);visual.root.rotation.y=bird.angle??0;visual.body.position.y=this.reducedMotion()?0:bird.moving?Math.abs(Math.sin(time*12))*.07:0;const carried=Object.values(bird.cargo.items).reduce((sum,n)=>sum+n,0)>0;if(carried&&!visual.load.children.length){const bundle=this.bundleTemplate.clone(true);bundle.scale.setScalar(.38);visual.load.add(bundle);}if(!carried)visual.load.clear();}
-    if(this.farmVisuals)for(const [i,visual]of this.farmVisuals.entries()){const n=this.villageState.village.farm.nursery[i];visual.root.visible=!!n;if(n){if(visual.nurseryID!==n.id){visual.nurseryID=n.id;visual.crawlClock=0;}const asleep=snailsResting(this.villageState),crawling=!asleep&&!this.reducedMotion()&&(n.meal>0||n.growth>=FARM.growSeconds);if(crawling)visual.crawlClock+=Math.max(0,dt);const pose=nurseryPose(i,n.id,visual.crawlClock,n.growth/FARM.growSeconds);visual.setSpecies(n.species);visual.setSleeping(asleep);visual.crawl(visual.crawlClock,crawling);visual.root.position.set(pose.x,.45,pose.z);visual.root.rotation.y=pose.angle;visual.root.scale.setScalar(pose.scale);}}
+    if(this.farmVisuals)for(const [i,visual]of this.farmVisuals.entries()){const n=this.villageState.village.farm.nursery[i];visual.root.visible=!!n;if(n){if(visual.nurseryID!==n.id){visual.nurseryID=n.id;visual.crawlClock=0;}const asleep=snailsResting(this.villageState),crawling=!asleep&&!this.reducedMotion()&&(n.meal>0||n.growth>=FARM.growSeconds);if(crawling)visual.crawlClock+=Math.max(0,dt);const pose=nurseryPose(i,n.id,visual.crawlClock,n.growth/FARM.growSeconds);visual.setSpecies(n.species);visual.setSleeping(asleep);visual.crawl(visual.crawlClock,crawling);visual.activity=pose.activity;visual.snackTime=Math.max(0,visual.snackTime-dt);visual.foodMarker.visible=!asleep&&visual.snackTime>0;visual.root.position.set(pose.x,.39+pose.y,pose.z);if(visual.snackTime>0&&!asleep&&!this.reducedMotion())visual.root.position.y+=Math.abs(Math.sin(time*14))*.025;visual.root.rotation.y=pose.angle;visual.root.scale.setScalar(pose.scale);}}
+    if(this.kitchenVisual){const k=this.villageState.village.farm.kitchen,v=this.kitchenVisual;v.bar.scale.x=Math.max(.001,2.16*(k.ready?1:k.progress/FARM.cookSeconds));v.bar.position.x=-1.08+v.bar.scale.x/2;v.portions.children.forEach((m,i)=>m.visible=i<k.ready);}
     const actors=this.actors;
     for(let i=0;i<2;i++){const a=actors[i],p=i?partner:player;a.setAccessory(this.villageState?.village?.boutiques?.equipped?.[i]);a.root.visible=!i||p.visible!==false;if(!a.root.visible)continue;a.root.position.set(p.x,0,p.z);if(p.moving)a.walk+=dt*11;
       a.angle=T.MathUtils.lerp(a.angle,p.angle??a.angle,Math.min(1,dt*12));a.body.rotation.y=a.angle;a.body.position.y=this.reducedMotion()?0:Math.abs(Math.sin(a.walk))*.055;const sleeping=!i&&this.villageState?.journey?.asleep;a.body.rotation.z=sleeping?Math.PI*.43:0;if(sleeping)a.body.position.y=.05;
       a.legs.forEach((leg,j)=>leg.rotation.x=this.reducedMotion()?0:Math.sin(a.walk+j*Math.PI)*(p.moving?.5:.05));
     }
+    if(!this.foodPouch){this.foodPouch=new T.Group();this.scene.add(this.foodPouch);const pouch=mesh(sphere(.23),'#bfa074',this.foodPouch);pouch.scale.set(1,.9,.65);mesh(roundedSlab(.22,.035,.14,.03),'#9cb17b',this.foodPouch,0,.18,0);}
+    this.foodPouch.visible=(this.villageState?.village.farm.food??0)>0;this.foodPouch.position.set(player.x+Math.cos(actors[0].angle)*.43,.75,player.z-Math.sin(actors[0].angle)*.43);this.foodPouch.rotation.y=actors[0].angle;
     const actor=actors[0],template=productID?this.productBundle(productID):this.bundleTemplate;actor.stack.position.set(-Math.sin(actor.angle)*.36,.84,-Math.cos(actor.angle)*.36);
     const levels=updateStack(actor,template,bag,bagCapacity,{dt,time,moving,reducedMotion:this.reducedMotion()});this.lastStack=levels;
     const second=actors[1],secondTemplate=partner.productID?this.productBundle(partner.productID):this.bundleTemplate;second.stack.position.set(0,.85,-.35);

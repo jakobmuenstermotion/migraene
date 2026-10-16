@@ -10,6 +10,7 @@ import {
   discoverShell,
   moveShellToFarm,
   makeSnailFood,
+  collectSnailFood,
   feedSnail,
   releaseSnail,
   FARM,
@@ -155,6 +156,7 @@ function run(style) {
       advanceProduction(s, DT);
       if (farmStyle) {
         advanceFarm(s, DT);
+        collectSnailFood(s);
         discoverShell(s, 0, DT);
         const f = s.village.farm;
         for (const [id, n] of Object.entries(f.shells))
