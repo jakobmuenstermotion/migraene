@@ -72,7 +72,7 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs snail-hat-tests.mjs garden-ledger-tests.mjs` prüft in 59 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs visual-tests.mjs snail-hat-tests.mjs snail-work-tests.mjs garden-ledger-tests.mjs` prüft in 61 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -154,15 +154,19 @@ Ein gekaufter Sonnenhut, Glühpilzhut oder eine Mondkrone ist unter „Schnecken
 
 Helfer werden gleichmäßig auf vorhandene Beete verteilt (Helferindex modulo Beetanzahl). Dort suchen sie reife Pflanzen außerhalb eines Abstands von acht Welteinheiten zur Spielfigur. Sie ernten normale Pflanzen einzeln, seltene geben zwei Einheiten. Mit voller Ladung oder wenn keine geeignete reife Pflanze übrig ist, bringen sie den Vorrat ins Lager. Ist das Lager voll, warten sie. Die Lagervorräte können nach Ankunft der ersten Helfer die passenden gebauten Werkstätten automatisch versorgen. Die Schnecken verkaufen selbst nichts; dafür braucht es die Spielfigur oder später Schnecki beziehungsweise einen Verkaufsauftrag für die Waldschnepfe.
 
-Schneckenzauber verbessert alle Helfer gemeinsam. Pro Stufe wird die Laufgeschwindigkeit mit 1,18 multipliziert (höchstens drei Welteinheiten pro Sekunde), die Pflückzeit durch 1,18 geteilt und die Transportkapazität um zwei erhöht. Auf dem Transportweg laufen sie 25 % schneller. Die normale Pflückzeit beginnt bei 0,8 Sekunden, im Obstgarten bei 1,2 Sekunden. Die regulären Verbesserungen reichen von Stufe null bis zehn. Alle zehn Arten haben dieselben Arbeitswerte.
+Schneckenzauber verbessert alle Helfer gemeinsam. Pro Stufe wird die Laufgeschwindigkeit mit 1,18 multipliziert (höchstens drei Welteinheiten pro Sekunde), die Pflückzeit durch 1,18 geteilt und die Transportkapazität um vier erhöht (Grundkapazität 24, maximal 64). Auf dem Transportweg laufen sie 25 % schneller. Die normale Pflückzeit beginnt bei 0,8 Sekunden, im Obstgarten bei 1,2 Sekunden. Die regulären Verbesserungen reichen von Stufe null bis zehn. Alle zehn Arten haben dieselben Arbeitswerte.
 
 | Schneckenzauber | Normale Pflückzeit ohne Laufweg | Transportkapazität | Beispielernte pro aktiver Minute |
 |---|---:|---:|---:|
-| 0 | 0,80 s | 12 | ca. 21 |
-| 3 | 0,49 s | 18 | ca. 40 |
-| 6 | 0,30 s | 24 | ca. 69 |
-| 10 | 0,15 s | 32 | ca. 96 |
+| 0 | 0,80 s | 24 | ca. 28 |
+| 3 | 0,49 s | 36 | ca. 50 |
+| 6 | 0,30 s | 48 | ca. 86 |
+| 10 | 0,15 s | 64 | ca. 122 |
 
-Die Beispielwerte sind mit der echten Automatisierung über fünf aktive Minuten in 1/30-Sekunden-Schritten gemessen: eine einzelne Schnecke im ersten Mondblumenbeet, alle Pflanzen zunächst reif, Spielfigur bei (-30, 30), ausreichend Lagerplatz, keine konkurrierenden Helfer. Laufwege und Lagerfahrten sind enthalten. Gemessene Erntemengen waren 103, 198, 343 beziehungsweise 480 Einheiten, davon im Lager 96, 198, 336 beziehungsweise 480; der Rest war noch unterwegs. Das ist keine feste Förderrate. Größere Entfernungen, belegte Pflanzen, die Nähe der Spielfigur, fehlendes Nachwachsen und ein volles Lager können den Ertrag senken. Seltene Pflanzen können Ladungen um eine Einheit über die nominelle Schwelle bringen.
+Die Beispielwerte sind mit der echten Automatisierung über fünf aktive Minuten in 1/30-Sekunden-Schritten gemessen: eine einzelne Schnecke im ersten Mondblumenbeet, alle Pflanzen zunächst reif, Spielfigur bei (-30, 30), ausreichend Lagerplatz, keine konkurrierenden Helfer. Laufwege und Lagerfahrten sind enthalten. Gemessene Erntemengen waren 140, 252, 431 beziehungsweise 610 Einheiten, davon im Lager 120, 216, 384 beziehungsweise 576; der Rest war noch unterwegs. Das ist keine feste Förderrate. Größere Entfernungen, belegte Pflanzen, die Nähe der Spielfigur, fehlendes Nachwachsen und ein volles Lager können den Ertrag senken. Seltene Pflanzen können Ladungen um eine Einheit über die nominelle Schwelle bringen.
 
 Schnecken ernten nur bei aktivem Spiel. Während Menüs, Abwesenheit und Schlaf laufen keine Erntezeiten weiter. Nach Minute neun dürfen noch reife Pflanzen gesammelt werden; neues Wachstum bleibt bis zum nächsten Tag aus. Die begrenzte Offline-Produktion verarbeitet nur schon vorhandene Zutaten. Die neuen Prüfungen vergleichen Ernte und Ablieferung mit und ohne alle drei Hüte bei niedriger und maximaler Ausbaustufe; alle Ergebnisse sind identisch. Die Browserprüfung kontrolliert Einzelwahl, Gruppenwahl, Abnehmen, Reload und die echten Modelle einschließlich wieder sichtbarer Blattmütze nach dem Absetzen.
+
+Mit `node scripts/helper-throughput.mjs` lässt sich der Vergleich einschließlich alter Traglast (12 + 2 je Stufe) reproduzieren. Die größere Ladung steigert die Ernte der einzelnen Schnecke in diesem Aufbau um etwa 26–36 %, ohne Lauf- oder Pflückgeschwindigkeit zu verändern. Die Ablieferung erfolgt in größeren, selteneren Schüben; nach fünf Minuten ist ein Teil noch unterwegs. Neue Logiktests prüfen die größeren Ladungen bei Stufe null und zehn einschließlich Speichern mitten im Transport, Teillieferung bei fast vollem Lager und Werterhaltung. Vorhandene Ladungen werden nicht gekürzt.
+
+Zum Vergleich erntet eine effizient gesteuerte Spielfigur im selben ersten Beet ohne Werkzeugverbesserungen 1.840 Einheiten in fünf Minuten (368 pro Minute), mit Korb-, Sichel- und Laufstufe zwei 2.456 (491 pro Minute). Die Figur läuft dabei mit vollem Korb zur Mitte des Verkaufsstands und entlädt tatsächlich. Beide Versuche enthalten Nachwachsen und Laufwege; Schnecken liefern stattdessen ins weiter entfernte Lager. Die Messung vergleicht getrennte Durchläufe ohne Konkurrenz und ohne Werkstätten. Sie misst Erntemengen, keine gleichen Verkaufserlöse und keine menschliche Spielgeschwindigkeit. Bereits eine einzelne Schnecke bleibt deshalb eine Ergänzung zur aktiven Ernte; mehrere können parallel die Werkstätten versorgen. Ihre Raten sind wegen gemeinsamer Pflanzen und Lagergrenzen nicht beliebig addierbar.
