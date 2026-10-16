@@ -40,8 +40,8 @@ export const COLLECTIBLES = {
     collectSound:560, sparkles:'#f5f9ba'
   },
   starfruit: {
-    name:'Sternenfrucht', plural:'Sternenfrüchte', action:'sammeln',
-    model:'fruit', bundle:'crate', color:'#88a9e2', accent:'#d2e4ff',
+    name:'Sternenfrucht', plural:'Sternenfrüchte', action:'pflücken',
+    model:'orchard', bundle:'crate', color:'#88a9e2', accent:'#d2e4ff',
     stem:'#7aa29d', wrap:'#c6a48a', tie:'#eee0b5',
     value:6, regrowSeconds:54, height:1.15, width:.68, rareChance:.06,
     collectSound:920, sparkles:'#deeeff'
@@ -101,7 +101,7 @@ export function generateFieldCells(fields=WORLD.fields){
 }
 export function stackLayers(amount,config=WORLD.stack){return amount<=0?0:Math.min(config.maxVisible,Math.ceil(amount/config.itemsPerLayer));}
 export function validateContent(){
-  const supportedModels=new Set(['blossom','sprig','crystal','mushroom','fruit']);
+  const supportedModels=new Set(['blossom','sprig','crystal','mushroom','fruit','orchard']);
   for(const [id,c]of Object.entries(COLLECTIBLES)){
     if(!supportedModels.has(c.model))throw new Error(`Unknown model on ${id}`);
     if(!['bale','crate'].includes(c.bundle))throw new Error(`Unknown bundle on ${id}`);

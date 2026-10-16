@@ -1,3 +1,5 @@
+> Stand 16. Oktober 2026: Die aktuelle Werkstatt-, Obstgarten- und Helferlogik steht in [GARTEN-TECHNIK.md](GARTEN-TECHNIK.md). Die folgenden Abschnitte beschreiben teilweise den vorherigen Stand. Aktuelle Regressionstests: `node --test tests.mjs farm-tests.mjs online-tests.mjs`.
+
 # Sammelarten schnell austauschen
 
 Die zentrale Datei ist `dist/content.mjs`. Darstellung, Ernte, Inventar, Transportanimation und Verkauf verwenden dieselben Definitionen. Der Spielstand speichert den Erntewert bereits beim Einsammeln; ein späterer Ortswechsel ändert den Wert der getragenen Ernte nicht.

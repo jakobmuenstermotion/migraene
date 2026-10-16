@@ -1,4 +1,4 @@
-import {fundingProgress,funded,normalizePlan} from './funding.mjs';
+import {normalizePlan} from './funding.mjs';
 import {BEDS} from './village-content.mjs';
 import {COLLECTIBLES} from './content.mjs';
 import {ECONOMY} from './economy.mjs';
@@ -11,8 +11,9 @@ export function grantRound(s,receipt){const j=s.journey;if(typeof receipt!=='str
 export function startRound(s){const j=s.journey;if(!j.closed||!j.pending||j.round>=10000)return false;j.round++;j.pending--;j.elapsed=0;j.closed=false;j.plan=null;j.goalCost=null;j.goalCost=dayPrice(s);j.rewardKind=(j.round-1)%11===0&&rewardCount(s,'seed')<7?'seed':rewardCount(s,'water')<70?'water':rewardCount(s,'seed')<7?'seed':'rest';return true;}
 export function rewardCount(s,kind){return(s.journey.rewards??[]).filter(r=>r.kind===kind).length;}
 export function closeDay(s){const j=s.journey,kind=j.rewardKind;if(j.closed)return false;if(kind==='rest'){if(rewardCount(s,'water')<70||rewardCount(s,'seed')<7)return false;j.closed=true;return true;}if(rewardCount(s,kind)>=(kind==='seed'?7:70))return false;j.rewards.push({id:'garden-day:'+j.round,round:j.round,kind});j.closed=true;return true;}
-export function growthFactor(s){if(s.journey?.closed)return 0;if(s.journey?.plan){if(funded(s))return 0;const progress=fundingProgress(s);return progress<=.7?1:Math.max(.25,Math.pow((1-progress)/.3,2));}const t=s.journey?.elapsed??0;if(t<=JOURNEY.freshSeconds)return 1;if(t>=JOURNEY.restSeconds)return 0;return Math.pow((JOURNEY.restSeconds-t)/(JOURNEY.restSeconds-JOURNEY.freshSeconds),2);}
-export function tickJourney(s,dt){const j=s.journey;if(j.closed)return 0;if(j.plan){const growth=growthFactor(s)*Math.max(0,dt);j.elapsed+=Math.max(0,dt);j.growthTime+=growth;return growth;}const area=t=>t<=240?t:240+120*(1-Math.pow((600-t)/360,3));const before=j.elapsed;j.elapsed=Math.min(600,j.elapsed+Math.max(0,dt));const growth=area(j.elapsed)-area(before);j.growthTime+=growth;return growth;}
+// Regrowth slows with active play time, never with the wallet balance.
+export function growthFactor(s){if(s.journey?.round===0)return 0;const elapsed=s.journey?.elapsed??0;return Math.max(.025,1/(1+Math.pow(Math.max(0,elapsed-JOURNEY.freshSeconds)/900,1.25)));}
+export function tickJourney(s,dt){const j=s.journey,seconds=Math.max(0,dt),before=growthFactor(s);j.elapsed+=seconds;const growth=seconds*(before+growthFactor(s))/2;j.growthTime+=growth;return growth;}
 export function roundYield(s){return Math.pow(JOURNEY.yieldGrowth,Math.min(77,s.journey?.round??1)-1);}
 export function dayPrice(s){if(s.journey.goalCost>0)return s.journey.goalCost;return Math.ceil(ECONOMY.dayBase*Math.min(Math.pow(ECONOMY.dayGrowth,Math.min(76,s.journey.round-1)),Math.max(1,...BEDS.map((b,i)=>s.village.beds[i]?COLLECTIBLES[b.crop].value*Math.pow(ECONOMY.bedUpgrade,s.village.beds[i]-1):0))*Math.pow(ECONOMY.valueUpgrade,s.tools.value))*roundYield(s));}
 // Availability widens without prescribing purchases. All branches reach their cap by 77.
@@ -23,7 +24,7 @@ export function buildRule(id){
   if(id.startsWith('bed:'))return{start:[1,12,25,36,47,59,68][Number(id.slice(4))],stride:Number(id.slice(4))===6?2:3,max:5};
   if(id.startsWith('seed:'))return{start:[1,11,24,35,46,58,67][Number(id.slice(5))],stride:1,max:1};
   if(id.startsWith('workshop:'))return{start:({bouquet:3,tea:15,oil:29,elixir:43})[id.slice(9)],stride:5,max:7};
-  return({snail:{start:7,stride:6,max:12},snailLevel:{start:10,stride:7,max:10},partner:{start:21,stride:9,max:3},warehouse:{start:4,stride:6,max:12},sprinkler:{start:18,stride:7,max:9}})[id];
+  return({farm:{start:18,stride:1,max:1},woodcock:{start:32,stride:1,max:1},snail:{start:7,stride:6,max:12},snailLevel:{start:10,stride:7,max:10},partner:{start:21,stride:9,max:3},warehouse:{start:4,stride:6,max:12},sprinkler:{start:18,stride:7,max:9}})[id];
 }
 export function pacePad(s,p){const r=buildRule(p.id),round=s.journey?.round??1,next=r.start+Math.max(0,p.level-(p.id==='warehouse'||p.id==='bed:0'?1:0))*r.stride;
   const cap=p.level>=r.max,waiting=round<next;return{...p,max:p.max||cap,visible:round>=r.start,locked:p.locked||waiting,reason:p.locked?p.reason:waiting?'Ab Gartenrunde '+next+' weiter ausbaubar.':p.reason,requiredRound:next,description:p.description??'',cost:Math.ceil(p.cost*Math.pow(ECONOMY.costGrowth,Math.max(0,next-1)))};

@@ -13,13 +13,15 @@ export function createField(gardenIndex=0){
 }
 export function createVillageField(s,previous=[]){const before=new Map(previous.map(p=>[p.key,p]));let id=0;return BEDS.flatMap((bed,index)=>{if(!s.village.beds[index])return[];return generateFieldCells([bed]).map((p,i)=>{const key=bed.id+':'+i,old=before.get(key)??s.village.fieldCuts?.[key],crop=COLLECTIBLES[bed.crop];return{...p,field:index,bed:index,crop:bed.crop,key,id:id++,readyAt:old?.readyAt??0,cutAt:old?.cutAt??-100,variation:.9+((Math.sin(i*127.1+index)*43758.5453%1+1)%1)*.2,rare:((Math.sin(i*331.7+index*17+7)*19427.13%1+1)%1)<crop.rareChance};});});}
 
-export function harvestAt(s,cells,x,z,time,eventMultiplier=1){
+export function harvestAt(s,cells,x,z,time,eventMultiplier=1,{moving=false,dt=0}={}){
+  for(const cell of cells){const bed=BEDS[cell.bed];if(bed?.pickSeconds&&(moving||Math.hypot(cell.x-x,cell.z-z)>1.15))cell.pickProgress=0;}
   const free=capacity(s)-s.bag-productCargoCount(s);if(free<=0||growthFactor(s)<=0)return [];
   const radius=reach(s)/38,crop=getCrop(s.biome),max=harvestBatch(s),picked=[];
   for(const cell of cells){
     if(picked.length>=max||s.bag+productCargoCount(s)>=capacity(s))break;
     if(materialHarvestRemaining(s,cell.crop??'moonbloom')<=0)continue;if(cell.readyAt>time||Math.hypot(cell.x-x,cell.z-z)>radius)continue;
-    const units=Math.min(capacity(s)-s.bag-productCargoCount(s),cell.rare?3:1,materialHarvestRemaining(s,cell.crop??'moonbloom')),value=(cell.crop?bedYield(s,cell.bed)*VILLAGE.manualBonus:yieldValue(s))*units*eventMultiplier*(cell.rare?2:1);
+    const bed=BEDS[cell.bed];if(bed?.pickSeconds){if(moving||Math.hypot(cell.x-x,cell.z-z)>1.15)continue;cell.pickProgress=(cell.pickProgress??0)+Math.max(0,dt);if(cell.pickProgress<bed.pickSeconds)continue;cell.pickProgress=0;}
+    const units=Math.min(capacity(s)-s.bag-productCargoCount(s),bed?.pickUnits?(cell.rare?2:1)*bed.pickUnits:cell.rare?3:1,materialHarvestRemaining(s,cell.crop??'moonbloom')),value=(cell.crop?bedYield(s,cell.bed)*VILLAGE.manualBonus:yieldValue(s))*units*eventMultiplier*(cell.rare?2:1);
     cell.cutAt=time;cell.readyAt=time+(cell.crop?bedRegrow(s,cell.bed):crop.regrowSeconds);s.bag+=units;s.bagValue+=value;s.stats.harvested+=units;s.stats.runHarvested+=units;
     const id=cell.crop??'moonbloom';s.cargo??={};s.cargo[id]??={count:0,value:0};s.cargo[id].count+=units;s.cargo[id].value+=value;
     picked.push({cell,units,value,rare:cell.rare});

@@ -1,0 +1,7 @@
+.git
+.env*
+node_modules
+**/*.sqlite*
+data
+attachments
+balance-results.json

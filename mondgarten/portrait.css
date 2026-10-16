@@ -23,3 +23,10 @@ dialog{padding:29px 22px 24px;width:min(560px,calc(100% - 24px));max-height:calc
 @media(max-height:700px){.tutorial{bottom:190px;padding:12px 30px 12px 15px}.tutorial>span{display:none}.tutorial h1{margin-top:0;font-size:17px}.tutorial p{margin-top:5px}.joystick{width:92px;height:92px}.joystick>div{left:22px;top:22px}.pay-status{bottom:85px}}
 @media(min-width:700px){.hud-bottom{right:24px}.bag-panel{flex-basis:260px;width:260px}.joystick{left:30px;bottom:30px}.tutorial{bottom:130px}}
 [hidden]{display:none!important}
+
+/* Floating control: the gesture stays captured by the world canvas. */
+#joystick{display:none;position:absolute;width:102px;height:102px;left:0;top:0;bottom:auto;transform:translate(-50%,-50%);pointer-events:none;z-index:6}
+#joystick.active{display:block}#joystick>div{width:44px;height:44px;left:27px;top:27px}
+#stockShortcut{height:54px;width:48px;flex:0 0 48px;display:grid;place-items:center;border:1px solid #fff9;border-radius:18px;background:#fff9e6ed;color:#85715f;box-shadow:var(--shadow);font-size:23px}
+
+.field select{display:block;width:100%;margin-top:8px;background:#fffff8;border:1px solid #d8dec5;padding:12px;border-radius:10px;color:#727c60;font:inherit;font-size:13px}
