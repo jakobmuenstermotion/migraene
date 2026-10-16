@@ -406,9 +406,43 @@ const fs = require("node:fs");
         camera.lookAt(0, 0.75, 0);
         renderer.render(scene, camera);
       };
+      canvas.showSpeciesPair = (ids) => {
+        actors.forEach((a) => (a.root.visible = false));
+        snails.forEach((snail, i) => {
+          snail.root.visible = true;
+          snail.setHat(null);
+          snail.setSpecies(ids[i]);
+          snail.setSleeping(false);
+        });
+        camera.position.set(0, 1.7, 6);
+        camera.lookAt(0, 0.75, 0);
+        renderer.render(scene, camera);
+      };
+      const { SNAILS } = await import("/mondgarten/snail-farm.mjs");
+      const speciesVisibility = SNAILS.map((species) => {
+        snails[0].setSpecies(species.id);
+        const shell = snails[0].root.getObjectByName("snail-shell"),
+          map = shell.material.map.image;
+        let hash = 0;
+        for (const n of map
+          .getContext("2d")
+          .getImageData(0, 0, map.width, map.height).data)
+          hash = (Math.imul(hash, 31) + n) | 0;
+        return {
+          id: species.id,
+          pattern: snails[0].root.userData.shellPattern,
+          shape: shell.scale.toArray().join(","),
+          hash,
+        };
+      });
       renderer.render(scene, camera);
       canvas.disposePreview = () => renderer.dispose();
-      return { visibility, stackMeasurements, snailVisibility };
+      return {
+        visibility,
+        stackMeasurements,
+        snailVisibility,
+        speciesVisibility,
+      };
     });
     assert.ok(
       modelVisibility.visibility.flat().every((v) => v.visible && v.removable),
@@ -444,6 +478,36 @@ const fs = require("node:fs");
       await p
         .locator("#accessoryPreview")
         .screenshot({ path: `/tmp/mondgarten-snails-${id}.png` });
+    }
+    assert.equal(
+      new Set(modelVisibility.speciesVisibility.map((s) => s.pattern)).size,
+      10,
+    );
+    assert.equal(
+      new Set(modelVisibility.speciesVisibility.map((s) => s.shape)).size,
+      10,
+    );
+    assert.equal(
+      new Set(modelVisibility.speciesVisibility.map((s) => s.hash)).size,
+      10,
+    );
+    for (const pair of [
+      ["garden", "dew"],
+      ["lavender", "honey"],
+      ["moss", "coral"],
+      ["moon", "apple"],
+      ["amber", "star"],
+    ]) {
+      await p.evaluate(
+        (ids) =>
+          document.querySelector("#accessoryPreview").showSpeciesPair(ids),
+        pair,
+      );
+      await p
+        .locator("#accessoryPreview")
+        .screenshot({
+          path: "/tmp/mondgarten-species-" + pair.join("-") + ".png",
+        });
     }
     await p.evaluate(() =>
       document.querySelector("#accessoryPreview").disposePreview(),
@@ -730,6 +794,14 @@ const fs = require("node:fs");
             args = { ...args, player: { ...args.player, x: -9.5, z: 23 } };
             this.focus.set(-9.55, 0, 19.7);
           }
+          if (window.previewFarm) {
+            args = { ...args, player: { ...args.player, x: -28, z: -4 } };
+            this.focus.set(-26.2, 0, -4.6);
+            if (this.zoom !== 1.4) {
+              this.zoom = 1.4;
+              this.resize();
+            }
+          }
           original.call(this, dt, args);
           const helper = this.helpers[0];
           window.careProbe = {
@@ -737,6 +809,16 @@ const fs = require("node:fs");
             faceVisible: helper.root.getObjectByName("snail-face").visible,
             sleepVisible: helper.root.getObjectByName("snail-sleep").visible,
             cargo: args.snails[0]?.bag,
+            farm: this.farmVisuals
+              .filter((v) => v.root.visible)
+              .map((v) => ({
+                x: v.root.position.x,
+                z: v.root.position.z,
+                scale: v.root.scale.x,
+                pattern: v.root.userData.shellPattern,
+                face: v.root.getObjectByName("snail-face").visible,
+                sleep: v.root.getObjectByName("snail-sleep").visible,
+              })),
             pads: [...this.padVisuals].map(([id, v]) => ({
               id,
               icon: v.iconKind,
@@ -750,6 +832,7 @@ const fs = require("node:fs");
         window.stopCareProbe = () => {
           GardenScene.prototype.update = original;
           window.previewToolPads = false;
+          window.previewFarm = false;
         };
       });
     const care = freshState();
@@ -858,6 +941,98 @@ const fs = require("node:fs");
     await p
       .locator("#world")
       .screenshot({ path: "/tmp/mondgarten-upgrade-pads.png" });
+    await p.evaluate(() => {
+      window.previewToolPads = false;
+      window.previewFarm = true;
+    });
+    const nursery = freshState();
+    nursery.tutorial = 3;
+    nursery.sound = false;
+    nursery.journey.round = 50;
+    nursery.village.farm.built = true;
+    nursery.village.farm.nextID = 7;
+    nursery.village.farm.nursery = [
+      "garden",
+      "dew",
+      "lavender",
+      "honey",
+      "moss",
+      "coral",
+    ].map((species, i) => ({
+      id: i + 1,
+      species,
+      growth: [0, 400, 800, 1200, 1800, 2400][i],
+      meal: 600,
+      investment: 0,
+    }));
+    await importState(nursery);
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuFarm").click();
+    assert.equal(await p.locator("#visitFarm").count(), 1);
+    assert.ok(
+      (await p.locator('[data-food="flowers"]').innerText()).includes(
+        "60 Mondblüten + 3 Mondsträuße",
+      ),
+    );
+    assert.equal(await p.locator('[data-food="flowers"]').isDisabled(), true);
+    await p.locator("#visitFarm").click();
+    await p.waitForFunction(() => window.careProbe?.farm.length === 6);
+    const crawling = await p.evaluate(() => window.careProbe.farm);
+    await p.waitForFunction(
+      (x) => Math.abs(window.careProbe.farm[0].x - x) > 0.005,
+      crawling[0].x,
+    );
+    assert.ok(
+      crawling.every((n) => Math.abs(n.x) < 1.8 && Math.abs(n.z) < 1.15),
+    );
+    assert.ok(crawling[0].scale < crawling[5].scale);
+    assert.equal(new Set(crawling.map((n) => n.pattern)).size, 6);
+    await p
+      .locator("#world")
+      .screenshot({ path: "/tmp/mondgarten-nursery-crawling.png" });
+    const nurseryNight = structuredClone(nursery);
+    nurseryNight.journey.closed = true;
+    nurseryNight.journey.light = 1;
+    await importState(nurseryNight);
+    await p.waitForFunction(
+      () =>
+        window.careProbe.farm.length === 6 &&
+        window.careProbe.farm.every((n) => n.sleep && !n.face),
+    );
+    const sleepingNursery = await p.evaluate(() =>
+      window.careProbe.farm.map(({ x, z }) => ({ x, z })),
+    );
+    await p.waitForTimeout(600);
+    assert.deepEqual(
+      await p.evaluate(() =>
+        window.careProbe.farm.map(({ x, z }) => ({ x, z })),
+      ),
+      sleepingNursery,
+    );
+    await p
+      .locator("#world")
+      .screenshot({ path: "/tmp/mondgarten-nursery-sleeping.png" });
+    const calmNursery = structuredClone(nursery);
+    calmNursery.reducedMotion = true;
+    await importState(calmNursery);
+    await p.waitForFunction(
+      () =>
+        window.careProbe.farm.length === 6 &&
+        window.careProbe.farm.every((n) => !n.sleep),
+    );
+    const calmPositions = await p.evaluate(() =>
+      window.careProbe.farm.map(({ x, z }) => ({ x, z })),
+    );
+    await p.waitForTimeout(600);
+    assert.deepEqual(
+      await p.evaluate(() =>
+        window.careProbe.farm.map(({ x, z }) => ({ x, z })),
+      ),
+      calmPositions,
+    );
+    console.log(
+      "Nursery: six growing species crawl inside the pen, use distinct patterned shell shapes, sleep at night and respect reduced motion; direct farm menu and visit action work",
+    );
     await p.evaluate(() => window.stopCareProbe());
     const catchup = freshState();
     catchup.tutorial = 3;
