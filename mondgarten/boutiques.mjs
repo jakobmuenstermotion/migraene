@@ -63,6 +63,15 @@ export const COSMETICS = [
     description: "Eine kleine korallfarbene Blüte.",
   },
   {
+    id: "snailEyes",
+    shop: "style",
+    name: "Aufsetzbare Schneckenaugen",
+    round: 22,
+    base: 225000,
+    description:
+      "Ein grüner Haarreif mit zwei lustigen Schneckenaugen auf Fühlern.",
+  },
+  {
     id: "hat",
     shop: "style",
     name: "Sonnenhut",

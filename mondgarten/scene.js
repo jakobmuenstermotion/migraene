@@ -92,10 +92,19 @@ export function makeActor(companion=false){
   const smile=geo('actorSmile',()=>new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(-.075,1.20,.312),new T.Vector3(0,1.18,.325),new T.Vector3(.075,1.20,.312)]),14,.009,5,false));mesh(smile,'#a66c59',body);
   const legs=[];for(const x of [-.15,.15]){const leg=mesh(cylinder(.105,.12,.38,7),companion?'#46514a':'#636d56',body,x,.2,0);legs.push(leg);const shoe=mesh(smooth,'#9e8465',leg,0,-.15,.06);shoe.scale.set(.13,.12,.21);}
   for(const side of [-1,1]){const arm=oval(coat,side*.35,.77,.02,.13,.3,.13);arm.rotation.z=side*.2;oval(skin,side*.41,.51,.07,.105,.105,.105);}
-  const accessories={hat:new T.Group(),flower:new T.Group(),scarf:new T.Group()};for(const g of Object.values(accessories)){body.add(g);g.visible=false;}
+  const accessories={hat:new T.Group(),flower:new T.Group(),scarf:new T.Group(),snailEyes:new T.Group()};for(const [id,g] of Object.entries(accessories)){g.name='accessory:'+id;body.add(g);g.visible=false;}
   mesh(cylinder(.48,.48,.045,18),'#dcca9c',accessories.hat,0,1.73,0);mesh(cylinder(.30,.35,.20,14),'#d9c597',accessories.hat,0,1.84,0);mesh(cylinder(.355,.355,.055,14),'#92b4a0',accessories.hat,0,1.77,0);
   for(let i=0;i<5;i++){const a=i*Math.PI*2/5,m=mesh(smooth,'#dfa397',accessories.flower,-.29+Math.cos(a)*.055,1.49+Math.sin(a)*.055,.19);m.scale.set(.045,.045,.025);}mesh(sphere(.032),'#e7c67a',accessories.flower,-.29,1.49,.22);
   mesh(cylinder(.21,.23,.12,12),'#b59acb',accessories.scarf,0,1.075,.02);const scarfEnd=mesh(box(.13,.32,.06),'#b59acb',accessories.scarf,.13,.91,.29);scarfEnd.rotation.z=.18;
+  const eyeBand=mesh(geo('snailEyeBand',()=>new T.TorusGeometry(.30,.035,6,18)),'#8faa73',accessories.snailEyes,0,1.70,.02);eyeBand.rotation.x=Math.PI/2;
+  for(const side of [-1,1]){
+    const stalk=new T.Group();stalk.position.set(side*.21,1.70,.03);stalk.rotation.z=-side*.26;accessories.snailEyes.add(stalk);
+    mesh(cylinder(.035,.045,.52,8),'#9fb97d',stalk,0,.25,0);
+    mesh(sphere(.13),'#bfd393',stalk,0,.56,0);
+    mesh(sphere(.085),'#fff8e5',stalk,0,.57,.075);
+    mesh(sphere(.042),'#343b36',stalk,0,.57,.145);
+    mesh(sphere(.014),'#ffffff',stalk,-.012,.59,.179);
+  }
   const pack=mesh(roundedSlab(.63,.65,.35,.1),companion?'#8c8968':'#b99a69',body,0,.73,-.34);mesh(box(.1,.7,.05),'#d6bd87',pack,-.19,0,-.18);mesh(box(.1,.7,.05),'#d6bd87',pack,.19,0,-.18);
   return{root,body,stack,legs,walk:0,angle:0,layers:[],setAccessory(id){for(const [key,g]of Object.entries(accessories))g.visible=key===id;}};
 }

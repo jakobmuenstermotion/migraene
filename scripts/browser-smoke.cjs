@@ -210,10 +210,98 @@ const fs = require("node:fs");
     );
     assert.deepEqual(appearance.equipped, ["flower", "flower"]);
     assert.ok(appearance.owned.includes("lanterns"));
+    await p.locator('[data-cosmetic="snailEyes"][data-amount="100"]').click();
+    assert.equal(
+      await p.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+            .boutiques.payments.snailEyes,
+      ),
+      100,
+    );
+    await p.locator('[data-cosmetic="snailEyes"]').last().click();
+    await p.locator('[data-equip="snailEyes"][data-actor="0"]').click();
+    await p.locator('[data-equip="snailEyes"][data-actor="1"]').click();
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    const eyeAppearance = await p.evaluate(
+      () =>
+        JSON.parse(localStorage.getItem("mondgarten.save.v1")).village
+          .boutiques,
+    );
+    assert.ok(eyeAppearance.owned.includes("snailEyes"));
+    assert.deepEqual(eyeAppearance.equipped, ["snailEyes", "snailEyes"]);
+    await boutiques();
+    assert.ok(
+      (
+        await p.locator('[data-equip="snailEyes"][data-actor="0"]').innerText()
+      ).includes("Ablegen"),
+    );
+    assert.ok(
+      (
+        await p.locator('[data-equip="snailEyes"][data-actor="1"]').innerText()
+      ).includes("Ablegen"),
+    );
     await p.locator("#closeModal").click();
     await p.screenshot({ path: "/tmp/mondgarten-boutiques.png" });
+    // Render the actual exported character models close up, including both eye stalks.
+    const modelVisibility = await p.evaluate(async () => {
+      const T = await import("/mondgarten/vendor/three.module.js");
+      const { makeActor } = await import("/mondgarten/scene.js");
+      const canvas = document.createElement("canvas");
+      canvas.id = "accessoryPreview";
+      canvas.style.marginTop = "48px";
+      document.querySelector("#modalBody").replaceChildren(canvas);
+      document.querySelector("#modal").showModal();
+      const renderer = new T.WebGLRenderer({
+        canvas,
+        antialias: true,
+        preserveDrawingBuffer: true,
+      });
+      renderer.setPixelRatio(2);
+      renderer.setSize(320, 300);
+      const scene = new T.Scene();
+      scene.background = new T.Color("#e4ead5");
+      scene.add(new T.HemisphereLight("#fff9eb", "#77866b", 2));
+      const light = new T.DirectionalLight("#ffffff", 2);
+      light.position.set(-2, 4, 5);
+      scene.add(light);
+      const camera = new T.OrthographicCamera(-1.4, 1.4, 1.45, -1.35, 0.1, 30);
+      camera.position.set(0, 1.8, 7);
+      camera.lookAt(0, 1.2, 0);
+      const visibility = [false, true].map((companion, i) => {
+        const actor = makeActor(companion);
+        actor.root.position.x = i ? 0.65 : -0.65;
+        actor.root.rotation.y = i ? -0.16 : 0.16;
+        actor.setAccessory("snailEyes");
+        const eyes = actor.body.getObjectByName("accessory:snailEyes");
+        const visible =
+          eyes.visible &&
+          !actor.body.getObjectByName("accessory:hat").visible &&
+          !actor.body.getObjectByName("accessory:flower").visible;
+        actor.setAccessory(null);
+        const removable = !eyes.visible;
+        actor.setAccessory("snailEyes");
+        scene.add(actor.root);
+        return { visible, removable };
+      });
+      renderer.render(scene, camera);
+      canvas.disposePreview = () => renderer.dispose();
+      return visibility;
+    });
+    assert.deepEqual(modelVisibility, [
+      { visible: true, removable: true },
+      { visible: true, removable: true },
+    ]);
+    await p
+      .locator("#accessoryPreview")
+      .screenshot({ path: "/tmp/mondgarten-snail-eyes.png" });
+    await p.evaluate(() =>
+      document.querySelector("#accessoryPreview").disposePreview(),
+    );
+    await p.locator("#closeModal").click();
     console.log(
-      "Boutiques: construction, saved instalment, decorations and both character accessories OK",
+      "Boutiques: construction, saved instalment, decorations, snail-eye purchase and persistent equipment for both actual character models OK",
     );
     const importState = async (value) => {
       await p.locator("#gardenMenu").click();

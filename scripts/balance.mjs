@@ -466,9 +466,13 @@ function run(style) {
     for (const [id, p] of Object.entries(cosmeticSavings).filter(
       ([, p]) => p.completedRound !== null,
     )) {
+      const definition = [...BOUTIQUES, ...COSMETICS].find((d) => d.id === id);
+      // Old offers may be cheap relative to much later earnings. The savings
+      // requirement applies when first offered, not as a forced waiting period.
+      if (p.firstRound > definition.round + 3) continue;
       assert.ok(
         p.completedRound > p.firstRound && p.rounds.size >= 2,
-        `${id} did not require saving across days`,
+        `${id} did not require saving across days near its unlock`,
       );
     }
   const sorted = days.map((d) => d.activeSeconds).sort((a, b) => a - b);

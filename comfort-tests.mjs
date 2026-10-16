@@ -139,6 +139,34 @@ test("accessories open before farm decorations without repricing existing saving
   assert.equal(s.coins, 0);
 });
 
+test("snail eyes require a built shop and day 22, preserve instalments, and equip independently", () => {
+  let s = freshState();
+  s.journey.round = 22;
+  s.coins = 1e7;
+  assert.equal(contributeCosmetic(s, "snailEyes", 100).paid, 0);
+  s.village.boutiques.built.push("style");
+  s.journey.round = 21;
+  assert.equal(contributeCosmetic(s, "snailEyes", 100).paid, 0);
+  assert.equal(equipCosmetic(s, 0, "snailEyes"), false);
+  s.journey.round = 22;
+  assert.deepEqual(contributeCosmetic(s, "snailEyes", 100), {
+    paid: 100,
+    complete: false,
+  });
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.village.boutiques.payments.snailEyes, 100);
+  assert.equal(contributeCosmetic(s, "snailEyes", 1e7).complete, true);
+  const coins = s.coins;
+  assert.equal(contributeCosmetic(s, "snailEyes", 100).paid, 0);
+  assert.equal(s.coins, coins);
+  assert.equal(equipCosmetic(s, 0, "snailEyes"), true);
+  assert.equal(equipCosmetic(s, 1, "snailEyes"), true);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.deepEqual(s.village.boutiques.equipped, ["snailEyes", "snailEyes"]);
+  assert.equal(equipCosmetic(s, 0, null), true);
+  assert.deepEqual(s.village.boutiques.equipped, [null, "snailEyes"]);
+});
+
 test("warnings persist once each, sleep refunds only unfinished daily reward and preserves assets", () => {
   let s = freshState();
   s.coins = 100;
