@@ -1,3 +1,4 @@
+import {HIVES} from './honey-content.mjs';
 import {activateFeedback,queueFeedback,skipFeedback} from './day-feedback.mjs';
 import {normalizePlan} from './funding.mjs';
 import {BEDS} from './village-content.mjs';
@@ -48,16 +49,17 @@ export function roundYield(s){return Math.pow(JOURNEY.yieldGrowth,Math.min(77,s.
 export function dayPrice(s){if(s.journey.goalCost>0)return s.journey.goalCost;return Math.ceil(ECONOMY.dayBase*Math.min(Math.pow(ECONOMY.dayGrowth,Math.min(76,s.journey.round-1)),Math.max(1,...BEDS.map((b,i)=>s.village.beds[i]?COLLECTIBLES[b.crop].value*Math.pow(ECONOMY.bedUpgrade,s.village.beds[i]-1):0))*Math.pow(ECONOMY.valueUpgrade,s.tools.value))*roundYield(s));}
 // Availability widens without prescribing purchases. All branches reach their cap by 77.
 export function buildRule(id){
+  if(id.startsWith('hive:'))return{start:HIVES[Number(id.slice(5))].round,stride:1,max:1};
   if(id==='bus')return{start:77,stride:1,max:1};
   if(id==='endDay')return{start:1,stride:1,max:10001};
   if(id.startsWith('tool:'))return{start:['reach','bag'].includes(id.slice(5))?1:2,stride:5,max:16};
-  if(id.startsWith('bed:'))return{start:[1,12,25,36,47,59,68][Number(id.slice(4))],stride:Number(id.slice(4))===6?2:3,max:5};
-  if(id.startsWith('seed:'))return{start:[1,11,24,35,46,58,67][Number(id.slice(5))],stride:1,max:1};
+  if(id.startsWith('bed:'))return{start:[1,12,47,36,25,59,68][Number(id.slice(4))],stride:Number(id.slice(4))===6?2:3,max:5};
+  if(id.startsWith('seed:'))return{start:[1,11,46,35,24,58,67][Number(id.slice(5))],stride:1,max:1};
   if(id.startsWith('workshop:'))return{start:({bouquet:3,tea:15,oil:29,elixir:43})[id.slice(9)],stride:5,max:7};
   return({farm:{start:18,stride:1,max:1},woodcock:{start:32,stride:1,max:1},snail:{start:7,stride:6,max:12},snailLevel:{start:10,stride:7,max:10},partner:{start:21,stride:9,max:3},warehouse:{start:4,stride:6,max:12},sprinkler:{start:18,stride:7,max:9}})[id];
 }
 export function pacePad(s,p){const r=buildRule(p.id),round=s.journey?.round??1,next=r.start+Math.max(0,p.level-(p.id==='warehouse'||p.id==='bed:0'?1:0))*r.stride;
   const firstLevel=p.id==='warehouse'||p.id==='bed:0'?1:0,canAdvance=p.level>firstLevel&&(['tool','workshop','snail','warehouse','sprinkler','bed'].includes(p.kind)),lookahead=canAdvance?Math.min(3,r.stride-1):0,available=Math.max(r.start,next-lookahead);
-  const cap=p.level>=r.max,waiting=round<available;return{...p,max:p.max||cap,visible:round>=r.start,locked:p.locked||waiting,reason:p.locked?p.reason:waiting?'Ab Gartenrunde '+available+' weiter ausbaubar.':p.reason,requiredRound:next,availableRound:available,optional:round<next&&!waiting&&!p.locked&&!cap,description:p.description??'',cost:Math.ceil(p.cost*Math.pow(ECONOMY.costGrowth,Math.max(0,next-1)))};
+  const cap=p.level>=r.max,waiting=round<available;return{...p,max:p.max||cap,visible:round>=r.start,locked:p.locked||waiting,reason:p.locked?p.reason:waiting?'Ab Gartenrunde '+available+' weiter ausbaubar.':p.reason,requiredRound:next,availableRound:available,optional:p.optional||round<next&&!waiting&&!p.locked&&!cap,description:p.description??'',cost:Math.ceil(p.cost*Math.pow(ECONOMY.costGrowth,Math.max(0,next-1)))};
 }
 

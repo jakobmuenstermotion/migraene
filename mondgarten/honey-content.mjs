@@ -1,0 +1,61 @@
+// Each flower field has one permanent, optional hive two days after its opening.
+export const HIVES = [
+  {
+    id: "moon",
+    bed: 0,
+    round: 3,
+    honey: "moonHoney",
+    name: "Mondblütenhonig",
+    color: "#efd39b",
+    boost: 0.2,
+    x: -5.5,
+    z: -3.5,
+    pad: { x: -5.5, z: -6.2 },
+  },
+  {
+    id: "lavender",
+    bed: 1,
+    round: 14,
+    honey: "lavenderHoney",
+    name: "Lavendelhonig",
+    color: "#c8afd8",
+    boost: 0.25,
+    x: -7.5,
+    z: -15,
+    pad: { x: -7.5, z: -18 },
+  },
+  {
+    id: "coral",
+    bed: 2,
+    round: 49,
+    honey: "coralHoney",
+    name: "Korallenhonig",
+    color: "#e8b29c",
+    boost: 0.3,
+    x: 27,
+    z: 24,
+    pad: { x: 29.7, z: 24 },
+  },
+  {
+    id: "sun",
+    bed: 6,
+    round: 70,
+    honey: "sunHoney",
+    name: "Sonnenhonig",
+    color: "#e5bd64",
+    boost: 0.35,
+    x: -23.5,
+    z: -22,
+    pad: { x: -21, z: -23 },
+  },
+];
+export const HONEY_SECONDS = 90,
+  HIVE_CAPACITY = 3,
+  SNACK_SECONDS = 120,
+  CONFECTION_ROUND = 52;
+export const HONEY_PRODUCTS = Object.fromEntries(
+  HIVES.map((h) => [
+    h.honey,
+    { name: h.name, plural: h.name, icon: "⬡", color: h.color, value: 4 },
+  ]),
+);

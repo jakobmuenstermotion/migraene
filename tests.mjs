@@ -359,17 +359,17 @@ test('woodcock leaves reserved house materials and can choose a different produc
   assert.equal(s.village.woodcock.cargo.items.tea, 1);
 });
 
-test('orchard is a purchased late-game upgrade, not a starting field', () => {
+test('orchard is a purchased third area at day 25, not a starting field', () => {
   const s = freshState();
   s.coins = 1e10;
   assert.equal(s.village.beds[4], 0);
-  s.village.beds[3] = 1;
+  s.village.beds[1] = 1;
   s.village.seeds[4] = true;
-  s.journey.round = 46;
+  s.journey.round = 24;
   let p = getBuildPads(s, TOOLS).find((p) => p.id === 'bed:4');
   assert.equal(p.visible, false);
   assert.equal(payBuild(s, p, 10).complete, false);
-  s.journey.round = 47;
+  s.journey.round = 25;
   p = getBuildPads(s, TOOLS).find((p) => p.id === 'bed:4');
   assert.equal(p.locked, false);
   assert.equal(s.village.beds[4], 0);

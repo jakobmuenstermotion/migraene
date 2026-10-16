@@ -1,3 +1,4 @@
+import { helperBoost } from "./apiary.mjs";
 import { WORKSHOPS, VILLAGE } from "./village-content.mjs";
 import { WORLD } from "./content.mjs";
 import {
@@ -37,6 +38,7 @@ export function advanceWoodcock(s, dt) {
   const b = s.village.woodcock,
     events = [];
   if (!b?.unlocked || dt <= 0) return events;
+  dt *= helperBoost(s, "woodcock");
   if (count(b.cargo) > 1e-8) {
     if (b.cargo.kind === "sell") {
       if (walk(b, WORLD.bank, dt)) {
@@ -71,10 +73,14 @@ export function advanceWoodcock(s, dt) {
   }
   if (b.task === "sell") {
     for (const w of WORKSHOPS) {
-      const available = availableProducts(s, w.product, true);
+      const product =
+        w.id === "tea" && (s.village.finished.honeyapple ?? 0) > 0
+          ? "honeyapple"
+          : w.product;
+      const available = availableProducts(s, product, true);
       if (available <= 0) continue;
       if (walk(b, { x: w.x + 1.8, z: w.z + 1.8 }, dt)) {
-        const batch = collectProducts(s, 12, true, w.product);
+        const batch = collectProducts(s, 12, true, product);
         b.cargo = {
           kind: "sell",
           workshop: w.id,

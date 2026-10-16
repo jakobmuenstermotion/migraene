@@ -80,6 +80,8 @@ test("four ten-minute meals grow a snail; hunger pauses without loss and a matur
   assert.ok(moveShellToFarm(s, "garden"));
   assert.equal(moveShellToFarm(s, "garden"), false);
   const n = f.nursery[0];
+  f.honeyFood = 1;
+  f.honeyFoodValue = 105;
   assert.ok(cookFood(s));
   advanceFarm(s, 10000);
   assert.equal(n.growth, 0);
@@ -210,7 +212,10 @@ test("old food, invested value and elapsed growth survive migration, and already
   const restored = normalize(JSON.parse(JSON.stringify(s)));
   assert.equal(restored.village.farm.food, 9);
   assert.equal(restored.village.farm.foodValue, 123);
-  assert.deepEqual(restored.village.farm.nursery[0], f.nursery[0]);
+  assert.deepEqual(restored.village.farm.nursery[0], {
+    ...f.nursery[0],
+    honeyMeal: false,
+  });
   assert.equal(restored.village.farm.nursery[1].growth, FARM.growSeconds);
   assert.equal(restored.village.farm.nursery[1].investment, 99);
   assert.deepEqual(normalize(restored).village.farm, restored.village.farm);
@@ -220,8 +225,10 @@ test("forty minutes of fed growth spans seven five-minute visits with bounded ov
   let s = state();
   s.village.farm.shells.garden = 1;
   moveShellToFarm(s, "garden");
-  s.village.farm.food = 4;
-  s.village.farm.foodValue = 420;
+  s.village.farm.food = 3;
+  s.village.farm.foodValue = 315;
+  s.village.farm.honeyFood = 1;
+  s.village.farm.honeyFoodValue = 105;
   for (let visit = 1; visit <= 7; visit++) {
     for (let sec = 0; sec < 300; sec++) {
       if (s.village.farm.nursery[0].meal === 0) feedSnail(s, 1);

@@ -4,6 +4,7 @@ export function padIcon(pad) {
     return { reach: "sickle", bag: "bag", speed: "boot", value: "coin" }[
       pad.id.slice(5)
     ];
+  if (pad.kind === "hive") return "honey";
   if (pad.kind === "workshop")
     return { bouquet: "flower", tea: "cup", oil: "bottle", elixir: "potion" }[
       pad.id.slice(9)
@@ -11,8 +12,9 @@ export function padIcon(pad) {
   if (pad.kind === "seed") return "seed";
   if (pad.kind === "bed")
     return (
-      { 3: "mushroom", 4: "tree", 6: "sun" }[Number(pad.id.slice(4))] ??
-      "flower"
+      { 3: "mushroom", 4: "tree", 5: "gem", 6: "sun" }[
+        Number(pad.id.slice(4))
+      ] ?? "flower"
     );
   return (
     {
@@ -53,6 +55,45 @@ export function drawPadIcon(c, icon, color = "#fffbea") {
     c.stroke();
   };
   switch (icon) {
+    case "gem":
+      line(
+        [
+          [0, -25],
+          [22, -7],
+          [16, 22],
+          [-16, 22],
+          [-22, -7],
+        ],
+        true,
+      );
+      line([
+        [-22, -7],
+        [22, -7],
+        [0, 22],
+        [-22, -7],
+      ]);
+      break;
+    case "honey":
+      line(
+        [
+          [-19, -17],
+          [19, -17],
+          [19, 22],
+          [-19, 22],
+        ],
+        true,
+      );
+      line(
+        [
+          [-23, -23],
+          [23, -23],
+          [23, -17],
+          [-23, -17],
+        ],
+        true,
+      );
+      circle(0, 3, 9);
+      break;
     case "sickle":
       c.beginPath();
       c.arc(-5, -10, 27, -2.6, 1.2);

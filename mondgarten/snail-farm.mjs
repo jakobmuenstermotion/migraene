@@ -1,3 +1,5 @@
+import { HIVES } from "./honey-content.mjs";
+import { honeyCount, takeHoney } from "./apiary.mjs";
 import { availableProducts } from "./village.mjs";
 import { credit } from "./money.mjs";
 export const SNAILS = [
@@ -17,7 +19,7 @@ export const FARM = {
   cookSeconds: 45,
   foodMax: 100,
   maxShells: 30,
-  careVersion: 2,
+  careVersion: 3,
   growSeconds: 40 * 60,
   mealSeconds: 10 * 60,
   helperMax: 12,
@@ -51,6 +53,12 @@ export function freshFarm() {
     foodValue: 0,
     storedFood: 0,
     storedFoodValue: 0,
+    honeyFood: 0,
+    honeyFoodValue: 0,
+    storedHoneyFood: 0,
+    storedHoneyFoodValue: 0,
+    snacks: {},
+    storedSnacks: {},
     kitchen: freshKitchen(),
     nextID: 1,
     findProgress: 0,
@@ -72,6 +80,32 @@ export function normalizeFarm(raw) {
   f.foodValue = f.food ? num(raw.foodValue) : 0;
   f.storedFood = Math.floor(num(raw.storedFood, FARM.foodMax - f.food));
   f.storedFoodValue = f.storedFood ? num(raw.storedFoodValue) : 0;
+  f.honeyFood = Math.floor(num(raw.honeyFood, 100));
+  f.honeyFoodValue = f.honeyFood ? num(raw.honeyFoodValue) : 0;
+  f.storedHoneyFood = Math.floor(num(raw.storedHoneyFood, 100));
+  f.storedHoneyFoodValue = f.storedHoneyFood
+    ? num(raw.storedHoneyFoodValue)
+    : 0;
+  for (const group of ["snacks", "storedSnacks"])
+    for (const h of HIVES) {
+      const n = Math.floor(num(raw[group]?.[h.honey]?.count, 100));
+      if (n)
+        f[group][h.honey] = { count: n, value: num(raw[group][h.honey].value) };
+    }
+  let foodRoom = FARM.foodMax - f.food - f.storedFood;
+  for (const key of ["honeyFood", "storedHoneyFood"]) {
+    const old = f[key];
+    f[key] = Math.min(old, foodRoom);
+    if (old) f[key + "Value"] *= f[key] / old;
+    foodRoom -= f[key];
+  }
+  for (const group of ["snacks", "storedSnacks"])
+    for (const snack of Object.values(f[group])) {
+      const old = snack.count;
+      snack.count = Math.min(old, foodRoom);
+      if (old) snack.value *= snack.count / old;
+      foodRoom -= snack.count;
+    }
   const k = raw.kitchen;
   if (k && Object.hasOwn(FOOD_RECIPES, k.recipe)) {
     f.kitchen.recipe = k.recipe;
@@ -79,7 +113,7 @@ export function normalizeFarm(raw) {
     f.kitchen.ready = Math.floor(
       num(
         k.ready,
-        Math.min(recipe.portions, FARM.foodMax - f.food - f.storedFood),
+        Math.min(recipe.portions, Math.max(0, FARM.foodMax - totalFarmFood(f))),
       ),
     );
     f.kitchen.readyValue = f.kitchen.ready ? num(k.readyValue) : 0;
@@ -131,11 +165,16 @@ export function normalizeFarm(raw) {
       id: n.id,
       species: n.species,
       growth:
-        raw.careVersion !== FARM.careVersion && n.growth >= 720
+        (raw.careVersion ?? 1) < 2 && n.growth >= 720
           ? FARM.growSeconds
           : num(n.growth, FARM.growSeconds),
       meal: num(n.meal, FARM.mealSeconds),
       investment: num(n.investment),
+      honeyMeal:
+        n.honeyMeal === true ||
+        (((raw.careVersion ?? 1) < 3 || n.honeyMeal === undefined) &&
+          n.meal > 0 &&
+          n.growth + n.meal > 1800),
     }));
   f.nextID = Math.max(f.nextID, ...f.nursery.map((n) => n.id + 1));
   f.helpers = Array.isArray(raw.helpers)
@@ -208,6 +247,7 @@ export function moveShellToFarm(s, id) {
     growth: 0,
     meal: 0,
     investment: 0,
+    honeyMeal: false,
   });
   return true;
 }
@@ -244,6 +284,13 @@ function takeRaw(s, id, count) {
 export const FOOD_RECIPES = {
   flowers: { inputs: { moonbloom: 60, bouquet: 3 }, portions: 2 },
   fruit: { inputs: { moonbloom: 30, starfruit: 8, tea: 1 }, portions: 3 },
+  honey: { inputs: { feed: 1, honey: 1 }, portions: 1, special: true },
+  ...Object.fromEntries(
+    HIVES.map((h) => [
+      "snack-" + h.id,
+      { inputs: { feed: 1, [h.honey]: 1 }, portions: 1, snack: h.honey },
+    ]),
+  ),
 };
 // Retain a small batch at the workshops so automatic sellers cannot make food impossible.
 export function farmFoodReserve(s, id) {
@@ -262,12 +309,18 @@ export function farmFoodReserve(s, id) {
 }
 const productIDs = new Set(["bouquet", "tea"]);
 export function foodIngredientCount(s, id) {
+  if (id === "feed") return s.village.farm.food + s.village.farm.storedFood;
+  if (id === "honey" || HIVES.some((h) => h.honey === id))
+    return honeyCount(s, id === "honey" ? null : id);
   return productIDs.has(id)
     ? (s.productCargo?.items?.[id] ?? 0) +
         availableProducts(s, id, true, { forFarm: true })
     : rawCount(s, id);
 }
 function takeFoodIngredient(s, id, count) {
+  if (id === "honey" || HIVES.some((h) => h.honey === id))
+    return takeHoney(s, count, id === "honey" ? null : id);
+  if (id === "feed") return takeBaseFood(s, count, "all");
   if (!productIDs.has(id)) return takeRaw(s, id, count);
   const cargo = s.productCargo,
     carried = Math.min(count, cargo?.items?.[id] ?? 0);
@@ -303,6 +356,13 @@ export function selectFoodRecipe(s, recipe) {
   return true;
 }
 export function kitchenIngredientCount(s, id, source = "all") {
+  if (id === "feed")
+    return (
+      (source !== "storage" ? s.village.farm.food : 0) +
+      (source !== "carried" ? s.village.farm.storedFood : 0)
+    );
+  if (id === "honey" || HIVES.some((h) => h.honey === id))
+    return honeyCount(s, id === "honey" ? null : id, source);
   if (source === "carried")
     return productIDs.has(id)
       ? (s.productCargo?.items?.[id] ?? 0)
@@ -314,6 +374,9 @@ export function kitchenIngredientCount(s, id, source = "all") {
   return foodIngredientCount(s, id);
 }
 function takeKitchenIngredient(s, id, count, source) {
+  if (id === "feed") return takeBaseFood(s, count, source);
+  if (id === "honey" || HIVES.some((h) => h.honey === id))
+    return takeHoney(s, count, id === "honey" ? null : id, source);
   if (source === "all") return takeFoodIngredient(s, id, count);
   if (source === "storage") {
     const v = s.village,
@@ -349,7 +412,8 @@ export function supplyFoodKitchen(s, source = "carried") {
     k.running ||
     k.ready ||
     !["all", "carried", "storage"].includes(source) ||
-    f.food + f.storedFood + recipe.portions > FARM.foodMax
+    totalFarmFood(f) + recipe.portions - (recipe.inputs.feed ?? 0) >
+      FARM.foodMax
   )
     return 0;
   let supplied = 0;
@@ -378,7 +442,10 @@ export function makeSnailFood(s, recipe = "flowers") {
     !f.built ||
     !Object.hasOwn(FOOD_RECIPES, recipe) ||
     !kitchenEmpty(f.kitchen) ||
-    f.food + f.storedFood + FOOD_RECIPES[recipe].portions > FARM.foodMax ||
+    totalFarmFood(f) +
+      FOOD_RECIPES[recipe].portions -
+      (FOOD_RECIPES[recipe].inputs.feed ?? 0) >
+      FARM.foodMax ||
     !Object.entries(FOOD_RECIPES[recipe].inputs).every(
       ([id, n]) => foodIngredientCount(s, id) >= n,
     )
@@ -392,18 +459,70 @@ export function collectSnailFood(s) {
   const f = s.village.farm,
     k = f.kitchen;
   if (!f.built || !k.ready) return 0;
-  const count = k.ready;
-  f.food += count;
-  f.foodValue += k.readyValue;
+  const count = k.ready,
+    recipe = FOOD_RECIPES[k.recipe];
+  if (recipe.special) {
+    f.honeyFood += count;
+    f.honeyFoodValue += k.readyValue;
+  } else if (recipe.snack) {
+    const snack = (f.snacks[recipe.snack] ??= { count: 0, value: 0 });
+    snack.count += count;
+    snack.value += k.readyValue;
+  } else {
+    f.food += count;
+    f.foodValue += k.readyValue;
+  }
   f.kitchen = freshKitchen();
   f.kitchen.recipe = k.recipe;
   return count;
 }
+function takeBaseFood(s, count, source) {
+  const f = s.village.farm;
+  let value = 0;
+  for (const key of ["food", "storedFood"]) {
+    if (
+      (source === "storage" && key === "food") ||
+      (source === "carried" && key === "storedFood")
+    )
+      continue;
+    const n = Math.min(count, f[key]);
+    if (!n) continue;
+    const v = (f[key + "Value"] * n) / f[key];
+    f[key] -= n;
+    f[key + "Value"] -= v;
+    value += v;
+    count -= n;
+  }
+  return value;
+}
+export function totalFarmFood(f) {
+  return (
+    f.food +
+    f.storedFood +
+    f.honeyFood +
+    f.storedHoneyFood +
+    Object.values(f.snacks).reduce((n, s) => n + s.count, 0) +
+    Object.values(f.storedSnacks).reduce((n, s) => n + s.count, 0)
+  );
+}
 export function storeSnailFood(s) {
   const f = s.village.farm,
-    count = f.food;
+    count =
+      f.food +
+      f.honeyFood +
+      Object.values(f.snacks).reduce((n, x) => n + x.count, 0);
   if (!f.built || !count) return 0;
-  f.storedFood += count;
+  f.storedHoneyFood += f.honeyFood;
+  f.storedHoneyFoodValue += f.honeyFoodValue;
+  f.honeyFood = 0;
+  f.honeyFoodValue = 0;
+  for (const [id, x] of Object.entries(f.snacks)) {
+    const to = (f.storedSnacks[id] ??= { count: 0, value: 0 });
+    to.count += x.count;
+    to.value += x.value;
+  }
+  f.snacks = {};
+  f.storedFood += f.food;
   f.storedFoodValue += f.foodValue;
   f.food = 0;
   f.foodValue = 0;
@@ -411,9 +530,22 @@ export function storeSnailFood(s) {
 }
 export function withdrawSnailFood(s) {
   const f = s.village.farm,
-    count = f.storedFood;
+    count =
+      f.storedFood +
+      f.storedHoneyFood +
+      Object.values(f.storedSnacks).reduce((n, x) => n + x.count, 0);
   if (!f.built || !count) return 0;
-  f.food += count;
+  f.honeyFood += f.storedHoneyFood;
+  f.honeyFoodValue += f.storedHoneyFoodValue;
+  f.storedHoneyFood = 0;
+  f.storedHoneyFoodValue = 0;
+  for (const [id, x] of Object.entries(f.storedSnacks)) {
+    const to = (f.snacks[id] ??= { count: 0, value: 0 });
+    to.count += x.count;
+    to.value += x.value;
+  }
+  f.storedSnacks = {};
+  f.food += f.storedFood;
   f.foodValue += f.storedFoodValue;
   f.storedFood = 0;
   f.storedFoodValue = 0;
@@ -423,7 +555,7 @@ export function feedNearbySnail(s, player, targets, radius = 3) {
   if (
     s.journey.asleep ||
     (s.journey.light ?? 0) >= 0.68 ||
-    s.village.farm.food < 1
+    s.village.farm.food + s.village.farm.honeyFood < 1
   )
     return null;
   const nearby = targets
@@ -439,13 +571,19 @@ export function feedNearbySnail(s, player, targets, radius = 3) {
 export function feedSnail(s, id) {
   const f = s.village.farm,
     n = f.nursery.find((n) => n.id === id);
-  if (!n || n.growth >= FARM.growSeconds || n.meal > 0 || f.food < 1)
+  const special = n && n.growth >= 1800 && !n.honeyMeal,
+    key = special ? "honeyFood" : "food";
+  if (!n || n.growth >= FARM.growSeconds || n.meal > 0 || f[key] < 1)
     return false;
-  const value = (f.foodValue ?? 0) / f.food;
-  f.foodValue = Math.max(0, (f.foodValue ?? 0) - value);
-  f.food--;
+  const value = f[key + "Value"] / f[key];
+  f[key + "Value"] = Math.max(0, f[key + "Value"] - value);
+  f[key]--;
   n.investment += value;
-  n.meal = FARM.mealSeconds;
+  if (special) n.honeyMeal = true;
+  n.meal = Math.min(
+    FARM.mealSeconds,
+    (n.honeyMeal ? FARM.growSeconds : 1800) - n.growth,
+  );
   return true;
 }
 export function advanceFarm(s, dt) {
@@ -466,8 +604,9 @@ export function advanceFarm(s, dt) {
     const growth = Math.min(
       Math.max(0, dt),
       n.meal,
-      FARM.growSeconds - n.growth,
+      (n.honeyMeal ? FARM.growSeconds : 1800) - n.growth,
     );
+    if (growth < 0) continue;
     n.growth += growth;
     n.meal -= growth;
   }

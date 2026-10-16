@@ -1,4 +1,10 @@
 import {
+  advanceApiary,
+  collectHoney,
+  honeyCount,
+} from "../mondgarten/apiary.mjs";
+import { HIVES } from "../mondgarten/honey-content.mjs";
+import {
   BOUTIQUES,
   COSMETICS,
   contributeCosmetic,
@@ -154,6 +160,9 @@ function run(style) {
       }
       harvestClock += DT;
       advanceProduction(s, DT);
+      advanceApiary(s, cells, DT);
+      for (const [i, h] of HIVES.entries())
+        if (Math.hypot(actor.x - h.x, actor.z - h.z) < 1.6) collectHoney(s, i);
       if (farmStyle) {
         advanceFarm(s, DT);
         collectSnailFood(s);
@@ -161,6 +170,12 @@ function run(style) {
         const f = s.village.farm;
         for (const [id, n] of Object.entries(f.shells))
           if (n) moveShellToFarm(s, id);
+        const honeyNeeded =
+          f.nursery.some(
+            (n) => n.growth >= 1800 && !n.honeyMeal && n.meal <= 0,
+          ) && !f.honeyFood;
+        if (honeyNeeded && f.food && honeyCount(s) > 0)
+          makeSnailFood(s, "honey");
         if (f.food < 6) {
           if (!makeSnailFood(s, "fruit")) makeSnailFood(s);
         }
@@ -184,7 +199,10 @@ function run(style) {
       if (!goal) {
         const pads = getBuildPads(s, TOOLS),
           remainingCost = pads
-            .filter((p) => p.visible && !p.max && p.requiredRound <= round)
+            .filter(
+              (p) =>
+                p.visible && !p.max && !p.optional && p.requiredRound <= round,
+            )
             .reduce((sum, p) => sum + p.cost - p.paid, 0),
           home = pads.find(
             (p) =>
@@ -199,7 +217,20 @@ function run(style) {
               VILLAGE.partner.materials[s.village.house] ?? {},
             ).find(([id, n]) => (s.village.finished[id] ?? 0) < n),
           neededWorkshop = need && WORKSHOPS.find((w) => w.product === need[0]),
-          ingredient = neededWorkshop && Object.keys(neededWorkshop.inputs)[0],
+          materialRecipe =
+            (neededWorkshop &&
+              [
+                neededWorkshop.inputs,
+                ...(neededWorkshop.alternatives ?? []),
+              ].find((r) =>
+                Object.keys(r).every(
+                  (id) =>
+                    WORKSHOPS.some((w) => w.product === id) ||
+                    BEDS.some((b, i) => b.crop === id && s.village.beds[i]),
+                ),
+              )) ||
+            neededWorkshop?.inputs,
+          ingredient = neededWorkshop && Object.keys(materialRecipe)[0],
           machine = neededWorkshop && s.village.workshops[neededWorkshop.id],
           missing = need
             ? Math.max(
@@ -207,7 +238,7 @@ function run(style) {
                 (need[1] -
                   (s.village.finished[need[0]] ?? 0) -
                   (machine.running ? 1 : 0)) *
-                  neededWorkshop.inputs[ingredient] -
+                  materialRecipe[ingredient] -
                   (machine.inputs[ingredient] ?? 0),
               )
             : 0,
@@ -232,7 +263,28 @@ function run(style) {
               s.coins >=
                 p.cost - p.paid + pads.find((p) => p.id === "endDay").cost,
           );
-        if (extra) goal = { ...extra, kind: "buy", pad: extra };
+        const wantsHoney =
+          farmStyle &&
+          s.village.farm.built &&
+          s.village.farm.nursery.some(
+            (n) => n.growth >= 1800 && !n.honeyMeal,
+          ) &&
+          !s.village.farm.honeyFood;
+        const hive = pads.find((p) => p.id === "hive:0");
+        if (
+          farmStyle &&
+          s.village.farm.built &&
+          !s.village.apiary.hives[0].built &&
+          s.coins >= hive.cost - hive.paid
+        )
+          goal = { ...hive, kind: "buy", pad: hive };
+        else if (
+          wantsHoney &&
+          !honeyCount(s) &&
+          s.village.apiary.hives[0].count > 0
+        )
+          goal = { kind: "honey", ...HIVES[0] };
+        else if (extra) goal = { ...extra, kind: "buy", pad: extra };
         else if (buy) goal = { ...buy, kind: "buy", pad: buy };
         else if (missing > 0 && s.cargo[ingredient]?.count > 0) {
           goal = {
@@ -252,6 +304,7 @@ function run(style) {
                 p.visible &&
                 !p.max &&
                 p.id !== "endDay" &&
+                !p.optional &&
                 (p.requiredRound ?? 1) <= round,
             ),
             end = pads.find((p) => p.id === "endDay");
@@ -271,8 +324,18 @@ function run(style) {
               )
               .sort(
                 (a, b) =>
-                  bedYield(s, b.index) / (b.pickSeconds ? 3 : 1) -
-                  bedYield(s, a.index) / (a.pickSeconds ? 3 : 1),
+                  bedYield(s, b.index) /
+                    (b.mineHits
+                      ? (b.mineHits * b.mineSeconds) / (b.pickUnits ?? 1)
+                      : b.pickSeconds
+                        ? 3
+                        : 1) -
+                  bedYield(s, a.index) /
+                    (a.mineHits
+                      ? (a.mineHits * a.mineSeconds) / (a.pickUnits ?? 1)
+                      : a.pickSeconds
+                        ? 3
+                        : 1),
               )[0];
             const candidates = cells
               .filter(
@@ -295,7 +358,7 @@ function run(style) {
       if (walk(actor, goal, s)) {
         if (goal.kind === "buy") {
           const result = payBuild(s, goal.pad, DT);
-          if (goal.pad.optional) {
+          if (goal.pad.optional && focus) {
             choiceBudget -= result.paid;
             choiceSpent += result.paid;
             if (result.complete) choices++;
@@ -329,6 +392,9 @@ function run(style) {
             )
           )
             goal = null;
+        } else if (goal.kind === "honey") {
+          collectHoney(s, 0);
+          goal = null;
         } else if (goal.kind === "wait") {
           goal = null;
           stalled += DT;

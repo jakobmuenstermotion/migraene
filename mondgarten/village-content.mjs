@@ -1,15 +1,18 @@
+import {HONEY_PRODUCTS} from './honey-content.mjs';
 // Fixed building plots, crops, recipes and automation. Change content here.
 export const BEDS=[
   {id:'moon',name:'Mondblumenbeet',crop:'moonbloom',x:4,z:0,columns:19,rows:17,spacing:.78,cost:0,upgrade:1100,pad:{x:4,z:9}},
   {id:'lavender',name:'Lavendelbeet',crop:'lavender',x:-17,z:-14,columns:17,rows:15,spacing:.8,cost:1600,upgrade:850,pad:{x:-16,z:-3}},
-  {id:'coral',name:'Korallenbeet',crop:'coral',x:18,z:24,columns:17,rows:13,spacing:.8,cost:2600,upgrade:1100,pad:{x:13,z:17}},
-  {id:'mushroom',name:'Glühpilzbeet',crop:'mushroom',x:23,z:-18,columns:13,rows:15,spacing:.8,cost:4000,upgrade:1800,pad:{x:19,z:-9}},
-  {id:'fruit',name:'Sternenobstgarten',crop:'starfruit',x:-23,z:26,columns:5,rows:4,spacing:2.2,pickSeconds:1.2,pickUnits:6,cost:6000,upgrade:2600,pad:{x:-20,z:17}},
-  {id:'nebula',name:'Nebelknospenbeet',crop:'nebula',x:0,z:-29,columns:19,rows:10,spacing:.8,cost:9000,upgrade:4200,pad:{x:0,z:-22}},
+  {id:'coral',requiresBed:3,name:'Korallenbeet',crop:'coral',x:18,z:24,columns:17,rows:13,spacing:.8,cost:6000,upgrade:2600,pad:{x:13,z:17}},
+  {id:'mushroom',requiresBed:4,name:'Glühpilzbeet',crop:'mushroom',x:23,z:-18,columns:13,rows:15,spacing:.8,cost:4000,upgrade:1800,pad:{x:19,z:-9}},
+  {id:'fruit',requiresBed:1,name:'Sternenobstgarten',crop:'starfruit',x:-23,z:26,columns:5,rows:4,spacing:2.2,pickSeconds:1.2,pickUnits:6,cost:2600,upgrade:1100,pad:{x:-20,z:17}},
+  {id:'nebula',requiresBed:2,name:'Kristallhöhle',crop:'crystal',x:0,z:-29,columns:9,rows:4,spacing:1.7,mineHits:3,mineSeconds:.45,pickUnits:48,cost:9000,upgrade:4200,pad:{x:0,z:-22}},
   {id:'sun',name:'Sonnenherzbeet',crop:'sunbloom',x:-29,z:-20,columns:8,rows:12,spacing:.8,cost:12000,upgrade:5800,pad:{x:-28,z:-13}}
 ];
-export const SEEDS=BEDS.map((b,i)=>({crop:b.crop,name:b.name.replace('beet','samen'),source:["start","shop","find","shop","find","shop","find"][i],cost:[0,260,0,750,0,1300,0][i],foundRound:[1,11,24,35,46,58,67][i],pad:{x:b.pad.x+3.1,z:b.pad.z}}));
+export const SEEDS=BEDS.map((b,i)=>({crop:b.crop,name:b.name.replace('beet','samen'),source:["start","shop","find","shop","find","shop","find"][i],cost:[0,260,0,750,0,1300,0][i],foundRound:[1,11,46,35,24,58,67][i],pad:{x:b.pad.x+3.1,z:b.pad.z}}));
 export const PRODUCTS={
+  ...HONEY_PRODUCTS,
+  honeyapple:{name:"Honigapfel",plural:"Honigäpfel",icon:"⬡",color:"#e8ba79",value:60},
   bouquet:{name:'Mondstrauß',plural:'Mondsträuße',icon:'❀',color:'#b79ad7',value:10},
   tea:{name:'Sternentee',plural:'Sternentees',icon:'♨',color:'#a4b982',value:24},
   oil:{name:'Blütenduftöl',plural:'Duftöle',icon:'♧',color:'#ddbc83',value:45},
@@ -39,6 +42,11 @@ WORKSHOPS[0].alternatives=[{sunbloom:4}];
 WORKSHOPS[0].description+=' Später alternativ: 4 Sonnenblüten.';
 WORKSHOPS[1].alternatives=[{starfruit:6}];
 WORKSHOPS[1].description+=' Später alternativ: 6 Sternenfrüchte.';
-WORKSHOPS[2].alternatives=[{nebula:4}];
-WORKSHOPS[2].description+=' Später alternativ: 4 Nebelknospen.';
+WORKSHOPS[2].alternatives=[{nebula:4},{starfruit:8}];
+WORKSHOPS[2].description+=' Alternativ: 8 Sternenfrüchte. Alte Nebelknospen bleiben verwendbar.';
 
+
+WORKSHOPS[3].alternatives=[{tea:1,oil:1,crystal:4}];
+WORKSHOPS[3].description+=' Alternativ mit 4 Sternenkristallen statt Glühpilzen.';
+
+WORKSHOPS[1].description+=' Ab Level 52 auch: 2 Honig + 4 Sternenfrüchte → 1 Honigapfel.';

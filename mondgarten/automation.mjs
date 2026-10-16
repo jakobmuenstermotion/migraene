@@ -1,3 +1,4 @@
+import { helperBoost } from "./apiary.mjs";
 import { snailProfile, snailName, snailsResting } from "./snail-care.mjs";
 import { advanceWoodcock } from "./woodcock.mjs";
 import { materialHarvestRemaining } from "./funding.mjs";
@@ -145,7 +146,9 @@ export class GardenAutomation {
     if (dt <= 0) return events;
     for (let i = 0; i < this.snails.length; i++) {
       const snail = this.snails[i],
-        speed = Math.min(3, VILLAGE.snail.speed * Math.pow(1.18, v.snailLevel));
+        speed =
+          Math.min(3, VILLAGE.snail.speed * Math.pow(1.18, v.snailLevel)) *
+          helperBoost(s, "snail:" + i);
       if (snail.sleeping) continue;
       if (snail.mode === "deliver") {
         if (snail.task === "warehouse") {
@@ -233,12 +236,14 @@ export class GardenAutomation {
         continue;
       }
       if (walk(snail, snail.target, speed, dt)) {
-        snail.timer += dt;
+        snail.timer += dt * helperBoost(s, "snail:" + i);
         if (
           snail.timer >=
           Math.max(
             0.12,
-            (BEDS[snail.bed].pickSeconds ?? VILLAGE.snail.harvestSeconds) /
+            (BEDS[snail.bed].mineHits
+              ? BEDS[snail.bed].mineHits * BEDS[snail.bed].mineSeconds
+              : (BEDS[snail.bed].pickSeconds ?? VILLAGE.snail.harvestSeconds)) /
               Math.pow(1.18, v.snailLevel),
           )
         ) {
@@ -285,7 +290,14 @@ export class GardenAutomation {
       ) ?? null;
     if (count > 0) {
       if (cargo.kind === "finished") {
-        if (walk(p, WORLD.bank, VILLAGE.partner.speed, dt)) {
+        if (
+          walk(
+            p,
+            WORLD.bank,
+            VILLAGE.partner.speed * helperBoost(s, "partner"),
+            dt,
+          )
+        ) {
           const value = cargoValue(cargo);
           credit(s, value);
           v.autoSold += count;
@@ -297,7 +309,7 @@ export class GardenAutomation {
           s,
           p,
           cargo,
-          VILLAGE.partner.speed,
+          VILLAGE.partner.speed * helperBoost(s, "partner"),
           dt,
           events,
           "partnerSale",
@@ -313,7 +325,14 @@ export class GardenAutomation {
       productsOnly: true,
     });
     if (ingredientJob) {
-      if (walk(p, supplySourceSpot(ingredientJob), VILLAGE.partner.speed, dt)) {
+      if (
+        walk(
+          p,
+          supplySourceSpot(ingredientJob),
+          VILLAGE.partner.speed * helperBoost(s, "partner"),
+          dt,
+        )
+      ) {
         takeSupply(s, ingredientJob);
         v.hauler = {
           kind: "raw",
@@ -325,11 +344,23 @@ export class GardenAutomation {
       return events;
     }
     const product = Object.keys(PRODUCTS).find(
-      (id) => availableProducts(s, id, true) > 0,
+      (id) =>
+        (id === "honeyapple" || WORKSHOPS.some((w) => w.product === id)) &&
+        availableProducts(s, id, true) > 0,
     );
     if (product) {
-      const w = WORKSHOPS.find((w) => w.product === product);
-      if (walk(p, workshopSpot(w, "output"), VILLAGE.partner.speed, dt)) {
+      const w = WORKSHOPS.find(
+        (w) =>
+          w.product === product || (product === "honeyapple" && w.id === "tea"),
+      );
+      if (
+        walk(
+          p,
+          workshopSpot(w, "output"),
+          VILLAGE.partner.speed * helperBoost(s, "partner"),
+          dt,
+        )
+      ) {
         const batch = collectProducts(
           s,
           VILLAGE.partner.capacity,
@@ -346,7 +377,14 @@ export class GardenAutomation {
     }
     const supplyJob = planSupply(s, VILLAGE.partner.capacity);
     if (supplyJob) {
-      if (walk(p, supplySourceSpot(supplyJob), VILLAGE.partner.speed, dt)) {
+      if (
+        walk(
+          p,
+          supplySourceSpot(supplyJob),
+          VILLAGE.partner.speed * helperBoost(s, "partner"),
+          dt,
+        )
+      ) {
         takeSupply(s, supplyJob);
         v.hauler = {
           kind: "raw",
@@ -358,7 +396,9 @@ export class GardenAutomation {
       return events;
     }
     if (player && s.bag >= capacity(s) * 0.5) {
-      if (walk(p, player, VILLAGE.partner.speed, dt)) {
+      if (
+        walk(p, player, VILLAGE.partner.speed * helperBoost(s, "partner"), dt)
+      ) {
         const batch = takeBag(s, VILLAGE.partner.capacity);
         v.hauler = { kind: "raw", items: batch.items, values: batch.values };
         p.bag = cargoCount(v.hauler);

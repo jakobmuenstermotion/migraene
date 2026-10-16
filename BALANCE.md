@@ -26,9 +26,9 @@ Die bisherige Gesamtprüfung aus sieben vollständigen Durchläufen mit jeweils 
 
 | Spielweise | Median | Längster Tag | Verpasste Abschlüsse |
 |---|---:|---:|---:|
-| Manuell | 3:04,5 | 4:39,5 | 0 |
-| Mit Helfern | 2:35,5 | 3:54,0 | 0 |
-| Helfer + Farm | 2:41,5 | 3:54,0 | 0 |
+| Manuell | 3:05,5 | 4:53,5 | 0 |
+| Mit Helfern | 2:40,5 | 3:54,0 | 0 |
+| Helfer + Farm | 2:48,5 | 4:45,5 | 0 |
 | Freiwillige Kosmetikausgaben | 2:53,5 | 4:49,5 | 0 |
 | Spezialisierung: eigene Ernte | 2:40,0 | 3:54,0 | 0 |
 | Spezialisierung: Werkstätten | 2:49,5 | 4:22,0 | 0 |
@@ -78,3 +78,14 @@ Die Aufzucht dauert jetzt 40 versorgte Minuten statt zwölf, aufgeteilt in vier 
 
 
 Mit der Futterküche wurden die drei Grundspielweisen erneut über jeweils 77 Tage geprüft: alle **231 Abschlüsse** gelingen, maximal 279,5 Sekunden manuell und jeweils 234 Sekunden mit Helfern beziehungsweise Farm. Der Farm-Median liegt nun bei 161,5 Sekunden. Der Bot berücksichtigt 45 Sekunden Chargenherstellung und bewusstes Einsammeln; die Wege zum neuen Küchengebäude und das Annähern an Jungtiere werden zusätzlich im Browser geprüft. Kosmetik- und Spezialisierungsläufe wurden für diese Änderung nicht erneut ausgeführt; ihre Tabellenwerte stammen aus der vorherigen Gesamtprüfung.
+
+
+## Neue Gebiete und Honig · Balanceversion 8
+
+Die drei Grundspielweisen wurden mit dem früheren Obstgarten (25), späteren Korallenblüten (47), der Kristallhöhle (59) und der neuen Honigmahlzeit erneut über jeweils 77 Tage geprüft. Alle 231 Abschlüsse gelingen in weniger als fünf Minuten. Der längste manuelle Tag dauert 293,5 Sekunden, mit Helfern 234 Sekunden und mit Farm 285,5 Sekunden. Die ersten drei Tabellenzeilen zeigen diese aktuellen Ergebnisse; Kosmetik- und Spezialisierungswerte stammen weiterhin aus der vorherigen Prüfung.
+
+Die Feldindizes und bestehende Käufe bleiben erhalten. Preis- und Rohstoffwertstufen von Obst und Korallen wechseln passend zur Reihenfolge. Eine einmalige neue Kalibrierung schützt laufende Tagespläne vor einem Ertragssprung; bereits vorhandene Waren und Guthaben behalten ihren Wert. Die Höhle liefert größere Kristallbündel, weil ihre 36 Brocken mehrere Schläge benötigen und deutlich weniger Abbaustellen als ein Blumenfeld bieten. Die echte Abbaumechanik ist im manuellen Test enthalten.
+
+Bienenkörbe sind freiwillige Einmalkäufe zwei Level nach dem Blumenfeld. Je Korb entstehen alle 90 aktiven hellen Sekunden ein Glas und höchstens drei Vorratsgläser. Ohne Blüten, im Dunkeln, offline und bei vollem Vorrat entsteht kein weiterer Honig. Ein Glas entspricht vier Blumen-Rohstoffeinheiten. Dadurch bleibt Honig nützlich für Verkauf und Rezepte, ohne eine neue automatische Geldquelle über Nacht zu bilden.
+
+Eine erwachsene neue Farmschnecke benötigt insgesamt vier normale Futterportionen, von denen eine mit einem Honig zur letzten Honigmahlzeit verarbeitet wird. Die Wachstumsdauer bleibt 40 Minuten. Die Farmstrategie kauft einen Bienenkorb, holt seinen Honig körperlich ab und verarbeitet echte Zutaten mit Herstellungszeit; sie setzt drei gezüchtete Helfer ein und verkauft 23 erwachsene Tiere. Honigäpfel in der vorhandenen Sternenteeküche benötigen ebenfalls echte Zutaten und geben 20 Prozent Verarbeitungsvorteil. Helfersnacks sind freiwillige Verbrauchsgüter ohne Stapeln und ohne höhere Tragkraft; sie steigern das tatsächliche Tempo für zwei aktive helle Minuten.

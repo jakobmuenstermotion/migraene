@@ -22,14 +22,14 @@ export const COLLECTIBLES = {
     name:'Korallenblüte', plural:'Korallenblüten', action:'pflücken',
     model:'blossom', bundle:'bale', color:'#ed9a98', accent:'#ffc8a3',
     stem:'#74945c', wrap:'#b7d19b', tie:'#f2d9a4',
-    value:3, regrowSeconds:46, height:1.13, width:.67, rareChance:.045,
+    value:6, regrowSeconds:46, height:1.13, width:.67, rareChance:.045,
     collectSound:780, sparkles:'#ffd1b0'
   },
   crystal: {
     name:'Sternenkristall', plural:'Sternenkristalle', action:'sammeln',
     model:'crystal', bundle:'crate', color:'#73d5c8', accent:'#c1f7de',
     stem:'#7eac9b', wrap:'#c8a477', tie:'#f3d69c',
-    value:18, regrowSeconds:48, height:1.3, width:.67, rareChance:.05,
+    value:8, regrowSeconds:48, height:1.3, width:.67, rareChance:.05,
     collectSound:1040, sparkles:'#c0fff1'
   },
   mushroom: {
@@ -43,7 +43,7 @@ export const COLLECTIBLES = {
     name:'Sternenfrucht', plural:'Sternenfrüchte', action:'pflücken',
     model:'orchard', bundle:'crate', color:'#88a9e2', accent:'#d2e4ff',
     stem:'#7aa29d', wrap:'#c6a48a', tie:'#eee0b5',
-    value:6, regrowSeconds:54, height:1.15, width:.68, rareChance:.06,
+    value:3, regrowSeconds:54, height:1.15, width:.68, rareChance:.06,
     collectSound:920, sparkles:'#deeeff'
   },
   sunbloom: {

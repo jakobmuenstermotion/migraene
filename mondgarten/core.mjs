@@ -1,3 +1,4 @@
+import {PRODUCTS} from './village-content.mjs';
 import {freshFeedback,normalizeFeedback} from './day-feedback.mjs';
 import {GARDENS,getCrop,WORLD} from './content.mjs';
 import {freshVillage,normalizeVillage,offlineVillage} from './village.mjs';
@@ -33,7 +34,7 @@ export function normalize(raw){
   s.sound=raw.sound===true;s.reducedMotion=raw.reducedMotion===true;s.tutorial=Math.floor(validNumber(raw.tutorial,0,3));
   s.savedAt=validNumber(raw.savedAt,Date.now(),Date.now());s.lastDaily=validNumber(raw.lastDaily,0,Date.now());
   s.bag=Math.min(s.bag,capacity(s));if(s.bag===0)s.bagValue=0;
-  s.productCargo={items:{},values:{}};for(const id of ['bouquet','tea','oil','elixir']){const count=Math.floor(validNumber(raw.productCargo?.items?.[id],0,100000));if(count){s.productCargo.items[id]=count;s.productCargo.values[id]=validNumber(raw.productCargo?.values?.[id]);}}s.village=normalizeVillage(raw.village,raw);s.journey=normalizeJourney(raw.journey);if(!raw.journey){s.journey.round=Math.min(77,Math.max(1,1+Math.floor(s.stats.upgrades/2)));}if(s.names[1]==='Dein Lieblingsmensch')s.names[1]='Schnecki';
+  s.productCargo={items:{},values:{}};for(const id of Object.keys(PRODUCTS)){const count=Math.floor(validNumber(raw.productCargo?.items?.[id],0,100000));if(count){s.productCargo.items[id]=count;s.productCargo.values[id]=validNumber(raw.productCargo?.values?.[id]);}}s.village=normalizeVillage(raw.village,raw);s.journey=normalizeJourney(raw.journey);if(!raw.journey){s.journey.round=Math.min(77,Math.max(1,1+Math.floor(s.stats.upgrades/2)));}if(s.names[1]==='Dein Lieblingsmensch')s.names[1]='Schnecki';
   if(raw.cargo&&typeof raw.cargo==='object'){for(const id of ['moonbloom','lavender','coral','crystal','mushroom','starfruit','sunbloom','nebula']){const e=raw.cargo[id];if(e?.count>0)s.cargo[id]={count:validNumber(e.count),value:validNumber(e.value)};}}
   const count=Object.values(s.cargo).reduce((a,e)=>a+e.count,0),value=Object.values(s.cargo).reduce((a,e)=>a+e.value,0);
   if(s.bag===0)s.cargo={};else if(!count||Math.abs(count-s.bag)>1e-6||Math.abs(value-s.bagValue)>1e-5)s.cargo={[getCrop(s.biome)===getCrop(0)?'moonbloom':GARDENS[s.biome].crop]:{count:s.bag,value:s.bagValue}};

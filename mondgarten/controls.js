@@ -1,5 +1,5 @@
 export class GardenControls {
-  constructor(canvas,joystick,scene,{blocked=()=>false,onBank=()=>{}}={}){
+  constructor(canvas,joystick,scene,{blocked=()=>false,onBank=()=>{},onTap=()=>{}}={}){
     this.scene=scene;this.keys=new Set();this.stick={x:0,z:0};this.target=null;this.blocked=blocked;this.joystick=joystick;this.pointer=null;
     const clear=()=>this.stop();
     window.addEventListener('blur',clear);document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
@@ -7,7 +7,7 @@ export class GardenControls {
     window.addEventListener('keyup',e=>this.keys.delete(e.key.toLowerCase()));
     canvas.addEventListener('pointerdown',e=>{
       if(e.button!==0||blocked()||this.pointer!==null)return;
-      e.preventDefault();this.pointer=e.pointerId;this.origin={x:e.clientX,y:e.clientY};this.target=null;
+      e.preventDefault();this.pointer=e.pointerId;this.origin={x:e.clientX,y:e.clientY};this.tapStarted=performance.now();this.target=null;
       canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
       const r=joystick.parentElement.getBoundingClientRect();
       joystick.style.left=(e.clientX-r.left)+'px';joystick.style.top=(e.clientY-r.top)+'px';joystick.classList.add('active');
@@ -19,7 +19,7 @@ export class GardenControls {
       this.stick={x:len?dx/len*strength:0,z:len?dz/len*strength:0};
       joystick.firstElementChild.style.transform=`translate(${this.stick.x*limit}px,${this.stick.z*limit}px)`;
     });
-    const end=e=>{if(e.pointerId===this.pointer)this.stop();};
+    const end=e=>{if(e.pointerId!==this.pointer)return;const tap=e.type==='pointerup'&&!blocked()&&performance.now()-this.tapStarted<500&&Math.hypot(e.clientX-this.origin.x,e.clientY-this.origin.y)<6;this.stop();if(tap){const r=canvas.getBoundingClientRect();onTap(e.clientX-r.left,e.clientY-r.top);}};
     canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
   }
   stop(){this.keys.clear();this.target=null;this.stick={x:0,z:0};this.pointer=null;this.joystick.classList.remove('active');this.joystick.firstElementChild.style.transform='';}
