@@ -28,5 +28,3 @@ dialog{padding:29px 22px 24px;width:min(560px,calc(100% - 24px));max-height:calc
 #joystick{display:none;position:absolute;width:102px;height:102px;left:0;top:0;bottom:auto;transform:translate(-50%,-50%);pointer-events:none;z-index:6}
 #joystick.active{display:block}#joystick>div{width:44px;height:44px;left:27px;top:27px}
 #stockShortcut{height:54px;width:48px;flex:0 0 48px;display:grid;place-items:center;border:1px solid #fff9;border-radius:18px;background:#fff9e6ed;color:#85715f;box-shadow:var(--shadow);font-size:23px}
-
-.field select{display:block;width:100%;margin-top:8px;background:#fffff8;border:1px solid #d8dec5;padding:12px;border-radius:10px;color:#727c60;font:inherit;font-size:13px}

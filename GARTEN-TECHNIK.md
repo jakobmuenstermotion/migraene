@@ -72,7 +72,7 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs online-tests.mjs` prüft in 34 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs` prüft in 25 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -94,10 +94,8 @@ Sechs Aufzuchtplätze stehen zur Verfügung. Ein Häuschen wird dort eingesetzt 
 
 Die neu kalibrierte Ertragsquote verwendet in den ersten vier Runden 600 statt 3000 Referenzeinheiten, anschließend 1000 statt 2000. Ab vier aktiven Minuten sinkt das Nachwachsen sanfter (Zeitskala 900 statt 360 Sekunden). Bestehende laufende Tagespläne und bereits gespeicherte Warenwerte bleiben erhalten; neue Ertragsquoten gelten ab dem nächsten neu erstellten Tagesplan. Preise werden nicht an den Kontostand angepasst.
 
-### Online-Spielstand
+### Lokaler Spielstand
 
-Die kostenlose Anbindung verwendet Supabase. [supabase/README.md](supabase/README.md) beschreibt die Einrichtung mit [supabase/setup.sql](supabase/setup.sql). Das Gartenspiel enthält eine Ansicht zum Verbinden, Übernehmen des Online-Stands und bewussten Hochladen eines lokalen Stands. Ein eigener Node-/SQLite-Speicherdienst ist zusätzlich als lokale Test- und Hosting-Alternative vorhanden.
+Das Spiel speichert automatisch alle zehn Sekunden sowie beim Verlassen auf diesem Gerät. In den Einstellungen lassen sich JSON-Sicherungen exportieren und wieder laden. Es gibt keine Online-Spielstandverbindung. Browserdaten zu löschen entfernt auch den lokalen Spielstand; vorher eine Datei exportieren.
 
-Übertragen werden ausschließlich AES-GCM-verschlüsselte Gartenspielstände einschließlich Farm sowie die getrennten Gartenaktionen und Begleitpflanzen. Medizinische Einträge und ihre Verbindungseinstellungen sind ausgeschlossen. Der persönliche Spielstandschlüssel bleibt lokal; öffentliche Supabase-Einstellungen dürfen in `mondgarten/online-settings.mjs` stehen. Automatische Übertragung erfolgt etwa alle 30 Sekunden bei geöffnetem Spiel. Offline bleibt die lokale Speicherung aktiv. Ein Versionskonflikt stoppt automatische Uploads bis zur bewussten Auswahl. Vor einer Übernahme wird der bisherige lokale Garten gesichert. Import und Neustart trennen die Online-Verbindung, ohne die Online-Sicherung zu löschen.
-
-Die SQL-Funktionen prüfen den abgeleiteten Zugriffsschlüssel, Einrichtungscode bei Neuanlage, Revision und Nutzdatengröße. Private Tabellen haben RLS ohne direkte Client-Zugriffsrechte. Pro Sicherung bleiben die letzten zehn verschlüsselten Revisionen erhalten; standardmäßig sind zehn Sicherungen erlaubt. SQL und Browserabläufe wurden lokal gegen PostgreSQL geprüft. Ein öffentliches Supabase-Projekt muss nach Eingabe von URL und öffentlichem Publishable-/anon-Key noch eingerichtet und separat auf Erreichbarkeit geprüft werden.
+`PLAYWRIGHT_CORE_PATH=/pfad/zu/playwright-core node scripts/browser-smoke.cjs` prüft Farmbedienung, lokale Speicherung nach Neuladen und Datei-Export/-Import. Auch mit alten Verbindungseinstellungen im Browserspeicher darf das eigenständige Spiel keine externen Anfragen mehr senden.

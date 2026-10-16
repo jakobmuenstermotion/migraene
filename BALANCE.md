@@ -32,7 +32,7 @@ Weiteres Ernten und Geldansparen sind ausdrücklich erlaubt. Deshalb können ein
 
 ```sh
 node scripts/balance.mjs
-node --test tests.mjs farm-tests.mjs online-tests.mjs
+node --test tests.mjs farm-tests.mjs
 node build-garden.mjs
 ```
 
