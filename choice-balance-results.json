@@ -1,0 +1,2367 @@
+{
+  "generatedAt": "2026-10-16T11:54:08.499Z",
+  "dt": 0.5,
+  "results": [
+    {
+      "style": "harvest-focus",
+      "firstBuy": 32.5,
+      "median": 104,
+      "maximum": 310,
+      "totalSeconds": 9662.5,
+      "finalCoins": 395097003,
+      "choices": 6,
+      "choiceSpent": 140197412,
+      "cosmeticSpent": 0,
+      "cosmeticOwned": 0,
+      "farmSpecies": 0,
+      "farmSold": 0,
+      "farmHelpers": 0,
+      "days": [
+        {
+          "round": 1,
+          "activeSeconds": 200,
+          "coins": 17,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 2,
+          "activeSeconds": 241,
+          "coins": 28,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 3,
+          "activeSeconds": 251,
+          "coins": 8,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 4,
+          "activeSeconds": 231.5,
+          "coins": 116,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 5,
+          "activeSeconds": 181.5,
+          "coins": 32,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 6,
+          "activeSeconds": 170,
+          "coins": 5,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 7,
+          "activeSeconds": 200.5,
+          "coins": 1324,
+          "purchases": 4,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 8,
+          "activeSeconds": 112,
+          "coins": 73,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 9,
+          "activeSeconds": 174.5,
+          "coins": 18,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 10,
+          "activeSeconds": 194,
+          "coins": 1343,
+          "purchases": 4,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 11,
+          "activeSeconds": 147,
+          "coins": 205,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 12,
+          "activeSeconds": 207,
+          "coins": 844,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 13,
+          "activeSeconds": 91.5,
+          "coins": 411,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 14,
+          "activeSeconds": 104,
+          "coins": 572,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 15,
+          "activeSeconds": 101.5,
+          "coins": 320,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 16,
+          "activeSeconds": 130.5,
+          "coins": 1914,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 17,
+          "activeSeconds": 130.5,
+          "coins": 232,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 18,
+          "activeSeconds": 147,
+          "coins": 14978,
+          "purchases": 5,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 19,
+          "activeSeconds": 40.5,
+          "coins": 209,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 20,
+          "activeSeconds": 162,
+          "coins": 22,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 21,
+          "activeSeconds": 182.5,
+          "coins": 194,
+          "purchases": 3,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 22,
+          "activeSeconds": 310,
+          "coins": 354,
+          "purchases": 3,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 0.95
+        },
+        {
+          "round": 23,
+          "activeSeconds": 254.5,
+          "coins": 332,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 24,
+          "activeSeconds": 252,
+          "coins": 132,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 25,
+          "activeSeconds": 208.5,
+          "coins": 23273,
+          "purchases": 5,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 26,
+          "activeSeconds": 111.5,
+          "coins": 4447,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 27,
+          "activeSeconds": 192.5,
+          "coins": 8359,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 28,
+          "activeSeconds": 142,
+          "coins": 4603,
+          "purchases": 3,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 29,
+          "activeSeconds": 128,
+          "coins": 719,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 30,
+          "activeSeconds": 173,
+          "coins": 511,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 31,
+          "activeSeconds": 166,
+          "coins": 3366,
+          "purchases": 5,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 32,
+          "activeSeconds": 153.5,
+          "coins": 16331,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 33,
+          "activeSeconds": 231,
+          "coins": 4755,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 34,
+          "activeSeconds": 146.5,
+          "coins": 2271,
+          "purchases": 3,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 35,
+          "activeSeconds": 136,
+          "coins": 11896,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 36,
+          "activeSeconds": 235,
+          "coins": 147837,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 37,
+          "activeSeconds": 160.5,
+          "coins": 50294,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 38,
+          "activeSeconds": 89.5,
+          "coins": 41192,
+          "purchases": 1,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 39,
+          "activeSeconds": 103.5,
+          "coins": 54702,
+          "purchases": 5,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 40,
+          "activeSeconds": 144.5,
+          "coins": 74281,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 41,
+          "activeSeconds": 99.5,
+          "coins": 35559,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 42,
+          "activeSeconds": 95,
+          "coins": 96936,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 43,
+          "activeSeconds": 85,
+          "coins": 12007,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 44,
+          "activeSeconds": 107,
+          "coins": 39602,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 45,
+          "activeSeconds": 78.5,
+          "coins": 202587,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 46,
+          "activeSeconds": 74.5,
+          "coins": 56454,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 4,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 47,
+          "activeSeconds": 87,
+          "coins": 98861,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 48,
+          "activeSeconds": 73,
+          "coins": 491355,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 49,
+          "activeSeconds": 72,
+          "coins": 75218,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 50,
+          "activeSeconds": 78.5,
+          "coins": 80439,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 51,
+          "activeSeconds": 102.5,
+          "coins": 140930,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 52,
+          "activeSeconds": 96.5,
+          "coins": 316599,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 53,
+          "activeSeconds": 66,
+          "coins": 1345246,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 54,
+          "activeSeconds": 42.5,
+          "coins": 202876,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 55,
+          "activeSeconds": 69,
+          "coins": 240378,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 56,
+          "activeSeconds": 96,
+          "coins": 835697,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 57,
+          "activeSeconds": 81.5,
+          "coins": 1234015,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 58,
+          "activeSeconds": 65,
+          "coins": 144671,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 59,
+          "activeSeconds": 95,
+          "coins": 1516924,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 60,
+          "activeSeconds": 52.5,
+          "coins": 1664023,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 61,
+          "activeSeconds": 80.5,
+          "coins": 3077388,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 62,
+          "activeSeconds": 86,
+          "coins": 2501550,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 63,
+          "activeSeconds": 40.5,
+          "coins": 644027,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 64,
+          "activeSeconds": 57,
+          "coins": 1075461,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 65,
+          "activeSeconds": 75,
+          "coins": 2882861,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 66,
+          "activeSeconds": 74,
+          "coins": 2724898,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 67,
+          "activeSeconds": 74,
+          "coins": 16338204,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 68,
+          "activeSeconds": 77,
+          "coins": 12724891,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 69,
+          "activeSeconds": 4,
+          "coins": 9933656,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 70,
+          "activeSeconds": 38.5,
+          "coins": 3782785,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 71,
+          "activeSeconds": 88.5,
+          "coins": 25954455,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 72,
+          "activeSeconds": 63,
+          "coins": 7675325,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 73,
+          "activeSeconds": 147,
+          "coins": 639560,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 74,
+          "activeSeconds": 121.5,
+          "coins": 27362881,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 75,
+          "activeSeconds": 4,
+          "coins": 21988037,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 76,
+          "activeSeconds": 177,
+          "coins": 8509149,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 77,
+          "activeSeconds": 100.5,
+          "coins": 395097003,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        }
+      ]
+    },
+    {
+      "style": "production-focus",
+      "firstBuy": 32.5,
+      "median": 109.5,
+      "maximum": 297,
+      "totalSeconds": 9455,
+      "finalCoins": 1083108,
+      "choices": 21,
+      "choiceSpent": 72386802.99999999,
+      "cosmeticSpent": 0,
+      "cosmeticOwned": 0,
+      "farmSpecies": 0,
+      "farmSold": 0,
+      "farmHelpers": 0,
+      "days": [
+        {
+          "round": 1,
+          "activeSeconds": 200,
+          "coins": 17,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 2,
+          "activeSeconds": 241,
+          "coins": 28,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 3,
+          "activeSeconds": 251,
+          "coins": 8,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 4,
+          "activeSeconds": 231.5,
+          "coins": 116,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 5,
+          "activeSeconds": 181.5,
+          "coins": 32,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 6,
+          "activeSeconds": 170,
+          "coins": 5,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 7,
+          "activeSeconds": 212,
+          "coins": 1328,
+          "purchases": 5,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 8,
+          "activeSeconds": 112,
+          "coins": 223,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 9,
+          "activeSeconds": 133.5,
+          "coins": 87,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 10,
+          "activeSeconds": 146.5,
+          "coins": 215,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 11,
+          "activeSeconds": 147,
+          "coins": 145,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 12,
+          "activeSeconds": 173.5,
+          "coins": 1144,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 13,
+          "activeSeconds": 106,
+          "coins": 521,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 14,
+          "activeSeconds": 75.5,
+          "coins": 207,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 15,
+          "activeSeconds": 84,
+          "coins": 445,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 16,
+          "activeSeconds": 109.5,
+          "coins": 401,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 17,
+          "activeSeconds": 120.5,
+          "coins": 1084,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 18,
+          "activeSeconds": 107,
+          "coins": 1177,
+          "purchases": 5,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 19,
+          "activeSeconds": 137.5,
+          "coins": 741,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 20,
+          "activeSeconds": 140.5,
+          "coins": 32,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 21,
+          "activeSeconds": 180.5,
+          "coins": 341,
+          "purchases": 5,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 22,
+          "activeSeconds": 279,
+          "coins": 976,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 23,
+          "activeSeconds": 297,
+          "coins": 954,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 24,
+          "activeSeconds": 256.5,
+          "coins": 331,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 25,
+          "activeSeconds": 278.5,
+          "coins": 54096,
+          "purchases": 5,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 26,
+          "activeSeconds": 56,
+          "coins": 1878,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 27,
+          "activeSeconds": 163.5,
+          "coins": 1829,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 28,
+          "activeSeconds": 121.5,
+          "coins": 9871,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 29,
+          "activeSeconds": 107.5,
+          "coins": 291,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 30,
+          "activeSeconds": 160.5,
+          "coins": 2790,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 31,
+          "activeSeconds": 233.5,
+          "coins": 1575,
+          "purchases": 7,
+          "house": 2,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 32,
+          "activeSeconds": 158,
+          "coins": 22178,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 33,
+          "activeSeconds": 142.5,
+          "coins": 4016,
+          "purchases": 1,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 34,
+          "activeSeconds": 198.5,
+          "coins": 10084,
+          "purchases": 1,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 35,
+          "activeSeconds": 52,
+          "coins": 3326,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 36,
+          "activeSeconds": 241.5,
+          "coins": 239602,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 37,
+          "activeSeconds": 149,
+          "coins": 11681,
+          "purchases": 5,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 38,
+          "activeSeconds": 116,
+          "coins": 28179,
+          "purchases": 1,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 39,
+          "activeSeconds": 89,
+          "coins": 212130,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 40,
+          "activeSeconds": 46.5,
+          "coins": 42470,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 41,
+          "activeSeconds": 186.5,
+          "coins": 7225,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 42,
+          "activeSeconds": 78,
+          "coins": 52574,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 43,
+          "activeSeconds": 163,
+          "coins": 22066,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 4,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 44,
+          "activeSeconds": 64.5,
+          "coins": 10123,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 45,
+          "activeSeconds": 93,
+          "coins": 187818,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 46,
+          "activeSeconds": 73,
+          "coins": 33474,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 4,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 47,
+          "activeSeconds": 117,
+          "coins": 257544,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 48,
+          "activeSeconds": 59,
+          "coins": 247577,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 49,
+          "activeSeconds": 62,
+          "coins": 57642,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 50,
+          "activeSeconds": 68.5,
+          "coins": 60224,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 51,
+          "activeSeconds": 92.5,
+          "coins": 5580,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 52,
+          "activeSeconds": 104,
+          "coins": 252064,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 53,
+          "activeSeconds": 74,
+          "coins": 627688,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 54,
+          "activeSeconds": 56.5,
+          "coins": 133448,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 55,
+          "activeSeconds": 109.5,
+          "coins": 248716,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 56,
+          "activeSeconds": 98.5,
+          "coins": 188514,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 57,
+          "activeSeconds": 94.5,
+          "coins": 1156427,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 58,
+          "activeSeconds": 18,
+          "coins": 364441,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 59,
+          "activeSeconds": 103.5,
+          "coins": 2214948,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 60,
+          "activeSeconds": 82,
+          "coins": 1670811,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 61,
+          "activeSeconds": 85,
+          "coins": 1494023,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 62,
+          "activeSeconds": 82,
+          "coins": 9802660,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 63,
+          "activeSeconds": 4,
+          "coins": 7995221,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 64,
+          "activeSeconds": 4,
+          "coins": 6088373,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 65,
+          "activeSeconds": 38.5,
+          "coins": 1568328,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 66,
+          "activeSeconds": 91.5,
+          "coins": 6764742,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 67,
+          "activeSeconds": 81.5,
+          "coins": 6543861,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 68,
+          "activeSeconds": 65,
+          "coins": 13037589,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 69,
+          "activeSeconds": 4,
+          "coins": 10246354,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 70,
+          "activeSeconds": 31.5,
+          "coins": 3263258,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 71,
+          "activeSeconds": 110.5,
+          "coins": 26654534,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 72,
+          "activeSeconds": 143.5,
+          "coins": 23298582,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 73,
+          "activeSeconds": 91.5,
+          "coins": 255240,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 74,
+          "activeSeconds": 155,
+          "coins": 17592825,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 75,
+          "activeSeconds": 4,
+          "coins": 12254632,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 76,
+          "activeSeconds": 171.5,
+          "coins": 148720524,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 77,
+          "activeSeconds": 87.5,
+          "coins": 1083108,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        }
+      ]
+    },
+    {
+      "style": "helper-focus",
+      "firstBuy": 32.5,
+      "median": 112,
+      "maximum": 319,
+      "totalSeconds": 9434,
+      "finalCoins": 129428504,
+      "choices": 12,
+      "choiceSpent": 57621617,
+      "cosmeticSpent": 0,
+      "cosmeticOwned": 0,
+      "farmSpecies": 0,
+      "farmSold": 0,
+      "farmHelpers": 0,
+      "days": [
+        {
+          "round": 1,
+          "activeSeconds": 200,
+          "coins": 17,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 2,
+          "activeSeconds": 241,
+          "coins": 28,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 3,
+          "activeSeconds": 251,
+          "coins": 8,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 4,
+          "activeSeconds": 231.5,
+          "coins": 116,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 5,
+          "activeSeconds": 181.5,
+          "coins": 32,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 6,
+          "activeSeconds": 170,
+          "coins": 5,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 7,
+          "activeSeconds": 200.5,
+          "coins": 1324,
+          "purchases": 4,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 8,
+          "activeSeconds": 112,
+          "coins": 73,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 9,
+          "activeSeconds": 174.5,
+          "coins": 18,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 10,
+          "activeSeconds": 190.5,
+          "coins": 475,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 11,
+          "activeSeconds": 171.5,
+          "coins": 56,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 12,
+          "activeSeconds": 196,
+          "coins": 216,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 13,
+          "activeSeconds": 95,
+          "coins": 25,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 14,
+          "activeSeconds": 80,
+          "coins": 38,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 15,
+          "activeSeconds": 93.5,
+          "coins": 79,
+          "purchases": 2,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 16,
+          "activeSeconds": 145,
+          "coins": 1426,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 17,
+          "activeSeconds": 118.5,
+          "coins": 346,
+          "purchases": 3,
+          "house": 0,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 18,
+          "activeSeconds": 125,
+          "coins": 15109,
+          "purchases": 5,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 19,
+          "activeSeconds": 4,
+          "coins": 8299,
+          "purchases": 0,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 20,
+          "activeSeconds": 76.5,
+          "coins": 25,
+          "purchases": 1,
+          "house": 0,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 21,
+          "activeSeconds": 164.5,
+          "coins": 806,
+          "purchases": 4,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 22,
+          "activeSeconds": 319,
+          "coins": 184,
+          "purchases": 4,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 0.905
+        },
+        {
+          "round": 23,
+          "activeSeconds": 263.5,
+          "coins": 364,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 24,
+          "activeSeconds": 259.5,
+          "coins": 2780,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 25,
+          "activeSeconds": 181,
+          "coins": 53146,
+          "purchases": 4,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 26,
+          "activeSeconds": 61,
+          "coins": 1545,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 27,
+          "activeSeconds": 149.5,
+          "coins": 670,
+          "purchases": 2,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 28,
+          "activeSeconds": 217.5,
+          "coins": 207,
+          "purchases": 4,
+          "house": 1,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 29,
+          "activeSeconds": 165,
+          "coins": 414,
+          "purchases": 1,
+          "house": 1,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 30,
+          "activeSeconds": 153.5,
+          "coins": 3538,
+          "purchases": 2,
+          "house": 2,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 31,
+          "activeSeconds": 205,
+          "coins": 1479,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 32,
+          "activeSeconds": 152,
+          "coins": 47460,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 33,
+          "activeSeconds": 123.5,
+          "coins": 4308,
+          "purchases": 1,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 34,
+          "activeSeconds": 227.5,
+          "coins": 16183,
+          "purchases": 3,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 35,
+          "activeSeconds": 169.5,
+          "coins": 1288,
+          "purchases": 3,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 36,
+          "activeSeconds": 190.5,
+          "coins": 70109,
+          "purchases": 4,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 37,
+          "activeSeconds": 122.5,
+          "coins": 38916,
+          "purchases": 3,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 38,
+          "activeSeconds": 96.5,
+          "coins": 44,
+          "purchases": 0,
+          "house": 2,
+          "offlineProduced": 0,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 39,
+          "activeSeconds": 101.5,
+          "coins": 237742,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 40,
+          "activeSeconds": 52.5,
+          "coins": 24046,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 41,
+          "activeSeconds": 144.5,
+          "coins": 93931,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 42,
+          "activeSeconds": 126,
+          "coins": 57514,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 43,
+          "activeSeconds": 115,
+          "coins": 21689,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 44,
+          "activeSeconds": 89.5,
+          "coins": 17919,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 45,
+          "activeSeconds": 69.5,
+          "coins": 122134,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 46,
+          "activeSeconds": 85,
+          "coins": 19399,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 47,
+          "activeSeconds": 122,
+          "coins": 61906,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 48,
+          "activeSeconds": 69.5,
+          "coins": 424456,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 3,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 49,
+          "activeSeconds": 37.5,
+          "coins": 324254,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 50,
+          "activeSeconds": 50.5,
+          "coins": 36084,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 51,
+          "activeSeconds": 107.5,
+          "coins": 111313,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 52,
+          "activeSeconds": 84.5,
+          "coins": 205909,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 53,
+          "activeSeconds": 96.5,
+          "coins": 961602,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 54,
+          "activeSeconds": 52.5,
+          "coins": 59071,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 55,
+          "activeSeconds": 63.5,
+          "coins": 84509,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 56,
+          "activeSeconds": 118.5,
+          "coins": 449276,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 57,
+          "activeSeconds": 86.5,
+          "coins": 48467,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 58,
+          "activeSeconds": 80.5,
+          "coins": 165020,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 59,
+          "activeSeconds": 89.5,
+          "coins": 363195,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 60,
+          "activeSeconds": 65.5,
+          "coins": 2838726,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 61,
+          "activeSeconds": 67,
+          "coins": 470291,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 62,
+          "activeSeconds": 84.5,
+          "coins": 6829394,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 63,
+          "activeSeconds": 23.5,
+          "coins": 3907683,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 64,
+          "activeSeconds": 25.5,
+          "coins": 1411763,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 65,
+          "activeSeconds": 98.5,
+          "coins": 2152428,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 66,
+          "activeSeconds": 74.5,
+          "coins": 2142826,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 67,
+          "activeSeconds": 67.5,
+          "coins": 5098144,
+          "purchases": 4,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 68,
+          "activeSeconds": 90,
+          "coins": 16649243,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 69,
+          "activeSeconds": 4,
+          "coins": 14011928,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 70,
+          "activeSeconds": 32.5,
+          "coins": 2897401,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 71,
+          "activeSeconds": 112,
+          "coins": 24981405,
+          "purchases": 5,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 72,
+          "activeSeconds": 83,
+          "coins": 5551021,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 73,
+          "activeSeconds": 99,
+          "coins": 1173528,
+          "purchases": 1,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 74,
+          "activeSeconds": 117.5,
+          "coins": 28817307,
+          "purchases": 2,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 75,
+          "activeSeconds": 4,
+          "coins": 23069954,
+          "purchases": 0,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 76,
+          "activeSeconds": 166,
+          "coins": 148035069,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 1,
+          "offlineCoins": 0,
+          "growth": 1
+        },
+        {
+          "round": 77,
+          "activeSeconds": 98.5,
+          "coins": 129428504,
+          "purchases": 3,
+          "house": 3,
+          "offlineProduced": 2,
+          "offlineCoins": 0,
+          "growth": 1
+        }
+      ]
+    }
+  ]
+}

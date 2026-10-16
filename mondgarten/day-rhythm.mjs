@@ -1,7 +1,7 @@
 export const DAY_RHYTHM = {
-  warning: 6 * 60,
-  lastWarning: 7.5 * 60,
-  sleep: 8 * 60,
+  warning: 8 * 60,
+  lastWarning: 9 * 60,
+  sleep: 10 * 60,
 };
 // Only active play advances elapsed. Menus and absence cannot lose a reward.
 export function advanceDayRhythm(s) {

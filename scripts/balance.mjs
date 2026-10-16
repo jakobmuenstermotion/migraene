@@ -70,6 +70,15 @@ function walk(p, target, s) {
   return false;
 }
 function run(style) {
+  const focus = {
+    "harvest-focus": ["tool:reach", "tool:bag", "tool:speed", "tool:value"],
+    "production-focus": ["workshop:", "warehouse", "sprinkler"],
+    "helper-focus": ["snail", "snailLevel"],
+  }[style];
+  let choiceEarned = 0,
+    choiceBudget = 0,
+    choiceSpent = 0,
+    choices = 0;
   const farmStyle = ["farm", "cosmetics"].includes(style);
   let cosmeticEarned = 0,
     cosmeticAllowance = 0,
@@ -118,6 +127,10 @@ function run(style) {
           cosmeticSpent += paid;
         }
       }
+      if (focus) {
+        choiceBudget += Math.max(0, s.stats.earned - choiceEarned) * 0.1;
+        choiceEarned = s.stats.earned;
+      }
       harvestClock += DT;
       advanceProduction(s, DT);
       if (farmStyle) {
@@ -153,10 +166,24 @@ function run(style) {
               p.visible &&
               !p.max &&
               !p.locked &&
+              !p.optional &&
               p.id !== "endDay" &&
               s.coins >= p.cost - p.paid,
           );
-        if (buy) goal = { ...buy, kind: "buy", pad: buy };
+        const extra =
+          focus &&
+          pads.find(
+            (p) =>
+              p.optional &&
+              !p.locked &&
+              !p.max &&
+              focus.some((id) => p.id.startsWith(id)) &&
+              choiceBudget >= p.cost - p.paid &&
+              s.coins >=
+                p.cost - p.paid + pads.find((p) => p.id === "endDay").cost,
+          );
+        if (extra) goal = { ...extra, kind: "buy", pad: extra };
+        else if (buy) goal = { ...buy, kind: "buy", pad: buy };
         else if (s.bag || productCargoCount(s)) {
           const home = pads.find(
               (p) =>
@@ -232,6 +259,11 @@ function run(style) {
       if (walk(actor, goal, s)) {
         if (goal.kind === "buy") {
           const result = payBuild(s, goal.pad, DT);
+          if (goal.pad.optional) {
+            choiceBudget -= result.paid;
+            choiceSpent += result.paid;
+            if (result.complete) choices++;
+          }
           if (result.complete) {
             firstBuy ??= time;
             discoverSeeds(s);
@@ -298,7 +330,7 @@ function run(style) {
       earned = s.coins - beforeCoins,
       offline = offlineVillage(s, 8 * 3600);
     assert.ok(
-      activeSeconds <= (style === "cosmetics" ? 420 : 310),
+      activeSeconds <= (style === "cosmetics" || focus ? 420 : 310),
       `${style} day ${round} exceeded the short-day target: ${activeSeconds}s`,
     );
     const day = {
@@ -342,6 +374,7 @@ function run(style) {
     }
   }
   assert.equal(s.village.bus, true, "bus never reached");
+  if (focus) assert.ok(choices > 0, `${style} never chose an early upgrade`);
   // Optional cosmetic ownership never determines completion of a day or run.
   assert.equal(s.journey.rewards.length, 77, "missing rewards");
   assert.equal(s.journey.rewards.filter((r) => r.kind === "seed").length, 7);
@@ -354,6 +387,8 @@ function run(style) {
     maximum: sorted.at(-1),
     totalSeconds: time,
     finalCoins: Math.round(s.coins),
+    choices,
+    choiceSpent,
     cosmeticSpent,
     cosmeticOwned: s.village.boutiques.owned.length,
     farmSpecies: s.village.farm.discovered.length,
@@ -363,19 +398,23 @@ function run(style) {
   };
 }
 const results = [];
-for (const style of process.argv.includes("--cosmetics")
-  ? ["cosmetics"]
-  : process.argv.includes("--manual")
-    ? ["manual"]
-    : process.argv.includes("--farm")
-      ? ["farm"]
-      : ["manual", "helpers", "farm"])
+for (const style of process.argv.includes("--choices")
+  ? ["harvest-focus", "production-focus", "helper-focus"]
+  : process.argv.includes("--cosmetics")
+    ? ["cosmetics"]
+    : process.argv.includes("--manual")
+      ? ["manual"]
+      : process.argv.includes("--farm")
+        ? ["farm"]
+        : ["manual", "helpers", "farm"])
   results.push(run(style));
 writeFileSync(
   new URL(
-    process.argv.includes("--cosmetics")
-      ? "../cosmetic-balance-results.json"
-      : "../balance-results.json",
+    process.argv.includes("--choices")
+      ? "../choice-balance-results.json"
+      : process.argv.includes("--cosmetics")
+        ? "../cosmetic-balance-results.json"
+        : "../balance-results.json",
     import.meta.url,
   ),
   JSON.stringify(

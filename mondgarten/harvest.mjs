@@ -3,7 +3,7 @@ import {WORLD,getCrop,generateFieldCells,stackLayers,COLLECTIBLES} from './conte
 import {BEDS,VILLAGE} from './village-content.mjs';
 import {bedYield,bedRegrow,takeBag,productCargoCount} from './village.mjs';
 import {capacity,reach,harvestBatch,yieldValue,earn} from './core.mjs';
-import {growthFactor} from './journey.mjs';
+import {harvestingAllowed} from './journey.mjs';
 
 export function createField(gardenIndex=0){
   const crop=getCrop(gardenIndex);
@@ -15,7 +15,7 @@ export function createVillageField(s,previous=[]){const before=new Map(previous.
 
 export function harvestAt(s,cells,x,z,time,eventMultiplier=1,{moving=false,dt=0}={}){
   for(const cell of cells){const bed=BEDS[cell.bed];if(bed?.pickSeconds&&(moving||Math.hypot(cell.x-x,cell.z-z)>1.15))cell.pickProgress=0;}
-  const free=capacity(s)-s.bag-productCargoCount(s);if(free<=0||growthFactor(s)<=0)return [];
+  const free=capacity(s)-s.bag-productCargoCount(s);if(free<=0||!harvestingAllowed(s))return [];
   const radius=reach(s)/38,crop=getCrop(s.biome),max=harvestBatch(s),picked=[];
   for(const cell of cells){
     if(picked.length>=max||s.bag+productCargoCount(s)>=capacity(s))break;

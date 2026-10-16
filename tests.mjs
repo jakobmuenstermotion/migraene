@@ -170,19 +170,20 @@ test('new workstation inventory and legacy saves round-trip without losing exist
   assert.equal(normalize(legacy).village.workshops.bouquet.running, true);
 });
 
-test('growth slows monotonically without a funding cap, including after day completion', () => {
+test('regrowth slows by time, while ripe harvest and purchases continue after day completion', () => {
   const s = freshState();
   prepareDay(s, TOOLS);
   s.coins = s.journey.plan.target * 100;
   assert.equal(materialHarvestRemaining(s, 'moonbloom'), Infinity);
   assert.equal(growthFactor(s), 1);
   let previous = 1;
-  for (const elapsed of [240, 600, 1200, 3600, 1e7]) {
+  for (const elapsed of [300, 360, 420, 480, 539]) {
     s.journey.elapsed = elapsed;
     const factor = growthFactor(s);
     assert.ok(factor > 0 && factor <= previous);
     previous = factor;
   }
+  s.journey.elapsed = 360;
   assert.equal(closeDay(s), true);
   const before = s.journey.growthTime;
   assert.ok(tickJourney(s, 60) > 0);
@@ -195,7 +196,7 @@ test('growth slows monotonically without a funding cap, including after day comp
   assert.equal(closeDay(s), false);
   assert.equal(s.journey.rewards.length, 1);
   const pad = getBuildPads(s, TOOLS).find((p) => p.id === 'tool:bag');
-  assert.equal(payBuild(s, pad, 10).paid, 0);
+  assert.ok(payBuild(s, pad, 10).paid > 0);
   grantRound(s, 'entry:next');
   assert.equal(startRound(s), true);
   assert.equal(s.journey.elapsed, 0);

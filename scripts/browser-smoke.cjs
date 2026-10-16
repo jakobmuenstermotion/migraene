@@ -215,10 +215,78 @@ const fs = require("node:fs");
     console.log(
       "Boutiques: construction, saved instalment, decorations and both character accessories OK",
     );
+    const importState = async (value) => {
+      await p.locator("#gardenMenu").click();
+      await p.locator("#menuSettings").click();
+      await p
+        .locator("#saveFile")
+        .setInputFiles({
+          name: "rhythm-test.json",
+          mimeType: "application/json",
+          buffer: Buffer.from(JSON.stringify(value)),
+        });
+      await p.locator("#confirmImport").click();
+    };
+    const late = await p.evaluate(() => {
+      const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
+      value.journey.round = 3;
+      value.journey.elapsed = 541;
+      value.journey.growthTime = 402;
+      value.journey.closed = true;
+      value.journey.plan = null;
+      value.journey.asleep = false;
+      value.journey.sleepWarning = 1;
+      value.journey.rewards = [{ round: 3, kind: "seed" }];
+      value.tools = { reach: 1, bag: 1, speed: 16, value: 16 };
+      value.coins = 10000000;
+      value.bag = 0;
+      value.bagValue = 0;
+      value.cargo = {};
+      value.village.fieldCuts = {};
+      value.savedAt = Date.now();
+      return value;
+    });
+    await importState(late);
+    await p.locator("#world").click({ position: { x: 195, y: 400 } });
+    await p.keyboard.down("w");
+    await p.waitForTimeout(1300);
+    await p.keyboard.up("w");
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const lateHarvest = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.ok(lateHarvest.bag > 0);
+    assert.equal(lateHarvest.journey.growthTime, 402);
+    assert.equal(lateHarvest.journey.asleep, false);
+    await p.locator("#closeModal").click();
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuBuild").click();
+    await p.locator("#productionOverview").click();
+    const earlyUpgrade = p.locator('[data-pad="tool:reach"]');
+    assert.ok(
+      (await earlyUpgrade.innerText()).includes("Freiwilliges Upgrade"),
+    );
+    assert.equal(await earlyUpgrade.isEnabled(), true);
+    await earlyUpgrade.click();
+    await p.waitForFunction(
+      () =>
+        JSON.parse(localStorage.getItem("mondgarten.save.v1")).tools.reach ===
+        2,
+    );
+    const upgraded = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(upgraded.journey.rewards.length, 1);
+    assert.equal(upgraded.journey.closed, true);
+    console.log(
+      "Minute nine: growth frozen, ripe plants harvestable, optional specialization purchasable after paid closure",
+    );
     // At the time limit, only the unfinished daily reward payment is refunded.
     const sleepFixture = await p.evaluate(() => {
       const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
-      value.journey.elapsed = 479.95;
+      value.journey.elapsed = 599.95;
       value.journey.closed = false;
       value.journey.pending = 1;
       value.journey.rewards = [];
@@ -229,13 +297,11 @@ const fs = require("node:fs");
     });
     await p.locator("#gardenMenu").click();
     await p.locator("#menuSettings").click();
-    await p
-      .locator("#saveFile")
-      .setInputFiles({
-        name: "sleep-test.json",
-        mimeType: "application/json",
-        buffer: Buffer.from(JSON.stringify(sleepFixture)),
-      });
+    await p.locator("#saveFile").setInputFiles({
+      name: "sleep-test.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify(sleepFixture)),
+    });
     await p.locator("#confirmImport").click();
     await p.waitForSelector("#sleepRounds");
     const sleeping = await p.evaluate(() =>

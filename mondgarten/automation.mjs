@@ -1,6 +1,6 @@
 import {advanceWoodcock} from './woodcock.mjs';
 import {materialHarvestRemaining,fundingProgress} from './funding.mjs';
-import {growthFactor} from './journey.mjs';
+import {harvestingAllowed} from './journey.mjs';
 import {BEDS,WORKSHOPS,VILLAGE,PRODUCTS} from './village-content.mjs';
 import {WORLD} from './content.mjs';
 import {availableProducts,depositRaw,bedYield,bedRegrow,stockCount,storageCapacity,collectProducts,takeBag,takeStoredRaw} from './village.mjs';
@@ -14,7 +14,7 @@ export class GardenAutomation {
   update(s,cells,player,dt,time){const events=advanceWoodcock(s,dt),v=s.village;this.sync(s);this.snapshot(s);const beds=BEDS.map((b,i)=>({...b,index:i})).filter(b=>v.beds[b.index]);
     for(let i=0;i<this.snails.length;i++){const snail=this.snails[i],speed=Math.min(3,VILLAGE.snail.speed*Math.pow(1.18,v.snailLevel));
       if(snail.mode==='deliver'){if(walk(snail,VILLAGE.warehouse,speed*1.25,dt)){for(const id of Object.keys(snail.items)){const count=snail.items[id],accepted=depositRaw(s,id,count,snail.values[id]);snail.items[id]-=accepted;snail.values[id]*=count?Math.max(0,1-accepted/count):0;snail.bag-=accepted;if(accepted>0)events.push({kind:'warehouseDelivery',x:snail.x,z:snail.z});}if(snail.bag<.01){snail.items={};snail.values={};snail.bag=0;snail.mode='graze';snail.target=null;}}continue;}
-      if(growthFactor(s)<=0){snail.moving=false;if(snail.bag>0)snail.mode='deliver';continue;}if(stockCount(v)>=storageCapacity(s)){snail.moving=false;continue;}snail.bed=beds[i%beds.length].index;
+      if(!harvestingAllowed(s)){snail.moving=false;if(snail.bag>0)snail.mode='deliver';continue;}if(stockCount(v)>=storageCapacity(s)){snail.moving=false;continue;}snail.bed=beds[i%beds.length].index;
       if(snail.target&&player&&Math.hypot(snail.target.x-player.x,snail.target.z-player.z)<VILLAGE.snail.playerSpace)snail.target=null;
       if(!snail.target||snail.target.readyAt>time||snail.target.bed!==snail.bed){snail.target=cells.filter(p=>p.bed===snail.bed&&p.readyAt<=time&&(!player||Math.hypot(p.x-player.x,p.z-player.z)>=VILLAGE.snail.playerSpace)&&materialHarvestRemaining(s,p.crop)>0).sort((a,b)=>Math.hypot(a.x-snail.x,a.z-snail.z)-Math.hypot(b.x-snail.x,b.z-snail.z))[0]??null;}
       if(!snail.target){snail.moving=false;if(snail.bag>0)snail.mode='deliver';continue;}if(walk(snail,snail.target,speed,dt)){snail.timer+=dt;if(snail.timer>=Math.max(.12,(BEDS[snail.bed].pickSeconds??VILLAGE.snail.harvestSeconds)/Math.pow(1.18,v.snailLevel))){snail.timer=0;const cell=snail.target;if(cell.readyAt<=time&&materialHarvestRemaining(s,cell.crop)>0){const count=Math.min(cell.rare?2:1,materialHarvestRemaining(s,cell.crop)),value=count*bedYield(s,cell.bed);cell.cutAt=time;cell.readyAt=time+bedRegrow(s,cell.bed);snail.items[cell.crop]=(snail.items[cell.crop]??0)+count;snail.values[cell.crop]=(snail.values[cell.crop]??0)+value;snail.bag+=count;s.stats.harvested+=count;s.stats.runHarvested+=count;events.push({kind:'snail',x:cell.x,z:cell.z});}snail.target=null;if(snail.bag>=VILLAGE.snail.capacity+v.snailLevel*2)snail.mode='deliver';}}
