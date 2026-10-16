@@ -8,11 +8,18 @@ const assert = require("node:assert/strict"),
 const root = path.resolve(__dirname, "..");
 (async () => {
   const { freshState } = await import("../mondgarten/core.mjs");
+  const { FARM_PLACES } = await import("../mondgarten/snail-appearance.mjs");
+  const { VILLAGE } = await import("../mondgarten/village-content.mjs");
+  const kitchenSpot = (key) => [
+    VILLAGE.farm.x + FARM_PLACES[key][0],
+    VILLAGE.farm.z + FARM_PLACES[key][1],
+  ];
   const s = freshState();
   s.tutorial = 3;
   s.sound = false;
   s.journey.round = 25;
   s.village.farm.built = true;
+  s.village.beds[1] = 1;
   s.village.house = 3;
   s.bag = 40;
   s.bagValue = 80;
@@ -115,7 +122,7 @@ const root = path.resolve(__dirname, "..");
     await page.goto(origin + "/mondgarten/index.html");
     await page.waitForFunction(() => !document.querySelector("#loading"));
     await install();
-    await place(-24.9, -7.9);
+    await place(...kitchenSpot("input"));
     await page.waitForFunction(
       () => window.farmLive.village.farm.kitchen.inputs.moonbloom === 40,
     );
@@ -158,7 +165,7 @@ const root = path.resolve(__dirname, "..");
     await page.waitForFunction(
       () => window.farmLive.village.farm.kitchen.ready === 2,
     );
-    await place(-21.7, -7.9);
+    await place(...kitchenSpot("output"));
     await page.waitForFunction(() => window.farmLive.village.farm.food === 2);
     assert.equal(
       await page.evaluate(() => window.farmLive.village.farm.kitchen.ready),
@@ -254,9 +261,9 @@ const root = path.resolve(__dirname, "..");
     for (const activity of ["home", "cave", "climb", "hill", "bath", "flowers"])
       assert.ok(activities.includes(activity));
     await page.evaluate(() => {
-      window.farmScene.zoom = 1;
+      window.farmScene.zoom = 0.85;
       window.farmScene.resize();
-      window.farmScene.focus.set(-26, 0, -7);
+      window.farmScene.focus.set(-24.5, 0, -7);
     });
     await page.screenshot({ path: "/tmp/mondgarten-snail-habitat.png" });
     assert.deepEqual(errors, []);

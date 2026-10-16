@@ -12,9 +12,9 @@ export const SNAIL_LOOKS = {
   star: { pattern: "stars", ink: "#fff0b2", shape: [0.51, 0.63, 0.46] },
 };
 export const FARM_PLACES = {
-  kitchen: [4.7, -2.7],
-  input: [3.1, -0.9],
-  output: [6.3, -0.9],
+  kitchen: [7.7, 0.8],
+  input: [6.1, 2.6],
+  output: [9.3, 2.6],
   visit: [0, 3.4],
 };
 // A gentle circuit: doorstep, cave, climbing branch, hill, shallow bath, flowers.
