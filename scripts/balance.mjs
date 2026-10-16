@@ -31,6 +31,7 @@ import { prepareDay } from "../mondgarten/daily.mjs";
 import { ECONOMY } from "../mondgarten/economy.mjs";
 import {
   tickJourney,
+  rewardCount,
   startRound,
   grantRound,
   growthFactor,
@@ -422,6 +423,14 @@ function run(style) {
       growth: +growthFactor(s).toFixed(3),
     };
     days.push(day);
+    if (round === 20)
+      assert.equal(rewardCount(s, "seed"), 4, "four companion seeds by day 20");
+    if (round === 50)
+      assert.equal(
+        rewardCount(s, "seed"),
+        7,
+        "seven companion seeds by day 50",
+      );
     if (round <= 11)
       assert.ok(
         maximumRawSale / quotedBudget < 0.35,

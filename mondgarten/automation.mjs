@@ -1,9 +1,11 @@
+import { snailProfile, snailName, snailsResting } from "./snail-care.mjs";
 import { advanceWoodcock } from "./woodcock.mjs";
 import { materialHarvestRemaining } from "./funding.mjs";
 import { harvestingAllowed } from "./journey.mjs";
 import { BEDS, WORKSHOPS, VILLAGE, PRODUCTS } from "./village-content.mjs";
 import { WORLD } from "./content.mjs";
 import {
+  depositRaw,
   availableProducts,
   bedYield,
   bedRegrow,
@@ -111,6 +113,12 @@ export class GardenAutomation {
     this.snails.length = s.village.snails;
     this.partner.visible = s.village.partner;
     for (const [i, a] of this.snails.entries()) {
+      const profile = snailProfile(s, i);
+      if (a.task !== undefined && a.task !== profile.task) a.saleCrop = null;
+      a.task = profile.task;
+      a.name = snailName(s, i);
+      a.sleeping = snailsResting(s) || profile.task === "rest";
+      if (a.sleeping) a.moving = false;
       a.level = s.village.snailLevel;
       a.species = s.village.farm.helpers[i] ?? null;
       a.hat = s.village.boutiques.snailHats?.[i] ?? null;
@@ -138,16 +146,42 @@ export class GardenAutomation {
     for (let i = 0; i < this.snails.length; i++) {
       const snail = this.snails[i],
         speed = Math.min(3, VILLAGE.snail.speed * Math.pow(1.18, v.snailLevel));
+      if (snail.sleeping) continue;
       if (snail.mode === "deliver") {
-        deliverIngredients(
-          s,
-          snail,
-          snail,
-          speed * 1.25,
-          dt,
-          events,
-          "snailSale",
-        );
+        if (snail.task === "warehouse") {
+          if (walk(snail, VILLAGE.warehouse, speed * 1.25, dt)) {
+            let delivered = 0;
+            for (const [id, before] of Object.entries(snail.items)) {
+              if (before <= 0) continue;
+              const count = depositRaw(s, id, before, snail.values[id]);
+              snail.items[id] -= count;
+              snail.values[id] *= 1 - count / before;
+              delivered += count;
+            }
+            if (delivered)
+              events.push({
+                kind: "helperDelivery",
+                x: snail.x,
+                z: snail.z,
+                to: { ...VILLAGE.warehouse },
+                count: delivered,
+              });
+          }
+        } else {
+          if (snail.task === "sell")
+            snail.saleCrop =
+              Object.keys(snail.items).find((id) => snail.items[id] > 1e-8) ??
+              null;
+          deliverIngredients(
+            s,
+            snail,
+            snail,
+            speed * 1.25,
+            dt,
+            events,
+            "snailSale",
+          );
+        }
         snail.bag = cargoCount(snail);
         if (snail.bag < 1e-8) {
           snail.items = {};

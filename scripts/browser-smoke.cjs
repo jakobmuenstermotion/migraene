@@ -703,6 +703,196 @@ const fs = require("node:fs");
     console.log(
       "Economy: inflated day-seven plan corrected once; wallet, cargo value and instalments preserved through import and reload",
     );
+    const installCareProbe = () =>
+      p.evaluate(async () => {
+        const { GardenScene } = await import("/mondgarten/scene.js");
+        const original = GardenScene.prototype.update;
+        GardenScene.prototype.update = function (dt, args) {
+          if (window.previewToolPads) {
+            args = { ...args, player: { ...args.player, x: -9.5, z: 23 } };
+            this.focus.set(-9.55, 0, 19.7);
+          }
+          original.call(this, dt, args);
+          const helper = this.helpers[0];
+          window.careProbe = {
+            sleeping: args.snails[0]?.sleeping,
+            faceVisible: helper.root.getObjectByName("snail-face").visible,
+            sleepVisible: helper.root.getObjectByName("snail-sleep").visible,
+            cargo: args.snails[0]?.bag,
+            pads: [...this.padVisuals].map(([id, v]) => ({
+              id,
+              icon: v.iconKind,
+              width: v.icon.geometry.parameters.width,
+              sign: v.sign.visible,
+              x: v.root.position.x,
+              z: v.root.position.z,
+            })),
+          };
+        };
+        window.stopCareProbe = () => {
+          GardenScene.prototype.update = original;
+          window.previewToolPads = false;
+        };
+      });
+    const care = freshState();
+    care.tutorial = 3;
+    care.sound = false;
+    care.journey.round = 50;
+    care.journey.closed = true;
+    care.journey.pending = 1;
+    care.journey.light = 1;
+    care.journey.elapsed = 350;
+    care.village.snails = 1;
+    care.village.snailLoads = [
+      {
+        x: -9,
+        z: 8,
+        mode: "deliver",
+        items: { moonbloom: 24 },
+        values: { moonbloom: 48 },
+      },
+    ];
+    care.village.snailProfiles = [{ name: "", task: "sell" }];
+    await installCareProbe();
+    await importState(care);
+    await p.waitForFunction(
+      () =>
+        window.careProbe?.sleeping &&
+        window.careProbe.sleepVisible &&
+        !window.careProbe.faceVisible,
+    );
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSnails").click();
+    assert.ok(
+      (await p.locator("#modalBody").innerText()).includes(
+        "Im Häuschen eingekuschelt",
+      ),
+    );
+    await p.locator('[data-snail-name="0"]').fill("Flitzi <3");
+    await p.locator('[data-snail-task="0"]').selectOption("warehouse");
+    const named = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.deepEqual(named.village.snailProfiles, [
+      { name: "Flitzi <3", task: "warehouse" },
+    ]);
+    assert.equal(named.coins, 0);
+    assert.equal(named.village.snailLoads[0].items.moonbloom, 24);
+    await p
+      .locator("#modal")
+      .screenshot({ path: "/tmp/mondgarten-snail-menu.png" });
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    await installCareProbe();
+    await p.waitForFunction(() => window.careProbe?.sleeping);
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSnails").click();
+    assert.equal(
+      await p.locator('[data-snail-name="0"]').inputValue(),
+      "Flitzi <3",
+    );
+    assert.equal(
+      await p.locator('[data-snail-task="0"]').inputValue(),
+      "warehouse",
+    );
+    await p.locator('[data-snail-task="0"]').selectOption("sell");
+    await p.locator("#closeModal").click();
+    await p
+      .locator("#world")
+      .screenshot({ path: "/tmp/mondgarten-snails-night.png" });
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#roundSettings").click();
+    await p.locator("#useRound").click();
+    await p.waitForFunction(
+      () =>
+        window.careProbe?.sleeping === false && window.careProbe.cargo === 0,
+    );
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const awakeHelper = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(awakeHelper.coins, 48);
+    assert.equal(awakeHelper.journey.round, 51);
+    assert.equal(awakeHelper.village.snailProfiles[0].name, "Flitzi <3");
+    await p.locator("#closeModal").click();
+    await p.evaluate(() => {
+      window.previewToolPads = true;
+    });
+    await p.waitForFunction(
+      () =>
+        window.careProbe.pads.filter((p) => p.id.startsWith("tool:") && p.sign)
+          .length === 1,
+    );
+    const toolPads = await p.evaluate(() =>
+      window.careProbe.pads.filter((p) => p.id.startsWith("tool:")),
+    );
+    assert.deepEqual(toolPads.map((p) => p.icon).sort(), [
+      "bag",
+      "boot",
+      "coin",
+      "sickle",
+    ]);
+    assert.equal(new Set(toolPads.map((p) => p.z)).size, 2);
+    assert.ok(toolPads.every((p) => p.width >= 2));
+    await p
+      .locator("#world")
+      .screenshot({ path: "/tmp/mondgarten-upgrade-pads.png" });
+    await p.evaluate(() => window.stopCareProbe());
+    const catchup = freshState();
+    catchup.tutorial = 3;
+    catchup.sound = false;
+    catchup.coins = 10000;
+    catchup.journey.round = 7;
+    catchup.journey.closed = true;
+    catchup.journey.rewardKind = "water";
+    catchup.journey.rewards = Array.from({ length: 7 }, (_, i) => ({
+      id: "garden-day:" + (i + 1),
+      round: i + 1,
+      kind: i ? "water" : "seed",
+    }));
+    await importState(catchup);
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSeeds").click();
+    assert.ok(
+      (await p.locator("#modalBody").innerText()).includes("vier bis Tag 20"),
+    );
+    assert.equal(await p.locator("#buyCatchupSeed").isEnabled(), true);
+    await p.locator("#buyCatchupSeed").click();
+    assert.equal(await p.locator("#buyCatchupSeed").count(), 0);
+    const caughtUp = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.deepEqual(caughtUp.journey.rewards, catchup.journey.rewards);
+    assert.deepEqual(caughtUp.journey.seedCatchups, [
+      { id: "garden-seed:2", round: 7, kind: "seed" },
+    ]);
+    assert.ok(caughtUp.coins < 10000);
+    assert.equal(caughtUp.journey.closed, true);
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSeeds").click();
+    assert.equal(await p.locator("#buyCatchupSeed").count(), 0);
+    const caughtUpAgain = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(caughtUpAgain.coins, caughtUp.coins);
+    assert.deepEqual(
+      caughtUpAgain.journey.seedCatchups,
+      caughtUp.journey.seedCatchups,
+    );
+    await p.locator("#closeModal").click();
+    console.log(
+      "Companion seeds: old level-seven save buys missed seed once, retains watering rewards, and cannot repurchase after reload",
+    );
+    await importState(migratedAgain);
+    console.log(
+      "Snail care: names/tasks persist; shell sleep blocks night sale; earned morning resumes cargo; large distinct tool pictograms and spaced layout render",
+    );
+
     const late = await p.evaluate(() => {
       const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
       value.journey.round = 3;

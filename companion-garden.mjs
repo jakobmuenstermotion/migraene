@@ -6,7 +6,7 @@ let journal,ledger,issue='',mode=null,selection=null,notice='',busy=false,toolba
 try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);localStorage.setItem(C.journalKey,JSON.stringify(journal));}catch{issue='Der gespeicherte Garten konnte nicht geladen werden. Er bleibt erhalten.';}
 function write(key,s){try{localStorage.setItem(key,JSON.stringify(s));issue='';return true;}catch{issue='Der Garten konnte nicht gespeichert werden. Bitte schaffe Speicherplatz.';return false;}}
 function gameState(){try{return JSON.parse(localStorage.getItem(C.gameKey)||'null');}catch{return null;}}
-function collectRewards(){if(issue)return;try{const next=receiveRewards(read(C.plantKey,emptyPlants),gameState()?.journey?.rewards);if(write(C.plantKey,next))ledger=next;}catch{issue='Der Gartenstand konnte nicht gelesen werden.';}}
+function collectRewards(){if(issue)return;try{const j=gameState()?.journey;const next=receiveRewards(read(C.plantKey,emptyPlants),[...(j?.rewards??[]),...(j?.seedCatchups??[])]);if(write(C.plantKey,next))ledger=next;}catch{issue='Der Gartenstand konnte nicht gelesen werden.';}}
 function receive(kind,data){if(issue)return;try{const current=read(C.journalKey,()=>emptyJournal(events.startedAt)),next=kind==='entries'?acceptEntries(current,data,Date.now(),C.cooldownMs):acceptGiftCounter(current,data);if(write(C.journalKey,next))journal=next;}catch{issue='Die Gartenaktion konnte nicht gespeichert werden.';}mount();}
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function button(text,fn){const b=node('button','garden-control',text);b.type='button';b.onclick=fn;return b;}

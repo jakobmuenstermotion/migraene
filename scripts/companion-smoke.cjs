@@ -223,6 +223,53 @@ const root = path.resolve(__dirname, "..");
     });
     await page.locator('.big[data-act="drink"]').click();
     assert.equal((await journal()).actions.length, 3);
+    // Catch-up purchases have their own receipt; a spent old daily seed stays spent.
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "mt-garden-plants-v1",
+        JSON.stringify({
+          version: 1,
+          beds: {},
+          tokens: [],
+          receipts: ["garden-day:1"],
+        }),
+      );
+      localStorage.setItem(
+        "mondgarten.companion.save.v1",
+        JSON.stringify({
+          journey: {
+            round: 7,
+            rewards: [{ id: "garden-day:1", round: 1, kind: "seed" }],
+            seedCatchups: [{ id: "garden-seed:2", round: 7, kind: "seed" }],
+          },
+        }),
+      );
+      window.dispatchEvent(
+        new StorageEvent("storage", { key: "mondgarten.companion.save.v1" }),
+      );
+    });
+    await page.waitForFunction(() =>
+      JSON.parse(localStorage.getItem("mt-garden-plants-v1")).tokens.some(
+        (t) => t.id === "garden-seed:2",
+      ),
+    );
+    const purchasedSeed = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("mt-garden-plants-v1")),
+    );
+    assert.deepEqual(purchasedSeed.tokens, [
+      { id: "garden-seed:2", kind: "seed" },
+    ]);
+    await page.reload();
+    await page.waitForSelector(".garden-footer");
+    assert.deepEqual(
+      await page.evaluate(() =>
+        JSON.parse(localStorage.getItem("mt-garden-plants-v1")),
+      ),
+      purchasedSeed,
+    );
+    console.log(
+      "Purchased catch-up seed reaches the real companion ledger once; old spent daily rewards and reload cannot duplicate it",
+    );
     assert.deepEqual(errors, []);
     console.log(
       "Cooldown entries do not become delayed rewards; a failed diary save never grants a garden day; no browser errors",

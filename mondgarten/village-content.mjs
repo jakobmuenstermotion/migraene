@@ -29,7 +29,7 @@ export const VILLAGE={
   snail:{cost:1400,growth:1.55,max:12,upgrade:950,speed:1.05,capacity:24,capacityPerLevel:4,harvestSeconds:.8,playerSpace:8,pad:{x:-16,z:5},upgradePad:{x:-16,z:9}},
   partner:{cost:1800,requires:'tea',x:-18,z:0,pad:{x:-19,z:3},capacity:64,speed:4.1,stages:['Fundament für Schnecki','Schneckis Haus: Wände','Schneckis Haus: Dach & Einzug'],materials:[{bouquet:4},{tea:4},{oil:3}]},
   sprinkler:{cost:4200,pad:{x:12,z:-9},x:12,z:-12},
-  tools:{reach:{x:-13,z:19},bag:{x:-9,z:20},speed:{x:-5,z:20},value:{x:-1,z:20}},
+  tools:{reach:{x:-13,z:20},bag:{x:-6,z:20},speed:{x:-13,z:26},value:{x:-6,z:26}},
   buying:{dwellSeconds:.8,paymentSeconds:3.8,radius:1.15},
   offline:{maxSeconds:3600,efficiency:1/300,careEfficiency:.025},
   manualBonus:1.25
