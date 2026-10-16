@@ -165,18 +165,18 @@ test("unearned and absent days do not collapse, and legacy long sessions get a w
   assert.equal(loaded.journey.asleep, false);
 });
 
-test("existing daily plans receive the faster balance exactly once without revaluing saved supplies", () => {
+test("legacy daily plans refresh their yield exactly once without revaluing saved supplies", () => {
   const s = freshState();
   s.journey.round = 22;
   s.coins = 123;
   const plan = prepareDay(s, TOOLS);
   plan.balanceVersion = 5;
-  plan.boost = 2;
+  plan.boost = 1e6;
   plan.spent = 77;
   s.village.raw = { moonbloom: 10 };
   s.village.rawValues = { moonbloom: 250 };
   const migrated = prepareDay(s, TOOLS);
-  assert.ok(migrated.boost > 2);
+  assert.ok(migrated.boost > 0 && migrated.boost < 1e6);
   assert.equal(migrated.spent, 77);
   const boost = migrated.boost;
   const loaded = normalize(JSON.parse(JSON.stringify(s)));

@@ -27,6 +27,7 @@ import {
 import { BEDS, VILLAGE, WORKSHOPS } from "../mondgarten/village-content.mjs";
 import { WORLD } from "../mondgarten/content.mjs";
 import { prepareDay } from "../mondgarten/daily.mjs";
+import { ECONOMY } from "../mondgarten/economy.mjs";
 import {
   tickJourney,
   startRound,
@@ -100,7 +101,10 @@ function run(style) {
     const beforeCoins = s.coins,
       beforeUpgrades = s.stats.upgrades,
       startTime = time;
-    let steps = 0;
+    let steps = 0,
+      sales = 0,
+      maximumRawSale = 0;
+    const quotedBudget = s.journey.plan.target / (1 + ECONOMY.dailyBuffer);
     while (!s.journey.closed && steps++ < 14400) {
       const previousPosition = { x: actor.x, z: actor.z };
       tickJourney(s, DT);
@@ -108,7 +112,7 @@ function run(style) {
       assert.notEqual(
         rhythm?.kind,
         "sleep",
-        `${style} missed the reward by sleeping on day ${round}`,
+        `${style} missed the reward by sleeping on day ${round}: ${JSON.stringify({ goal, bag: s.bag, coins: s.coins, cargo: s.cargo, workshops: s.village.workshops, finished: s.village.finished })}`,
       );
       time += DT;
       if (style === "cosmetics") {
@@ -161,6 +165,34 @@ function run(style) {
         automation.update(s, cells, actor, DT, s.journey.growthTime);
       if (!goal) {
         const pads = getBuildPads(s, TOOLS),
+          remainingCost = pads
+            .filter((p) => p.visible && !p.max && p.requiredRound <= round)
+            .reduce((sum, p) => sum + p.cost - p.paid, 0),
+          home = pads.find(
+            (p) =>
+              p.kind === "partner" &&
+              p.visible &&
+              !p.max &&
+              p.requiredRound <= round,
+          ),
+          need =
+            home &&
+            Object.entries(
+              VILLAGE.partner.materials[s.village.house] ?? {},
+            ).find(([id, n]) => (s.village.finished[id] ?? 0) < n),
+          neededWorkshop = need && WORKSHOPS.find((w) => w.product === need[0]),
+          ingredient = neededWorkshop && Object.keys(neededWorkshop.inputs)[0],
+          machine = neededWorkshop && s.village.workshops[neededWorkshop.id],
+          missing = need
+            ? Math.max(
+                0,
+                (need[1] -
+                  (s.village.finished[need[0]] ?? 0) -
+                  (machine.running ? 1 : 0)) *
+                  neededWorkshop.inputs[ingredient] -
+                  (machine.inputs[ingredient] ?? 0),
+              )
+            : 0,
           buy = pads.find(
             (p) =>
               p.visible &&
@@ -184,25 +216,18 @@ function run(style) {
           );
         if (extra) goal = { ...extra, kind: "buy", pad: extra };
         else if (buy) goal = { ...buy, kind: "buy", pad: buy };
-        else if (s.bag || productCargoCount(s)) {
-          const home = pads.find(
-              (p) =>
-                p.kind === "partner" &&
-                p.visible &&
-                !p.max &&
-                p.requiredRound <= round,
-            ),
-            w =
-              home &&
-              WORKSHOPS.find(
-                (w) =>
-                  (VILLAGE.partner.materials[s.village.house]?.[w.product] ??
-                    0) > (s.village.finished[w.product] ?? 0) &&
-                  Object.keys(w.inputs).some((id) => s.cargo[id]?.count > 0),
-              );
-          goal = w
-            ? { kind: "deliver", workshop: w, ...workshopSpot(w, "input") }
-            : { kind: "sell", ...WORLD.bank };
+        else if (missing > 0 && s.cargo[ingredient]?.count > 0) {
+          goal = {
+            kind: "deliver",
+            workshop: neededWorkshop,
+            limit: Math.min(missing, s.cargo[ingredient].count),
+            ...workshopSpot(neededWorkshop, "input"),
+          };
+        } else if (
+          s.bag + productCargoCount(s) >= capacity(s) ||
+          (s.bagValue > 0 && s.coins + s.bagValue >= remainingCost)
+        ) {
+          goal = { kind: "sell", ...WORLD.bank };
         } else {
           const remaining = pads.filter(
               (p) =>
@@ -215,31 +240,22 @@ function run(style) {
           if (!remaining.length && s.coins >= end.cost - end.paid)
             goal = { ...end, kind: "buy", pad: end };
           else {
-            const home = remaining.find((p) => p.kind === "partner"),
-              need =
-                home &&
-                Object.entries(
-                  VILLAGE.partner.materials[s.village.house] ?? {},
-                ).find(([id, n]) => (s.village.finished[id] ?? 0) < n),
-              w = need && WORKSHOPS.find((w) => w.product === need[0]);
             const hungry =
               farmStyle &&
               s.village.farm.nursery.some(
                 (n) => n.growth < FARM.growSeconds && n.meal <= 0,
               ) &&
               s.village.farm.food === 0;
-            const crop = w
-              ? Object.keys(w.inputs).find((id) =>
-                  BEDS.some((b) => b.crop === id),
-                )
-              : hungry
-                ? "moonbloom"
-                : null;
+            const crop = missing > 0 ? ingredient : hungry ? "moonbloom" : null;
             const bed = BEDS.map((b, i) => ({ ...b, index: i }))
               .filter(
                 (b) => s.village.beds[b.index] && (!crop || b.crop === crop),
               )
-              .sort((a, b) => bedYield(s, b.index) - bedYield(s, a.index))[0];
+              .sort(
+                (a, b) =>
+                  bedYield(s, b.index) / (b.pickSeconds ? 3 : 1) -
+                  bedYield(s, a.index) / (a.pickSeconds ? 3 : 1),
+              )[0];
             const candidates = cells
               .filter(
                 (c) => c.bed === bed.index && c.readyAt <= s.journey.growthTime,
@@ -252,7 +268,9 @@ function run(style) {
             const cell = candidates[0];
             goal = cell
               ? { kind: "harvest", cell, ...cell }
-              : { kind: "wait", x: actor.x, z: actor.z };
+              : s.bag || productCargoCount(s)
+                ? { kind: "sell", ...WORLD.bank }
+                : { kind: "wait", x: actor.x, z: actor.z };
           }
         }
       }
@@ -271,12 +289,23 @@ function run(style) {
             goal = null;
           }
         } else if (goal.kind === "sell") {
-          unload(s, 28 * DT);
+          if (!goal.selling) {
+            goal.selling = true;
+            goal.saleRate = Math.max(28, s.bag / 1.3);
+            sales++;
+            maximumRawSale = Math.max(maximumRawSale, s.bagValue);
+          }
+          unload(s, goal.saleRate * DT);
           sellCarriedProducts(s);
           if (s.bag <= 0) goal = null;
         } else if (goal.kind === "deliver") {
-          deliverWorkshop(s, goal.workshop, 24 * DT);
+          goal.limit -= deliverWorkshop(
+            s,
+            goal.workshop,
+            Math.min(goal.limit, 24 * DT),
+          ).count;
           if (
+            goal.limit <= 1e-8 ||
             !Object.keys(goal.workshop.inputs).some(
               (id) => (s.cargo[id]?.count ?? 0) > 0,
             )
@@ -336,6 +365,9 @@ function run(style) {
     const day = {
       round,
       activeSeconds,
+      sales,
+      maximumRawSale: Math.round(maximumRawSale),
+      maximumRawSaleShare: +(maximumRawSale / quotedBudget).toFixed(4),
       coins: Math.round(s.coins),
       purchases: s.stats.upgrades - beforeUpgrades,
       house: s.village.house,
@@ -344,6 +376,11 @@ function run(style) {
       growth: +growthFactor(s).toFixed(3),
     };
     days.push(day);
+    if (round <= 11)
+      assert.ok(
+        maximumRawSale / quotedBudget < 0.35,
+        `${style} day ${round}: a single raw load bought too much of the day`,
+      );
     assert.equal(offline.amount, 0);
     assert.ok(
       offline.produced <= WORKSHOPS.length * 4,

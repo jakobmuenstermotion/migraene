@@ -32,7 +32,7 @@ Ein JSON-Export des Gartenspiels enthält dessen Spielstand, nicht die getrennte
 - begleiter/mondgarten/content.mjs: Sammelarten, Farben, Formen und Grundwerte.
 - begleiter/mondgarten/village-content.mjs: Beete, Werkstätten, Rezepte und Bauplätze.
 - begleiter/mondgarten/economy.mjs: Preise und Ertragskurve.
-- begleiter/mondgarten/daily.mjs und funding.mjs: vollständiger Tagesbedarf und endlicher Ertrag.
+- begleiter/mondgarten/daily.mjs und funding.mjs: vollständiger Tagesbedarf und kalibrierte Erntewerte.
 
 Nach Änderungen im Begleiterordner `node build-garden.mjs` ausführen. Das erzeugt das klassische companion-garden.js ohne Laufzeit-Buildwerkzeuge und erneuert den Offline-Cache anhand der Dateiinhalte. Spielmodule sind direkt bearbeitbar. Alle Laufzeitdateien und Bilder liegen lokal; ntfy-Anfragen werden vom Service Worker nicht zwischengespeichert.
 
@@ -72,7 +72,7 @@ mondgarten/upgrade-info.mjs bündelt verständliche Kurztexte, Wirkungen und Sym
 
 ### Prüfen
 
-`node --test tests.mjs farm-tests.mjs comfort-tests.mjs garden-ledger-tests.mjs` prüft in 43 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
+`node --test tests.mjs farm-tests.mjs comfort-tests.mjs economy-tests.mjs garden-ledger-tests.mjs` prüft in 48 Fällen Produktion, Zutatenwerte, Lager/Helfer-Abhängigkeit, Ausgabegrenzen, Rezepte, Offline-Zuwachs, Save-Kompatibilität, Wachstum, Belohnungen, Beleuchtung, Obsternte und alle drei Waldschnepfenaufträge. `node build-garden.mjs` aktualisiert nach Änderungen die Offline-Cache-Version. Ein lokaler HTTP-Server muss `.mjs` als JavaScript liefern. Ergänzend im mobilen Browser Joystick, direkte Abgabe/Abholung, Verkauf nach Abschluss, Menüs und Speicherung prüfen.
 
 ### Obstgarten und Waldschnepfe
 
@@ -92,7 +92,7 @@ Sechs Aufzuchtplätze stehen zur Verfügung. Ein Häuschen wird dort eingesetzt 
 
 `node scripts/balance.mjs` prüft drei Strategien über jeweils 77 Runden mit echten Preis-, Ernte-, Laufweg-, Produktions-, Helfer-, Farm- und Kauf-Funktionen. Die letzte Runde erreicht jeweils die Bushaltestelle, alle 77 Pflanzenbelohnungen bleiben eindeutig. Der Report steht in [BALANCE.md](BALANCE.md), die aktuellen Rohdaten in `balance-results.json`.
 
-Die Ertragsquote verwendet in den ersten vier Runden 300 Referenzeinheiten, anschließend 220. Reguläre Tagesziele sollen ungefähr nach vier bis fünf Minuten erreichbar sein; Läden und Kosmetik bleiben langfristige Wünsche außerhalb des Tagesplans. Das zeitabhängige Nachwachsen läuft bis Minute fünf normal, nimmt danach ab und endet nach neun aktiven Minuten. Bestehende Tagespläne bekommen einmalig den höheren Erntefaktor (Balanceversion 6), ohne Guthaben, Anzahlungen und gespeicherte Warenwerte neu zu bewerten. Der Hausbau benötigt vier Sträuße, vier Tees und drei Öle in getrennten Bauabschnitten. Preise werden nicht an den Kontostand angepasst.
+Balanceversion 7 korrigiert die zu hohen Korbwerte der vorherigen 300/220-Referenzeinheiten. Die neue Referenzmenge ist `(1400 + min(Korbgröße, 300)) × (1 + 0,01 × Sichelstufe)`; der Erntefaktor berücksichtigt die wertvollste vorhandene Pflanze und den manuellen Bonus. Faktoren unter eins überstehen Speichern und Laden unverändert. Ein nachgestellter Tag-7-Korb mit 272 Plätzen liefert dadurch rund 1.528 statt 11.392 Münzen. Reguläre Tagesziele bleiben ungefähr nach vier bis fünf Minuten erreichbar; Läden und Kosmetik gehören nicht zum Tagesplan. Das zeitabhängige Nachwachsen läuft bis Minute fünf normal und endet nach neun aktiven Minuten. Ältere Tagespläne erhalten den neuen Faktor einmalig. Ihre Budgetsumme, Ausgaben und Angebote bleiben erhalten, ebenso Guthaben, Anzahlungen und vorhandene Warenwerte. Die Korrektur wirkt auf neue Ernte; ein alter voller Korb behält seinen bisherigen Wert. Eine Verwaltungsseite oder automatische Guthabenkürzung wird nicht eingebaut. Der Hausbau benötigt vier Sträuße, vier Tees und drei Öle in getrennten Bauabschnitten. Preise werden nicht an den Kontostand angepasst.
 
 ### Lokaler Spielstand
 

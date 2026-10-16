@@ -218,15 +218,76 @@ const fs = require("node:fs");
     const importState = async (value) => {
       await p.locator("#gardenMenu").click();
       await p.locator("#menuSettings").click();
-      await p
-        .locator("#saveFile")
-        .setInputFiles({
-          name: "rhythm-test.json",
-          mimeType: "application/json",
-          buffer: Buffer.from(JSON.stringify(value)),
-        });
+      await p.locator("#saveFile").setInputFiles({
+        name: "rhythm-test.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify(value)),
+      });
       await p.locator("#confirmImport").click();
     };
+    // Exercise the actual import and save path for a pre-fix day-seven plan.
+    const { prepareDay } = await import(
+      require("node:url").pathToFileURL(path.join(root, "mondgarten/daily.mjs"))
+        .href
+    );
+    const { TOOLS } = await import(
+      require("node:url").pathToFileURL(path.join(root, "mondgarten/core.mjs"))
+        .href
+    );
+    const { createVillageField } = await import(
+      require("node:url").pathToFileURL(
+        path.join(root, "mondgarten/harvest.mjs"),
+      ).href
+    );
+    const legacy = freshState();
+    legacy.tutorial = 3;
+    legacy.journey.round = 7;
+    legacy.journey.goalCost = null;
+    legacy.tools = { reach: 2, bag: 3, speed: 2, value: 2 };
+    legacy.village.beds[0] = 3;
+    legacy.village.workshops.bouquet.level = 1;
+    const correctedBoost = prepareDay(legacy, TOOLS).boost;
+    legacy.journey.plan.balanceVersion = 6;
+    legacy.journey.plan.boost = 9.8839;
+    legacy.journey.plan.spent = 77;
+    legacy.coins = 12345;
+    legacy.bag = 12;
+    legacy.bagValue = 500;
+    legacy.cargo = { moonbloom: { count: 12, value: 500 } };
+    legacy.village.payments = { "bed:0": 333 };
+    legacy.village.fieldCuts = Object.fromEntries(
+      createVillageField(legacy).map((cell) => [
+        cell.key,
+        { readyAt: 10000, cutAt: 0 },
+      ]),
+    );
+    await importState(legacy);
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const migrated = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(migrated.journey.plan.boost, correctedBoost);
+    assert.equal(migrated.journey.plan.spent, 77);
+    assert.equal(migrated.journey.plan.target, legacy.journey.plan.target);
+    assert.equal(migrated.coins, 12345);
+    assert.equal(migrated.bagValue, 500);
+    assert.deepEqual(migrated.village.payments, legacy.village.payments);
+    await p.reload();
+    await p.waitForFunction(() => !document.querySelector("#loading"));
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const migratedAgain = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(migratedAgain.journey.plan.boost, correctedBoost);
+    assert.equal(migratedAgain.coins, 12345);
+    await p.locator("#closeModal").click();
+    console.log(
+      "Economy: inflated day-seven plan corrected once; wallet, cargo value and instalments preserved through import and reload",
+    );
     const late = await p.evaluate(() => {
       const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
       value.journey.round = 3;
