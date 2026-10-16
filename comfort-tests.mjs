@@ -86,7 +86,7 @@ test("warnings persist once each, sleep refunds only unfinished daily reward and
   s = normalize(JSON.parse(JSON.stringify(s)));
   assert.equal(advanceDayRhythm(s), null);
   s.journey.elapsed = DAY_RHYTHM.lastWarning;
-  assert.equal(advanceDayRhythm(s).seconds, 60);
+  assert.equal(advanceDayRhythm(s).seconds, 30);
   s.journey.elapsed = DAY_RHYTHM.sleep;
   assert.deepEqual(advanceDayRhythm(s), {
     kind: "sleep",
@@ -160,4 +160,25 @@ test("unearned and absent days do not collapse, and legacy long sessions get a w
   loaded.savedAt -= 8 * 3600 * 1000;
   offlineEarnings(loaded);
   assert.equal(loaded.journey.asleep, false);
+});
+
+test("existing daily plans receive the faster balance exactly once without revaluing saved supplies", () => {
+  const s = freshState();
+  s.journey.round = 22;
+  s.coins = 123;
+  const plan = prepareDay(s, TOOLS);
+  plan.balanceVersion = 5;
+  plan.boost = 2;
+  plan.spent = 77;
+  s.village.raw = { moonbloom: 10 };
+  s.village.rawValues = { moonbloom: 250 };
+  const migrated = prepareDay(s, TOOLS);
+  assert.ok(migrated.boost > 2);
+  assert.equal(migrated.spent, 77);
+  const boost = migrated.boost;
+  const loaded = normalize(JSON.parse(JSON.stringify(s)));
+  prepareDay(loaded, TOOLS);
+  assert.equal(loaded.journey.plan.boost, boost);
+  assert.equal(loaded.coins, 123);
+  assert.equal(loaded.village.rawValues.moonbloom, 250);
 });

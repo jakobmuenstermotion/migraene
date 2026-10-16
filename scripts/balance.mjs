@@ -297,11 +297,16 @@ function run(style) {
     const activeSeconds = time - startTime,
       earned = s.coins - beforeCoins,
       offline = offlineVillage(s, 8 * 3600);
+    assert.ok(
+      activeSeconds <= (style === "cosmetics" ? 420 : 310),
+      `${style} day ${round} exceeded the short-day target: ${activeSeconds}s`,
+    );
     const day = {
       round,
       activeSeconds,
       coins: Math.round(s.coins),
       purchases: s.stats.upgrades - beforeUpgrades,
+      house: s.village.house,
       offlineProduced: offline.produced,
       offlineCoins: offline.amount,
       growth: +growthFactor(s).toFixed(3),
@@ -309,7 +314,7 @@ function run(style) {
     days.push(day);
     assert.equal(offline.amount, 0);
     assert.ok(
-      offline.produced <= WORKSHOPS.length * 8,
+      offline.produced <= WORKSHOPS.length * 4,
       "overnight production runaway",
     );
     if (round % 10 === 0 || round === 77)
@@ -337,10 +342,7 @@ function run(style) {
     }
   }
   assert.equal(s.village.bus, true, "bus never reached");
-  if (style === "cosmetics") {
-    assert.equal(s.village.boutiques.built.length, 2);
-    assert.equal(s.village.boutiques.owned.length, COSMETICS.length);
-  }
+  // Optional cosmetic ownership never determines completion of a day or run.
   assert.equal(s.journey.rewards.length, 77, "missing rewards");
   assert.equal(s.journey.rewards.filter((r) => r.kind === "seed").length, 7);
   assert.equal(s.journey.rewards.filter((r) => r.kind === "water").length, 70);

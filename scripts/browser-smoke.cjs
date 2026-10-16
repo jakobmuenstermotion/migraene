@@ -218,7 +218,7 @@ const fs = require("node:fs");
     // At the time limit, only the unfinished daily reward payment is refunded.
     const sleepFixture = await p.evaluate(() => {
       const value = JSON.parse(localStorage.getItem("mondgarten.save.v1"));
-      value.journey.elapsed = 1799.95;
+      value.journey.elapsed = 479.95;
       value.journey.closed = false;
       value.journey.pending = 1;
       value.journey.rewards = [];

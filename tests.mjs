@@ -1,3 +1,4 @@
+import { GardenAutomation } from './mondgarten/automation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { freshState, normalize, TOOLS, capacity } from './mondgarten/core.mjs';
@@ -17,6 +18,7 @@ import {
 } from './mondgarten/harvest.mjs';
 import { WORKSHOPS, VILLAGE } from './mondgarten/village-content.mjs';
 import {
+  productionSeconds,
   deliverWorkshop,
   advanceProduction,
   offlineVillage,
@@ -50,7 +52,7 @@ test('manual delivery conserves ingredients and value; processing and collection
   assert.equal(deliverWorkshop(s, bouquet).count, 60);
   assert.equal(s.bag, 0);
   assert.equal(s.village.raw.moonbloom, undefined);
-  assert.equal(advanceProduction(s, 45).length, 1);
+  assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
   assert.equal(s.village.finished.bouquet, 1);
   assert.equal(workshopStock(s.village.workshops.bouquet), 54);
   near(s.village.finishedValues.bouquet, 14.4);
@@ -71,7 +73,7 @@ test('warehouse waits for helpers; direct delivery accepts only matching cargo',
   assert.equal(advanceProduction(s, 1000).length, 0);
   assert.equal(s.village.raw.moonbloom, 60);
   s.village.snails = 1;
-  assert.equal(advanceProduction(s, 45).length, 1);
+  assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
   assert.equal(s.village.raw.moonbloom, 54);
   carry(s, 10);
   s.cargo.lavender = { count: 8, value: 16 };
@@ -87,7 +89,7 @@ test('small frame deliveries can complete exact recipes without losing fractiona
   carry(s, 6, 12);
   for (let i = 0; i < 100; i++) deliverWorkshop(s, bouquet, 0.24);
   assert.equal(s.bag, 0);
-  assert.equal(advanceProduction(s, 45).length, 1);
+  assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
   near(s.village.finishedValues.bouquet, 14.4);
 });
 
@@ -121,7 +123,7 @@ test('offline work is tiny, consumes existing ingredients and preserves carried 
   const before = s.stats.harvested,
     coins = s.coins;
   assert.equal(offlineVillage(s, 20 * 60).produced, 0);
-  assert.equal(offlineVillage(s, 8 * 3600).produced, 2);
+  assert.equal(offlineVillage(s, 8 * 3600).produced, 1);
   assert.equal(s.coins, coins);
   assert.equal(s.stats.harvested, before);
   assert.deepEqual(s.village.hauler, shipment);
@@ -135,7 +137,7 @@ test('alternative and compound recipes consume real local supplies', () => {
   s.bag = 4;
   s.bagValue = 100;
   deliverWorkshop(s, bouquet);
-  advanceProduction(s, 45);
+  advanceProduction(s, productionSeconds(s, bouquet));
   near(s.village.finishedValues.bouquet, 120);
   const w = WORKSHOPS.find((w) => w.id === 'elixir');
   s.village.workshops.elixir.level = 1;
@@ -215,15 +217,15 @@ test('sunset depends on active time and fades slowly; income cannot make noon da
   s.coins = 1e20;
   s.journey.elapsed = 100;
   assert.equal(nightTarget(s), 0);
-  s.journey.elapsed = 780;
+  s.journey.elapsed = 240;
   near(nightTarget(s), 0.29);
   advanceLighting(s, 1);
-  assert.ok(s.journey.light <= 1 / 180);
+  assert.ok(s.journey.light <= 1 / 90);
   s.journey.closed = true;
   s.journey.light = 0;
-  for (let i = 0; i < 90; i++) advanceLighting(s, 1);
+  for (let i = 0; i < 45; i++) advanceLighting(s, 1);
   near(s.journey.light, 0.5);
-  for (let i = 0; i < 90; i++) advanceLighting(s, 1);
+  for (let i = 0; i < 45; i++) advanceLighting(s, 1);
   near(s.journey.light, 1);
 });
 
@@ -342,12 +344,15 @@ test('woodcock leaves reserved house materials and can choose a different produc
   s.village.workshops.tea.level = 1;
   birdAt(s, { x: 8 + 1.8, z: 12 + 1.8 });
   s.village.woodcock.task = 'sell';
-  s.village.finished.bouquet = 8;
-  s.village.finishedValues.bouquet = 80;
+  s.village.finished.bouquet = VILLAGE.partner.materials[0].bouquet;
+  s.village.finishedValues.bouquet = 10 * VILLAGE.partner.materials[0].bouquet;
   s.village.finished.tea = 1;
   s.village.finishedValues.tea = 20;
   advanceWoodcock(s, 0.1);
-  assert.equal(s.village.finished.bouquet, 8);
+  assert.equal(
+    s.village.finished.bouquet,
+    VILLAGE.partner.materials[0].bouquet,
+  );
   assert.equal(s.village.woodcock.cargo.items.tea, 1);
 });
 
@@ -367,4 +372,21 @@ test('orchard is a purchased late-game upgrade, not a starting field', () => {
   assert.equal(s.village.beds[4], 0);
   assert.equal(payBuild(s, p, 10).complete, true);
   assert.equal(s.village.beds[4], 1);
+});
+
+test('snails leave the active harvesting area to the player and can still work farther away', () => {
+  const s = freshState();
+  s.village.snails = 1;
+  const cells = createVillageField(s),
+    automation = new GardenAutomation(s),
+    player = { x: 4, z: 0 };
+  automation.update(s, cells, player, 0.1, 0);
+  for (const snail of automation.snails)
+    if (snail.target)
+      assert.ok(
+        Math.hypot(snail.target.x - player.x, snail.target.z - player.z) >=
+          VILLAGE.snail.playerSpace,
+      );
+  automation.update(s, cells, { x: -30, z: 30 }, 0.1, 0);
+  assert.ok(automation.snails[0].target);
 });

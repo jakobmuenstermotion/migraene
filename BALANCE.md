@@ -1,47 +1,44 @@
-# Langzeit-Balance · 16. Oktober 2026
+# Langzeit-Balance · kurze Gartenbesuche
 
-Drei vollständige Durchläufe mit jeweils 77 Gartenrunden erreichen die Bushaltestelle. Es gibt keine blockierten Runden. Alle Durchläufe erhalten genau sieben Samen- und siebzig Gießbelohnungen; Normalisierung nach dem Speichern erhält die Bestände und Erntezeiten.
+Die Vorgabe ist: reguläre Tagesziele ungefähr innerhalb von vier bis fünf Minuten erreichen und spätestens nach acht aktiven Minuten einschlafen. Läden, Dekoration und Accessoires sind langfristige Wünsche und gehören nicht zu den geplanten Tageszielen. Die bisherige 30-Minuten-Grenze wurde entfernt.
 
-| Spielweise | Erste Verbesserung | Tagesdauer Median | Längster Tag | Geld nach Buskauf |
-|---|---:|---:|---:|---:|
-| Manuell | 1:25 | 8:12 | 22:36 | 87.414.618 |
-| Mit Helfern | 1:25 | 5:58 | 22:03 | 17.936.115 |
-| Helfer + Farm | 1:25 | 6:34 | 22:59 | 13.574.359 |
+## Aktueller Stand
 
-Zeiten in Minuten:Sekunden. Jede Strategie kauft alle aktuell angebotenen Ausbauten, bevor sie die Tagesbelohnung kauft. Das ist umfangreicher als ein gewöhnlicher Besuch, bei dem man den Tag früher abschließen darf. Die langen Tage liegen bei den Hausbau-/Produktionsschritten um Runde 22/23; die restliche Wartezeit wird beim Sammeln überbrückt.
+Vier vollständige Durchläufe mit jeweils 77 Runden erreichen sämtliche regulären Ausbauten und die Bushaltestelle. In jeder Runde werden alle verfügbaren regulären Verbesserungen und anschließend die Pflanzenbelohnung gekauft. Alle 308 Abschlüsse gelingen vor dem Einschlafen. Genau sieben Samen und siebzig Gießaktionen werden vergeben; Speichern und Normalisierung erhalten Vorräte, Anzahlungen und Belohnungen.
 
-## Was angepasst wurde
+| Spielweise | Median | Längster Tag | Verpasste Abschlüsse |
+|---|---:|---:|---:|
+| Manuell | 1:38,5 | 4:15,5 | 0 |
+| Mit Helfern | 1:38,5 | 5:00,5 | 0 |
+| Helfer + Farm | 1:37,0 | 4:54,5 | 0 |
+| Zusätzlich freiwillige Kosmetikausgaben | 1:37,5 | 5:27,0 | 0 |
 
-- Die frühe Wirtschaft war ohne den früheren Lagergewinn zu langsam. Die Tagesquote rechnet in den ersten vier Runden jetzt mit 600 Referenzeinheiten statt 3000, später mit 1000 statt 2000. Die erste Verbesserung dauert im aktuellen Durchlauf etwa 85 Sekunden.
-- Das Nachwachsen nimmt weiter mit aktiver Spielzeit ab, aber sanfter: Zeitskala 900 statt 360 Sekunden. Es bleibt eine Untergrenze von 2,5 %, kein harter Erntestopp.
-- Werkstätten verwenden echte, wertmäßig mitgeführte Zutaten. Der Aufschlag beträgt 20 % plus zwei Prozentpunkte je weiterer Werkstattstufe. Nachts sind höchstens 90 Produktionssekunden möglich. In den Durchläufen entstanden je Pause höchstens zwölf Produkte über sämtliche Werkstätten; automatisch verkauft wurde nachts nichts. Die deterministische Obergrenze liegt bei höchstens acht fertigen Produkten je Werkstatt und Pause, einschließlich eines angebrochenen Auftrags.
-- Die Farm lässt höchstens zwei Häuschen pro Runde finden. Aufziehen braucht drei Mahlzeiten und zwölf Minuten, Hunger wartet ohne Schaden. Verkauf erstattet den Zutatenwert und einen begrenzten Zusatzgewinn. Farmhelfer teilen sich dieselben freigeschalteten Plätze und die Obergrenze von zwölf mit gekauften Schnecken.
-- Bei neuen Farmhelfern werden Kaufplätze aktualisiert. Die Simulation deckte sonst einen veralteten Schneckenkauf auf, der nach einem zwischenzeitlich eingesetzten Helfer nicht mehr abgeschlossen werden konnte.
+Zeiten in Minuten:Sekunden,Zehntel. Die ersten vier Tage dauern 3:20 bis 4:11 Minuten, die erste Verbesserung ist nach etwa 33 Sekunden möglich. Der längste reguläre Durchlaufstag liegt bei etwa fünf Minuten. Der zusätzliche Durchlauf gibt freiwillig zehn Prozent seiner neuen Verkaufseinnahmen für Läden und Artikel aus und benötigt im längsten Tag 5:27 Minuten. Diese Käufe sind ausdrücklich keine Abschlussvoraussetzung.
 
-Im Farm-Durchlauf wurden alle zehn Arten entdeckt, sechs erwachsene Schnecken als Helfer eingesetzt und 82 verkauft. Die Aufzucht läuft über mehrere Gartenrunden weiter. Die Farm ist ab Runde 18 verfügbar, die Waldschnepfe ab 32 und der Obstgarten ab 47.
+Die Mediane sind kürzer als vier Minuten: Bereits angespartes Geld, vorhandene Waren und Helfer können spätere Tage früher abschließen. Vier bis fünf Minuten sind ein Ziel für die Erreichbarkeit, keine Mindestspielzeit. Das Spiel zieht keine Ersparnisse ein und setzt keine künstliche Wartefrist. Die verbleibende Zeit bis Minute acht lässt sich zum Sammeln oder für langfristige Wünsche nutzen.
 
-## Aussagekraft und Grenzen
+## Änderungen
 
-Die Simulation verwendet die echten Funktionen für Preise, Freischaltungen, Ernte, Nachwachsen, Kapazitäten, Rohstoff-/Produktwerte, Werkstätten, Offline-Produktion, Farm, Helfer und Kaufzahlungen. Bewegungen werden mit 0,5-Sekunden-Schritten berechnet; innerhalb der Schritte wird die tatsächliche Erntefrequenz an interpolierten Positionen abgearbeitet. Die Strategien laufen zu passenden reifen Pflanzen und nehmen erforderliche Hauszutaten gezielt mit. Jeder Durchlauf prüft das verbindliche Einschlafen nach 30 aktiven Minuten und bricht als Fehler ab, falls der Tag vorher nicht abgeschlossen werden kann. Nach jedem Abschluss werden acht Stunden Abwesenheit simuliert und der Spielstand serialisiert/normalisiert.
+- Ertragsquote: 300 Referenzeinheiten in den ersten vier Runden, danach 220 statt zuvor 600/1000. Der Preisplan wird weiterhin aus den verfügbaren regulären Ausbauten bestimmt; Kontostand und Kosmetikwünsche bestimmen keine Preise. Laufende alte Pläne erhalten einmalig den höheren Erntefaktor. Gespeichertes Geld und vorhandene Warenwerte bleiben erhalten.
+- Aktive Werkstätten: 12/16/20/26 Sekunden Grundzeit statt 45/60/75/100 Sekunden. Zutaten werden weiterhin tatsächlich verbraucht, bei zusammengesetzten Rezepten auch zuvor hergestellte Waren. Die Wertsteigerung bleibt 20 % plus zwei Prozentpunkte je weiterer Stufe. Hausbauabschnitte brauchen vier Sträuße, vier Tees und drei Öle, statt acht/acht/sechs.
+- Nachtproduktion: höchstens zwölf simulierte Produktionssekunden je längerer Pause; kein automatisches Ernten oder Verkaufen. In den aktuellen Durchläufen entstehen höchstens vier Produkte pro Pause über sämtliche Werkstätten. Farmaufzucht behält unabhängig davon bis zu 90 Sekunden Pflegefortschritt.
+- Helferschnecken ernten nicht innerhalb von acht Welteinheiten um die Spielfigur. Das schützt deren aktive Ernte vor Konkurrenz um dieselben Pflanzen. Anderswo arbeiten sie weiter.
+- Tagesrhythmus: Warnungen nach 6:00 und 7:30 Minuten, Einschlafen nach 8:00. Der Pflanzenkauf schließt den Tag regulär ab, anschließendes Sammeln bleibt bis zum Einschlafen möglich. Menüs, versteckte Tabs und Abwesenheit zählen nicht mit. Sonnenuntergang beginnt ab Minute drei; nach Abschluss erfolgt die Nachtüberblendung über maximal 90 Sekunden bei voller Ausgangshelligkeit.
+- Kosmetikkäufe bleiben außerhalb des täglichen Plans. Ihre Preise, Freischaltungen und dauerhaften Anzahlungen bleiben erhalten. Der Test verlangt nicht, dass alle Kosmetika bis Tag 77 gekauft wurden.
 
-Das ist ein reproduzierbarer Bot-Durchlauf ohne Grafik, kein Test menschlicher Wege oder eines physischen iPhones. Der manuelle Bot verwendet Werkstätten primär für benötigte Hausmaterialien. Der Farm-Bot pflegt möglichst sofort und setzt Erwachsene vor einem gleichwertigen Schneckenkauf ein. Diese Strategien beweisen nicht für jede denkbare Kaufreihenfolge dasselbe Tempo.
+## Verifikation und Grenzen
 
-Weiteres Ernten und Geldansparen sind ausdrücklich erlaubt. Deshalb können einzelne spätere Runden mit wenigen angebotenen Ausbauten aus Ersparnissen sehr schnell beendet werden. Ernten ist bis zum Einschlafen nach 30 aktiven Minuten möglich. Es gibt keine künstliche Mindestspielzeit und keine an den Kontostand angepassten Preise. Gespeicherte Altbestände werden nicht entwertet. Eine Aufhebung dieser Möglichkeit würde die gewünschte offene Ernte wieder einschränken; die Rundensperren begrenzen weiterhin, welche Ausbauten verfügbar sind.
+Die Simulation nutzt die echten Preis-, Ernte-, Bewegungs-, Produktions-, Farm-, Helfer- und Kauffunktionen. Sie bewegt sich in 0,5-Sekunden-Schritten, erntet innerhalb dieser Schritte mit der tatsächlichen Erntefrequenz und nimmt benötigte Hausmaterialien gezielt mit. Nach jeder Runde werden acht Stunden Abwesenheit und Speichern/Laden simuliert. Ein regulärer Tag über 310 Sekunden oder ein Durchlauf mit freiwilligen Ausgaben über 420 Sekunden führt zum Fehler; Einschlafen vor dem Abschluss ist unabhängig davon immer ein Fehler.
 
-## Wiederholen
+Die 10 Sekunden Toleranz am regulären Fünf-Minuten-Ziel vermeiden eine knappe Abhängigkeit einzelner Lauf- und Kaufabschnitte. Die Simulation ist kein Beweis identischer Zeiten für menschliche Wege oder ein physisches iPhone. Bei viel optionalem Geldausgeben oder absichtlichem Trödeln kann die Tagesbelohnung weiterhin verpasst werden. Frühere Belohnungen, Geld und Waren gehen dabei nicht verloren. Eine unvollständige Anzahlung für den Abschluss wird erstattet, und fehlende Belohnungen bleiben durch spätere verdiente Tage nachholbar.
+
+Die Logiktests prüfen außerdem acht absichtlich verpasste Tage, die Nachholung der Belohnungsquoten, Warnungen, sichere Migration laufender Pläne und den Vorrang manueller Ernte vor Helfern. Die Browserprüfung prüft lokale Speicherung, Datei-Export/-Import, Farm, Ladenanzahlungen, Accessoires, Einschlafen nach acht Minuten und Aufwachen durch eine weitere verdiente Runde.
 
 ```sh
 node scripts/balance.mjs
+node scripts/balance.mjs --cosmetics
 node --test tests.mjs farm-tests.mjs comfort-tests.mjs
 node build-garden.mjs
 ```
 
-[balance-results.json](balance-results.json) enthält die aktuellen 231 Tagesergebnisse einschließlich Dauer, Käufen, Restgeld und Offline-Produktion. Der Zeitstempel bezeichnet den tatsächlich beendeten Durchlauf. Der JSON-Bericht wird erst nach erfolgreichem Abschluss aller drei Strategien ersetzt.
-
-## Einschlafen und freiwillige Läden
-
-Die drei bestehenden Strategien wurden mit dem verbindlichen 30-Minuten-Limit erneut ausgeführt: alle 231 Tagesabschlüsse bleiben möglich. Eine bloße Auswertung derselben Zeiten ergibt bei einem Limit von 10 Minuten 69 zu lange Tage, bei 15 Minuten 12 und bei 20 Minuten neun. Bei 25 und 30 Minuten sind es null. Das ist keine Simulation einer anderen Strategie unter Zeitdruck; deshalb sind 30 Minuten die vorsichtige Wahl.
-
-Ein vierter vollständiger Durchlauf (`node scripts/balance.mjs --cosmetics`) investiert laufend zehn Prozent der tatsächlichen neuen Verkaufseinnahmen in optionale Läden und Artikel. Er kauft zusätzlich alle regulären Ausbauten und erreicht Tag 77 ohne verpasste Belohnung. Beide Läden und alle sechs Artikel werden gekauft; insgesamt gehen 105.158 Sternenstaub in Kosmetik. Median 6:38, längster Tag 23:55. Die Rohdaten stehen in `cosmetic-balance-results.json`. Auch dieser Bot beweist keine identische Dauer für menschliches Spielen; insbesondere ist Geld für freiwillige Deko nicht für eine Gießaktion reserviert.
-
-Ein separater Fortschrittstest lässt acht Tage ausfallen, darunter frühe Samentage. Spätere verdiente Runden vervollständigen trotzdem die sieben Samen und siebzig Gießaktionen. Einschlafen entfernt weder früher gekaufte Belohnungen noch Waren oder Bauten. Eine unvollständige Zahlung für den Tagesabschluss wird erstattet. Es besteht also kein dauerhafter Fortschrittsverlust, wohl aber die beabsichtigte Verzögerung, wenn eine Pflanzenbelohnung verpasst wurde.
+Die Rohdaten stehen in [balance-results.json](balance-results.json) und [cosmetic-balance-results.json](cosmetic-balance-results.json). Zeitstempel gehören jeweils zum erfolgreich abgeschlossenen Durchlauf.

@@ -48,7 +48,7 @@ export function deliverWorkshop(s,w,limit=Infinity){
  if(s.bag<1e-8){s.bag=0;s.bagValue=0;s.cargo={};}return batch;
 }
 export function depositWorkshopSupplies(s,w,cargo){const m=s.village.workshops[w.id];let room=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),total=0;for(const [id,before]of Object.entries(cargo.items)){if(!accepts(w,id)||before<=0)continue;const count=Math.min(room,before),value=(cargo.values[id]??0)*count/before;storeIngredient(m,id,count,value);cargo.items[id]-=count;cargo.values[id]-=value;room-=count;total+=count;}return total;}
-export function productionSeconds(s,w){return Math.max(12,w.seconds/Math.pow(1.12,s.village.workshops[w.id].level-1));}
+export function productionSeconds(s,w){return Math.max(4,w.seconds/Math.pow(1.12,s.village.workshops[w.id].level-1));}
 export function productValue(s,w){const inputs=Object.entries(w.inputs).reduce((sum,[id,count])=>{const source=WORKSHOPS.find(source=>source.product===id),bed=BEDS.findIndex(b=>b.crop===id);return sum+count*(source?productValue(s,source):bedYield(s,bed)*VILLAGE.manualBonus);},0);return inputs*(1.2+ECONOMY.workshopMarginStep*Math.max(0,s.village.workshops[w.id].level-1));}
 export function productionInputs(s,w){const stock=s.village.workshops[w.id].inputs??{};return [...(w.alternatives??[]),w.inputs].find(inputs=>Object.entries(inputs).every(([id,n])=>(stock[id]??0)>=n-1e-8))??w.inputs;}
 // Once helpers have arrived, the shared warehouse can supply one recipe at a time.
@@ -93,7 +93,7 @@ export function payBuild(s,pad,dt){if(!pad||pad.max||pad.locked||dt<=0||s.journe
 export function gardenLevel(s){return 1+s.village.beds.reduce((a,b)=>a+b,0)-1+Object.values(s.village.workshops).reduce((a,w)=>a+w.level,0)+s.village.snails+(s.village.partner?3:0);}
 export function offlineVillage(s,seconds){const produced=s.village.produced;
  const workSeconds=Math.max(0,Math.min(seconds,VILLAGE.offline.maxSeconds))*VILLAGE.offline.efficiency;
- advanceProduction(s,workSeconds);advanceFarm(s,workSeconds);
+ advanceProduction(s,workSeconds);advanceFarm(s,Math.max(0,Math.min(seconds,VILLAGE.offline.maxSeconds))*VILLAGE.offline.careEfficiency);
  return{amount:0,produced:s.village.produced-produced};
 }
 

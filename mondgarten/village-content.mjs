@@ -16,22 +16,22 @@ export const PRODUCTS={
   elixir:{name:'Mondelixier',plural:'Mondelixiere',icon:'◇',color:'#a796d8',value:160}
 };
 export const WORKSHOPS=[
-  {id:'bouquet',name:'Blumenbinderei',model:'bouquet',product:'bouquet',inputs:{moonbloom:6},seconds:45,cost:900,x:0,z:12,pad:{x:0,z:15},requires:null,description:'6 Mondblüten → 1 Mondstrauß. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
-  {id:'tea',name:'Sternenteeküche',model:'tea',product:'tea',inputs:{lavender:8},seconds:60,cost:1600,x:8,z:12,pad:{x:8,z:15},requires:'bouquet',description:'8 Lavendelbündel → 1 Sternentee. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
-  {id:'oil',name:'Duftöldestille',model:'oil',product:'oil',inputs:{coral:10},seconds:75,cost:2400,x:17,z:10,pad:{x:17,z:13},requires:'tea',description:'10 Korallenblüten → 1 Blütenduftöl.'},
-  {id:'elixir',name:'Mondalchemie',model:'elixir',product:'elixir',inputs:{tea:1,oil:1,mushroom:6},seconds:100,cost:4200,x:26,z:9,pad:{x:26,z:12},requires:'oil',description:'1 Sternentee + 1 Duftöl + 6 Glühpilze → 1 Mondelixier.'}
+  {id:'bouquet',name:'Blumenbinderei',model:'bouquet',product:'bouquet',inputs:{moonbloom:6},seconds:12,cost:900,x:0,z:12,pad:{x:0,z:15},requires:null,description:'6 Mondblüten → 1 Mondstrauß. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
+  {id:'tea',name:'Sternenteeküche',model:'tea',product:'tea',inputs:{lavender:8},seconds:16,cost:1600,x:8,z:12,pad:{x:8,z:15},requires:'bouquet',description:'8 Lavendelbündel → 1 Sternentee. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
+  {id:'oil',name:'Duftöldestille',model:'oil',product:'oil',inputs:{coral:10},seconds:20,cost:2400,x:17,z:10,pad:{x:17,z:13},requires:'tea',description:'10 Korallenblüten → 1 Blütenduftöl.'},
+  {id:'elixir',name:'Mondalchemie',model:'elixir',product:'elixir',inputs:{tea:1,oil:1,mushroom:6},seconds:26,cost:4200,x:26,z:9,pad:{x:26,z:12},requires:'oil',description:'1 Sternentee + 1 Duftöl + 6 Glühpilze → 1 Mondelixier.'}
 ];
 export const VILLAGE={
   farm:{cost:2400,x:-28,z:-7,pad:{x:-28,z:-3}},
   woodcock:{cost:8500,x:-25,z:1,pad:{x:-25,z:4}},
   bus:{cost:600000000,x:-29,z:10,pad:{x:-28,z:15}},
   warehouse:{x:-14,z:-7,radius:1.8,pad:{x:-10.5,z:-7},baseCapacity:600,cost:400},
-  snail:{cost:1400,growth:1.55,max:12,upgrade:950,speed:1.05,capacity:12,harvestSeconds:.8,pad:{x:-16,z:5},upgradePad:{x:-16,z:9}},
-  partner:{cost:1800,requires:'tea',x:-18,z:0,pad:{x:-19,z:3},capacity:64,speed:4.1,stages:['Fundament für Schnecki','Schneckis Haus: Wände','Schneckis Haus: Dach & Einzug'],materials:[{bouquet:8},{tea:8},{oil:6}]},
+  snail:{cost:1400,growth:1.55,max:12,upgrade:950,speed:1.05,capacity:12,harvestSeconds:.8,playerSpace:8,pad:{x:-16,z:5},upgradePad:{x:-16,z:9}},
+  partner:{cost:1800,requires:'tea',x:-18,z:0,pad:{x:-19,z:3},capacity:64,speed:4.1,stages:['Fundament für Schnecki','Schneckis Haus: Wände','Schneckis Haus: Dach & Einzug'],materials:[{bouquet:4},{tea:4},{oil:3}]},
   sprinkler:{cost:4200,pad:{x:12,z:-9},x:12,z:-12},
   tools:{reach:{x:-13,z:19},bag:{x:-9,z:20},speed:{x:-5,z:20},value:{x:-1,z:20}},
   buying:{dwellSeconds:.8,paymentSeconds:3.8,radius:1.15},
-  offline:{maxSeconds:3600,efficiency:.025},
+  offline:{maxSeconds:3600,efficiency:1/300,careEfficiency:.025},
   manualBonus:1.25
 };
 // Later crops feed the existing workshops, keeping every bed useful to helpers.
