@@ -1,4 +1,5 @@
 // Five active minutes on the first bed: actual regrowth, movement, cargo and unloading.
+// Built-workshop cases include production and finite stacks, with no product collection.
 // Manual play follows an efficient route, not a measured human playing speed.
 import {
   freshState,
@@ -15,7 +16,7 @@ import {
 } from "../mondgarten/harvest.mjs";
 import { GardenAutomation } from "../mondgarten/automation.mjs";
 import { tickJourney } from "../mondgarten/journey.mjs";
-import { stockCount } from "../mondgarten/village.mjs";
+import { advanceProduction, stockCount } from "../mondgarten/village.mjs";
 const dt = 1 / 30;
 function manual(toolLevel = 0) {
   const s = freshState();
@@ -71,21 +72,37 @@ function manual(toolLevel = 0) {
     bag: s.bag,
   };
 }
-function snail(level, cap, perLevel = 2) {
+function snail(level, cap, perLevel, workshop = false) {
   VILLAGE.snail.capacity = cap;
   VILLAGE.snail.capacityPerLevel = perLevel;
   const s = freshState();
   s.village.snails = 1;
   s.village.snailLevel = level;
-  s.village.warehouse = 5;
+  if (workshop) s.village.workshops.bouquet.level = 1;
   const cells = createVillageField(s),
     a = new GardenAutomation(s);
-  let trips = 0;
+  let trips = 0,
+    delivered = 0,
+    sold = 0;
   for (let i = 0; i < 300 / dt; i++) {
     tickJourney(s, dt);
-    trips += a
-      .update(s, cells, { x: -30, z: 30 }, dt, s.journey.growthTime)
-      .filter((e) => e.kind === "warehouseDelivery").length;
+    advanceProduction(s, dt);
+    for (const event of a.update(
+      s,
+      cells,
+      { x: -30, z: 30 },
+      dt,
+      s.journey.growthTime,
+    )) {
+      if (event.kind === "helperDelivery") {
+        trips++;
+        delivered += event.count;
+      }
+      if (event.kind === "snailSale") {
+        trips++;
+        sold += event.count;
+      }
+    }
   }
   return {
     level,
@@ -93,6 +110,9 @@ function snail(level, cap, perLevel = 2) {
     harvested: s.stats.harvested,
     perMinute: s.stats.harvested / 5,
     stored: stockCount(s.village),
+    delivered,
+    sold,
+    produced: s.village.produced,
     carried: a.snails[0].bag,
     trips,
   };
@@ -105,9 +125,11 @@ try {
         seconds: 300,
         dt,
         manual: [0, 2, 6, 10].map(manual),
-        previous: [0, 3, 6, 10].map((level) => snail(level, 12, 2)),
-        current: [0, 3, 6, 10].map((level) =>
+        noWorkshop: [0, 3, 6, 10].map((level) =>
           snail(level, original.capacity, original.capacityPerLevel),
+        ),
+        withWorkshop: [0, 3, 6, 10].map((level) =>
+          snail(level, original.capacity, original.capacityPerLevel, true),
         ),
       },
       null,

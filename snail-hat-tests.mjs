@@ -90,6 +90,7 @@ test("wearing hats does not change harvesting, delivery, cargo or money at eithe
     return {
       harvested: s.stats.harvested,
       stored: stockCount(s.village),
+      sold: s.village.autoSold,
       carried: automation.snails[0].bag,
       coins: s.coins,
       values: s.village.rawValues,
@@ -97,7 +98,7 @@ test("wearing hats does not change harvesting, delivery, cargo or money at eithe
   }
   for (const level of [0, 10]) {
     const plain = work(level, null);
-    assert.ok(plain.harvested > 0 && plain.stored > 0);
+    assert.ok(plain.harvested > 0 && plain.sold > 0);
     for (const id of ["hat", "mushroomHat", "moonCrown"])
       assert.deepEqual(work(level, id), plain);
   }

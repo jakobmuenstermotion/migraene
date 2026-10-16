@@ -66,15 +66,17 @@ test('manual delivery conserves ingredients and value; processing and collection
   assert.equal(sellCarriedProducts(s).count, 0);
 });
 
-test('warehouse waits for helpers; direct delivery accepts only matching cargo', () => {
+test('warehouse never supplies workshops invisibly, even with helpers; manual delivery accepts matching cargo', () => {
   const s = built();
   carry(s);
   depositBag(s);
   assert.equal(advanceProduction(s, 1000).length, 0);
   assert.equal(s.village.raw.moonbloom, 60);
   s.village.snails = 1;
-  assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
-  assert.equal(s.village.raw.moonbloom, 54);
+  s.village.partner = true;
+  s.village.woodcock.unlocked = true;
+  assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 0);
+  assert.equal(s.village.raw.moonbloom, 60);
   carry(s, 10);
   s.cargo.lavender = { count: 8, value: 16 };
   s.bag += 8;

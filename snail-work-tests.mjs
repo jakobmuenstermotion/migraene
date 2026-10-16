@@ -4,11 +4,16 @@ import { freshState, normalize } from "./mondgarten/core.mjs";
 import { GardenAutomation } from "./mondgarten/automation.mjs";
 import { createVillageField } from "./mondgarten/harvest.mjs";
 import { tickJourney } from "./mondgarten/journey.mjs";
-import { stockCount, storageCapacity } from "./mondgarten/village.mjs";
+import {
+  stockCount,
+  workshopStock,
+  WORKSHOP_INPUT_CAPACITY,
+} from "./mondgarten/village.mjs";
 
 function fullLoad(level) {
   const s = freshState();
   s.village.snails = 1;
+  s.village.workshops.bouquet.level = 1;
   s.village.snailLevel = level;
   const cells = createVillageField(s);
   for (const cell of cells) cell.rare = false;
@@ -52,26 +57,35 @@ test("larger helper loads arrive intact after saving mid-transport at both upgra
       automation.update(s, cells, null, 1 / 30, s.journey.growthTime);
     }
     assert.equal(automation.snails[0].bag, 0);
-    assert.equal(stockCount(s.village), expected);
-    assert.ok(Math.abs(s.village.rawValues.moonbloom - value) < 1e-8);
+    assert.equal(workshopStock(s.village.workshops.bouquet), expected);
+    assert.ok(
+      Math.abs(s.village.workshops.bouquet.inputValues.moonbloom - value) <
+        1e-8,
+    );
     assert.equal(s.stats.harvested, expected);
+    assert.equal(stockCount(s.village), 0);
     assert.equal(s.coins, 0, "transport must not create money");
   }
 });
 
-test("larger loads keep undelivered stock and its value when only part fits in storage", () => {
+test("larger loads keep undelivered stock and its value when only part fits at the workshop", () => {
   let { s, cells, automation } = fullLoad(10);
   const value = automation.snails[0].values.moonbloom;
-  const before = storageCapacity(s) - 10;
-  s.village.raw.moonbloom = before;
-  s.village.rawValues.moonbloom = before;
+  const before = WORKSHOP_INPUT_CAPACITY - 10;
+  s.village.workshops.bouquet.inputs.moonbloom = before;
+  s.village.workshops.bouquet.inputValues.moonbloom = before;
   for (let i = 0; i < 1800 && automation.snails[0].bag === 64; i++)
     automation.update(s, cells, null, 1 / 30, s.journey.growthTime);
-  assert.equal(stockCount(s.village), storageCapacity(s));
+  assert.equal(
+    workshopStock(s.village.workshops.bouquet),
+    WORKSHOP_INPUT_CAPACITY,
+  );
   assert.equal(automation.snails[0].bag, 54);
+  assert.equal(s.coins, 0);
+  assert.equal(stockCount(s.village), 0);
   assert.ok(
     Math.abs(
-      s.village.rawValues.moonbloom +
+      s.village.workshops.bouquet.inputValues.moonbloom +
         automation.snails[0].values.moonbloom -
         before -
         value,
@@ -85,12 +99,16 @@ test("larger loads keep undelivered stock and its value when only part fits in s
   assert.equal(
     automation.snails[0].bag,
     54,
-    "full storage must not erase the remaining load",
+    "full workshops must retain the remaining load without selling",
   );
-  s.village.raw = {};
-  s.village.rawValues = {};
+  s.village.workshops.bouquet.inputs = {};
+  s.village.workshops.bouquet.inputValues = {};
   automation.update(s, cells, null, 1 / 30, s.journey.growthTime);
   assert.equal(automation.snails[0].bag, 0);
-  assert.equal(stockCount(s.village), 54);
-  assert.ok(Math.abs(s.village.rawValues.moonbloom - (value * 54) / 64) < 1e-8);
+  assert.equal(workshopStock(s.village.workshops.bouquet), 54);
+  assert.ok(
+    Math.abs(
+      s.village.workshops.bouquet.inputValues.moonbloom - (value * 54) / 64,
+    ) < 1e-8,
+  );
 });

@@ -512,6 +512,101 @@ const fs = require("node:fs");
         GardenScene.prototype.update = original;
       };
     });
+    // Observe real game events and transfer effects while using the normal JSON import UI.
+    await p.evaluate(async () => {
+      const { GardenAutomation } = await import("/mondgarten/automation.mjs");
+      const { GardenScene } = await import("/mondgarten/scene.js");
+      const update = GardenAutomation.prototype.update,
+        transfer = GardenScene.prototype.makeTransfer;
+      window.logisticsProbe = { events: [], transfers: 0 };
+      GardenAutomation.prototype.update = function (...args) {
+        const events = update.apply(this, args);
+        window.logisticsProbe.events.push(...events);
+        return events;
+      };
+      GardenScene.prototype.makeTransfer = function (...args) {
+        window.logisticsProbe.transfers++;
+        return transfer.apply(this, args);
+      };
+      window.stopLogisticsProbe = () => {
+        GardenAutomation.prototype.update = update;
+        GardenScene.prototype.makeTransfer = transfer;
+      };
+    });
+    const direct = freshState();
+    direct.tutorial = 3;
+    direct.sound = false;
+    direct.journey.round = 7;
+    direct.village.snails = 1;
+    direct.village.workshops.bouquet.level = 1;
+    direct.village.raw = { moonbloom: 17 };
+    direct.village.rawValues = { moonbloom: 34 };
+    direct.village.snailLoads = [
+      {
+        x: -1.8,
+        z: 13.8,
+        mode: "deliver",
+        items: { moonbloom: 24 },
+        values: { moonbloom: 48 },
+      },
+    ];
+    await importState(direct);
+    await p.waitForFunction(() =>
+      window.logisticsProbe.events.some((e) => e.kind === "helperDelivery"),
+    );
+    assert.ok(await p.evaluate(() => window.logisticsProbe.transfers > 0));
+    await p.locator("#stockShortcut").click();
+    assert.ok(
+      (await p.locator("#modalBody").innerText()).includes(
+        "Du lagerst dort selbst ein",
+      ),
+    );
+    assert.ok(
+      (await p.locator('[data-stock="raw:moonbloom"]').innerText()).includes(
+        "17",
+      ),
+    );
+    await p.locator("#closeModal").click();
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const delivered = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(delivered.village.raw.moonbloom, 17);
+    assert.deepEqual(delivered.village.snailLoads[0].items, {});
+    const bindery = delivered.village.workshops.bouquet;
+    assert.equal(
+      (bindery.inputs.moonbloom ?? 0) +
+        (bindery.running ? 6 : 0) +
+        (delivered.village.finished.bouquet ?? 0) * 6,
+      24,
+    );
+    await p.locator("#closeModal").click();
+    const sale = structuredClone(direct);
+    sale.village.workshops.bouquet.level = 0;
+    sale.village.snailLoads[0].x = -9;
+    sale.village.snailLoads[0].z = 8;
+    await importState(sale);
+    await p.waitForFunction(() =>
+      window.logisticsProbe.events.some((e) => e.kind === "snailSale"),
+    );
+    await p.locator("#gardenMenu").click();
+    await p.locator("#menuSettings").click();
+    await p.locator("#toggleSound").click();
+    const sold = await p.evaluate(() =>
+      JSON.parse(localStorage.getItem("mondgarten.save.v1")),
+    );
+    assert.equal(sold.coins, 48);
+    assert.equal(sold.village.autoSold, 24);
+    assert.equal(sold.village.raw.moonbloom, 17);
+    assert.deepEqual(sold.village.snailLoads[0].items, {});
+    await p.locator("#closeModal").click();
+    await p.evaluate(() => window.stopLogisticsProbe());
+    console.log(
+      "Logistics: direct snail delivery renders transfer, no warehouse teleportation; missing workshop sells carried value at stand and saves once",
+    );
+
     // Exercise the actual import and save path for a pre-fix day-seven plan.
     const { prepareDay } = await import(
       require("node:url").pathToFileURL(path.join(root, "mondgarten/daily.mjs"))
