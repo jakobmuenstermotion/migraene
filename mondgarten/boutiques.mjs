@@ -1,13 +1,13 @@
 import { ECONOMY } from "./economy.mjs";
 
-// Optional purchases have fixed prices and never enter the daily funding quote.
+// Long-term savings goals: fixed prices, outside the daily funding quote.
 export const BOUTIQUES = [
   {
     id: "decor",
     name: "Gartenglück",
     description: "Dekorationen für euren Garten",
     round: 12,
-    base: 4800,
+    base: 125000,
     x: -3,
     z: -18,
     color: "#d5a17c",
@@ -17,7 +17,7 @@ export const BOUTIQUES = [
     name: "Faden & Blüte",
     description: "Accessoires für euch beide",
     round: 20,
-    base: 7500,
+    base: 200000,
     x: 6,
     z: -18,
     color: "#b59acb",
@@ -29,7 +29,7 @@ export const COSMETICS = [
     shop: "decor",
     name: "Zwei Mondlaternen",
     round: 12,
-    base: 900,
+    base: 100000,
     description: "Warme Lichter am Gartenweg.",
   },
   {
@@ -37,7 +37,7 @@ export const COSMETICS = [
     shop: "decor",
     name: "Bank für zwei",
     round: 18,
-    base: 1600,
+    base: 250000,
     description: "Ein kleiner gemeinsamer Lieblingsplatz.",
   },
   {
@@ -45,7 +45,7 @@ export const COSMETICS = [
     shop: "decor",
     name: "Blütenbogen",
     round: 30,
-    base: 3500,
+    base: 250000,
     description: "Ein blühender Eingang zum Garten.",
   },
   {
@@ -53,7 +53,7 @@ export const COSMETICS = [
     shop: "style",
     name: "Blüte im Haar",
     round: 20,
-    base: 900,
+    base: 100000,
     description: "Eine kleine korallfarbene Blüte.",
   },
   {
@@ -61,7 +61,7 @@ export const COSMETICS = [
     shop: "style",
     name: "Sonnenhut",
     round: 24,
-    base: 1600,
+    base: 225000,
     description: "Strohhut mit salbeigrünem Band.",
   },
   {
@@ -69,7 +69,7 @@ export const COSMETICS = [
     shop: "style",
     name: "Lavendelschal",
     round: 28,
-    base: 2400,
+    base: 400000,
     description: "Ein weicher Schal für späte Gartenstunden.",
   },
 ];

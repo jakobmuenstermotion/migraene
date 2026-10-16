@@ -2,8 +2,9 @@ import {
   BOUTIQUES,
   COSMETICS,
   contributeCosmetic,
+  cosmeticPrice,
 } from "../mondgarten/boutiques.mjs";
-import { advanceDayRhythm } from "../mondgarten/day-rhythm.mjs";
+import { DAY_RHYTHM, advanceDayRhythm } from "../mondgarten/day-rhythm.mjs";
 import {
   advanceFarm,
   discoverShell,
@@ -44,6 +45,7 @@ import {
   payBuild,
   discoverSeeds,
   bedYield,
+  bedRegrow,
   advanceProduction,
   deliverWorkshop,
   workshopSpot,
@@ -81,6 +83,12 @@ function run(style) {
     choiceSpent = 0,
     choices = 0;
   const farmStyle = ["farm", "cosmetics"].includes(style);
+  const cosmeticSavings = Object.fromEntries(
+    [...BOUTIQUES, ...COSMETICS].map((d) => [
+      d.id,
+      { firstRound: null, completedRound: null, rounds: new Set() },
+    ]),
+  );
   let cosmeticEarned = 0,
     cosmeticAllowance = 0,
     cosmeticSpent = 0;
@@ -126,7 +134,14 @@ function run(style) {
             (!d.shop || s.village.boutiques.built.includes(d.shop)),
         );
         if (item && cosmeticAllowance > 0) {
-          const paid = contributeCosmetic(s, item.id, cosmeticAllowance).paid;
+          const result = contributeCosmetic(s, item.id, cosmeticAllowance);
+          const paid = result.paid;
+          if (paid > 0) {
+            const progress = cosmeticSavings[item.id];
+            progress.firstRound ??= round;
+            progress.rounds.add(round);
+            if (result.complete) progress.completedRound = round;
+          }
           cosmeticAllowance -= paid;
           cosmeticSpent += paid;
         }
@@ -362,11 +377,42 @@ function run(style) {
       activeSeconds <= (style === "cosmetics" || focus ? 420 : 310),
       `${style} day ${round} exceeded the short-day target: ${activeSeconds}s`,
     );
+    const freshDay = structuredClone(s);
+    freshDay.journey.elapsed = 0;
+    freshDay.journey.growthTime = 0;
+    freshDay.journey.asleep = false;
+    tickJourney(freshDay, DAY_RHYTHM.sleep);
+    const fullDayRawHarvestBound = createVillageField(s).reduce((sum, cell) => {
+      const bed = BEDS[cell.bed];
+      const units = bed.pickUnits
+        ? bed.pickUnits * (cell.rare ? 2 : 1)
+        : cell.rare
+          ? 3
+          : 1;
+      return (
+        sum +
+        units *
+          bedYield(s, cell.bed) *
+          VILLAGE.manualBonus *
+          (cell.rare ? 2 : 1) *
+          (1 + Math.floor(freshDay.journey.growthTime / bedRegrow(s, cell.bed)))
+      );
+    }, 0);
+    if (style === "cosmetics")
+      for (const d of [...BOUTIQUES, ...COSMETICS].filter(
+        (d) => d.round === round,
+      )) {
+        assert.ok(
+          cosmeticPrice(d.id) > 2 * fullDayRawHarvestBound,
+          `${d.id} can be funded with a single fresh day of harvesting and processing`,
+        );
+      }
     const day = {
       round,
       activeSeconds,
       sales,
       maximumRawSale: Math.round(maximumRawSale),
+      fullDayRawHarvestBound: Math.ceil(fullDayRawHarvestBound),
       maximumRawSaleShare: +(maximumRawSale / quotedBudget).toFixed(4),
       coins: Math.round(s.coins),
       purchases: s.stats.upgrades - beforeUpgrades,
@@ -416,6 +462,15 @@ function run(style) {
   assert.equal(s.journey.rewards.length, 77, "missing rewards");
   assert.equal(s.journey.rewards.filter((r) => r.kind === "seed").length, 7);
   assert.equal(s.journey.rewards.filter((r) => r.kind === "water").length, 70);
+  if (style === "cosmetics")
+    for (const [id, p] of Object.entries(cosmeticSavings).filter(
+      ([, p]) => p.completedRound !== null,
+    )) {
+      assert.ok(
+        p.completedRound > p.firstRound && p.rounds.size >= 2,
+        `${id} did not require saving across days`,
+      );
+    }
   const sorted = days.map((d) => d.activeSeconds).sort((a, b) => a - b);
   return {
     style,
@@ -428,6 +483,16 @@ function run(style) {
     choiceSpent,
     cosmeticSpent,
     cosmeticOwned: s.village.boutiques.owned.length,
+    ...(style === "cosmetics"
+      ? {
+          cosmeticSavings: Object.entries(cosmeticSavings).map(([id, p]) => ({
+            id,
+            firstRound: p.firstRound,
+            completedRound: p.completedRound,
+            contributionDays: p.rounds.size,
+          })),
+        }
+      : {}),
     farmSpecies: s.village.farm.discovered.length,
     farmSold: s.village.farm.sold,
     farmHelpers: s.village.farm.helpers.filter(Boolean).length,

@@ -30,7 +30,7 @@ import {
 test("boutiques preserve instalments, cannot overspend or charge twice, and do not change daily quotes", () => {
   let s = freshState();
   s.journey.round = 20;
-  s.coins = 100000;
+  s.coins = 100000000;
   prepareDay(s, TOOLS);
   const quote = s.journey.plan.target,
     boost = s.journey.plan.boost;
@@ -75,6 +75,34 @@ test("shops are optional, round gated, wallet independent and remain usable afte
     assert.equal(contributeCosmetic(s, d.id, 1e9).complete, true);
   const restored = normalize(JSON.parse(JSON.stringify(s)));
   assert.equal(restored.village.boutiques.owned.length, COSMETICS.length);
+});
+
+test("a large cosmetic savings goal preserves partial payments over earned days and can use prior savings", () => {
+  let s = freshState();
+  s.journey.round = 12;
+  const cost = cosmeticPrice("decor"),
+    part = Math.floor(cost / 4);
+  s.coins = part;
+  assert.deepEqual(contributeCosmetic(s, "decor", cost), {
+    paid: part,
+    complete: false,
+  });
+  assert.equal(s.coins, 0);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.village.boutiques.payments.decor, part);
+  assert.equal(closeDay(s), true);
+  assert.equal(grantRound(s, "savings:next"), true);
+  assert.equal(startRound(s), true);
+  s.coins = part;
+  assert.equal(contributeCosmetic(s, "decor", cost).complete, false);
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.equal(s.village.boutiques.payments.decor, part * 2);
+  // A player who saved earlier may finish the balance without an artificial daily cap.
+  s.coins = cost;
+  assert.equal(contributeCosmetic(s, "decor", cost).complete, true);
+  assert.equal(s.coins, part * 2);
+  assert.ok(s.village.boutiques.built.includes("decor"));
+  assert.equal(s.village.boutiques.payments.decor, undefined);
 });
 
 test("warnings persist once each, sleep refunds only unfinished daily reward and preserves assets", () => {
