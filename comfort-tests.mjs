@@ -61,7 +61,7 @@ test("shops are optional, round gated, wallet independent and remain usable afte
   const s = freshState();
   s.coins = 20;
   assert.equal(contributeCosmetic(s, "decor", 100).paid, 0);
-  s.journey.round = 12;
+  s.journey.round = 20;
   s.journey.closed = true;
   assert.equal(contributeCosmetic(s, "decor", 100).paid, 20);
   assert.equal(s.coins, 0);
@@ -79,7 +79,7 @@ test("shops are optional, round gated, wallet independent and remain usable afte
 
 test("a large cosmetic savings goal preserves partial payments over earned days and can use prior savings", () => {
   let s = freshState();
-  s.journey.round = 12;
+  s.journey.round = 20;
   const cost = cosmeticPrice("decor"),
     part = Math.floor(cost / 4);
   s.coins = part;
@@ -103,6 +103,40 @@ test("a large cosmetic savings goal preserves partial payments over earned days 
   assert.equal(s.coins, part * 2);
   assert.ok(s.village.boutiques.built.includes("decor"));
   assert.equal(s.village.boutiques.payments.decor, undefined);
+});
+
+test("accessories open before farm decorations without repricing existing savings or removing old ownership", () => {
+  let s = freshState();
+  s.coins = 1e7;
+  s.journey.round = 11;
+  assert.equal(contributeCosmetic(s, "style", 100).paid, 0);
+  s.journey.round = 12;
+  assert.equal(contributeCosmetic(s, "decor", 100).paid, 0);
+  assert.equal(contributeCosmetic(s, "flower", 100).paid, 0);
+  assert.equal(contributeCosmetic(s, "style", 1e7).complete, true);
+  assert.equal(contributeCosmetic(s, "flower", 100).paid, 100);
+  s.journey.round = 19;
+  assert.equal(contributeCosmetic(s, "decor", 100).paid, 0);
+  s.journey.round = 20;
+  assert.equal(contributeCosmetic(s, "lanterns", 100).paid, 0);
+  assert.equal(contributeCosmetic(s, "decor", 1e7).complete, true);
+  assert.equal(contributeCosmetic(s, "lanterns", 100).paid, 100);
+
+  // Moving a shop's opening must not lower the price below a saved deposit.
+  assert.equal(cosmeticPrice("style"), 790298);
+  assert.equal(cosmeticPrice("decor"), 276952);
+  s = freshState();
+  s.journey.round = 12;
+  s.village.boutiques.built = ["decor"];
+  s.village.boutiques.owned = ["lanterns"];
+  s.village.boutiques.payments.style = 700000;
+  s = normalize(JSON.parse(JSON.stringify(s)));
+  assert.ok(s.village.boutiques.built.includes("decor"));
+  assert.ok(s.village.boutiques.owned.includes("lanterns"));
+  assert.equal(s.village.boutiques.payments.style, 700000);
+  s.coins = 90298;
+  assert.equal(contributeCosmetic(s, "style", 90298).complete, true);
+  assert.equal(s.coins, 0);
 });
 
 test("warnings persist once each, sleep refunds only unfinished daily reward and preserves assets", () => {

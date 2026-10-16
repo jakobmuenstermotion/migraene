@@ -1,26 +1,29 @@
 import { ECONOMY } from "./economy.mjs";
 
 // Long-term savings goals: fixed prices, outside the daily funding quote.
+// priceRound preserves existing totals when availability moves to another day.
 export const BOUTIQUES = [
-  {
-    id: "decor",
-    name: "Gartenglück",
-    description: "Dekorationen für euren Garten",
-    round: 12,
-    base: 125000,
-    x: -3,
-    z: -18,
-    color: "#d5a17c",
-  },
   {
     id: "style",
     name: "Faden & Blüte",
     description: "Accessoires für euch beide",
-    round: 20,
+    round: 12,
+    priceRound: 20,
     base: 200000,
     x: 6,
     z: -18,
     color: "#b59acb",
+  },
+  {
+    id: "decor",
+    name: "Gartenglück",
+    description: "Dekorationen für euren Garten",
+    round: 20,
+    priceRound: 12,
+    base: 125000,
+    x: -3,
+    z: -18,
+    color: "#d5a17c",
   },
 ];
 export const COSMETICS = [
@@ -28,7 +31,8 @@ export const COSMETICS = [
     id: "lanterns",
     shop: "decor",
     name: "Zwei Mondlaternen",
-    round: 12,
+    round: 20,
+    priceRound: 12,
     base: 100000,
     description: "Warme Lichter am Gartenweg.",
   },
@@ -36,7 +40,8 @@ export const COSMETICS = [
     id: "bench",
     shop: "decor",
     name: "Bank für zwei",
-    round: 18,
+    round: 20,
+    priceRound: 18,
     base: 250000,
     description: "Ein kleiner gemeinsamer Lieblingsplatz.",
   },
@@ -52,7 +57,8 @@ export const COSMETICS = [
     id: "flower",
     shop: "style",
     name: "Blüte im Haar",
-    round: 20,
+    round: 12,
+    priceRound: 20,
     base: 100000,
     description: "Eine kleine korallfarbene Blüte.",
   },
@@ -77,7 +83,11 @@ const definition = (id) =>
   BOUTIQUES.find((x) => x.id === id) ?? COSMETICS.find((x) => x.id === id);
 export const cosmeticPrice = (id) => {
   const d = definition(id);
-  return d ? Math.ceil(d.base * Math.pow(ECONOMY.costGrowth, d.round - 1)) : 0;
+  return d
+    ? Math.ceil(
+        d.base * Math.pow(ECONOMY.costGrowth, (d.priceRound ?? d.round) - 1),
+      )
+    : 0;
 };
 export const freshBoutiques = () => ({
   built: [],

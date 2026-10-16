@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T12:29:03.685Z",
+  "generatedAt": "2026-10-16T12:31:45.969Z",
   "dt": 0.5,
   "results": [
     {
@@ -15,16 +15,16 @@
       "cosmeticOwned": 6,
       "cosmeticSavings": [
         {
-          "id": "decor",
+          "id": "style",
           "firstRound": 12,
-          "completedRound": 35,
-          "contributionDays": 24
+          "completedRound": 42,
+          "contributionDays": 31
         },
         {
-          "id": "style",
-          "firstRound": 35,
+          "id": "decor",
+          "firstRound": 42,
           "completedRound": 45,
-          "contributionDays": 11
+          "contributionDays": 4
         },
         {
           "id": "lanterns",
