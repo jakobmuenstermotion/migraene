@@ -1,3 +1,4 @@
+import { farmFoodReserve } from "./snail-farm.mjs";
 import { WORKSHOPS, PRODUCTS, VILLAGE } from "./village-content.mjs";
 import { WORLD } from "./content.mjs";
 import { neededMaterials } from "./funding.mjs";
@@ -79,7 +80,10 @@ export function planSupply(s, limit = 24, { productsOnly = false } = {}) {
           const count = Math.min(
             room,
             Math.max(0, needed * 2 - (m.inputs[id] ?? 0)),
-            Math.max(0, (stock[id] ?? 0) - home),
+            Math.max(
+              0,
+              (stock[id] ?? 0) - home - (products ? farmFoodReserve(s, id) : 0),
+            ),
           );
           if (count <= 1e-8) continue;
           return {

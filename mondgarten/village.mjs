@@ -1,6 +1,6 @@
 import {normalizeSnailProfile} from './snail-care.mjs';
 import {freshBoutiques,normalizeBoutiques} from './boutiques.mjs';
-import {freshFarm,normalizeFarm,advanceFarm} from './snail-farm.mjs';
+import {freshFarm,normalizeFarm,advanceFarm,farmFoodReserve} from './snail-farm.mjs';
 import {neededMaterials} from './funding.mjs';
 import {ECONOMY} from './economy.mjs';
 import {COLLECTIBLES} from './content.mjs';
@@ -59,7 +59,7 @@ export function advanceProduction(s,dt){const events=[],v=s.village;for(const w 
  for(const [id,count]of Object.entries(inputs)){const before=machine.inputs[id];machine.inputs[id]=Math.max(0,before-count);machine.inputValues[id]*=Math.max(0,1-count/before);}machine.running=true;machine.progress=0;}
  const seconds=productionSeconds(s,w),step=Math.min(remaining,Math.max(0,seconds-machine.progress));machine.progress+=step;remaining-=step;if(machine.progress>=seconds-1e-8){const value=machine.outputValue;v.finished[w.product]=(v.finished[w.product]??0)+1;v.finishedValues[w.product]=(v.finishedValues[w.product]??0)+value;v.produced++;machine.running=false;machine.progress=0;machine.outputValue=0;events.push({id:w.id,product:w.product,value});}else break;
  }}return events;}
-export function availableProducts(s,id,reserve=true){const v=s.village,home=s.journey.plan?(neededMaterials(s)[id]??0):v.house<3?(VILLAGE.partner.materials[v.house]?.[id]??0):0,hold=reserve?Math.max(home,v.workshops.elixir.level&&['tea','oil'].includes(id)?2:0):0;return Math.max(0,(v.finished[id]??0)-hold);}
+export function availableProducts(s,id,reserve=true,{forFarm=false}={}){const v=s.village,home=s.journey.plan?(neededMaterials(s)[id]??0):v.house<3?(VILLAGE.partner.materials[v.house]?.[id]??0):0,hold=reserve?(forFarm?home:Math.max(home,v.workshops.elixir.level&&['tea','oil'].includes(id)?2:0)+farmFoodReserve(s,id)):0;return Math.max(0,(v.finished[id]??0)-hold);}
 export function collectProducts(s,limit=Infinity,reserve=true,productID=null){const v=s.village,batch={items:{},values:{},count:0,value:0};for(const id of Object.keys(PRODUCTS)){if(productID&&id!==productID)continue;const available=availableProducts(s,id,reserve),count=Math.min(available,Math.max(0,limit-batch.count));if(!count)continue;const value=(v.finishedValues[id]??0)*count/v.finished[id];v.finished[id]-=count;v.finishedValues[id]-=value;batch.items[id]=count;batch.values[id]=value;batch.count+=count;batch.value+=value;}return batch;}
 export function productCargoCount(s){return Object.values(s.productCargo?.items??{}).reduce((a,b)=>a+b,0);}
 export function takeStoredRaw(s,limit=Infinity){const v=s.village,batch={items:{},values:{},count:0,value:0};for(const [id,n]of Object.entries(v.raw)){const count=Math.min(n,Math.max(0,limit-batch.count));if(!count)continue;const value=(v.rawValues[id]??0)*count/n;v.raw[id]-=count;v.rawValues[id]-=value;batch.items[id]=count;batch.values[id]=value;batch.count+=count;batch.value+=value;}return batch;}

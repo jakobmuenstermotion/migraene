@@ -58,6 +58,11 @@ const fs = require("node:fs");
       viewport: { width: 390, height: 844 },
       serviceWorkers: "block",
     });
+    const { FARM } = await import(
+      require("node:url").pathToFileURL(
+        path.join(root, "mondgarten/snail-farm.mjs"),
+      ).href
+    );
     const s = freshState();
     s.tutorial = 3;
     s.coins = 100000000;
@@ -68,9 +73,22 @@ const fs = require("node:fs");
     s.village.farm.nextID = 4;
     s.village.farm.nursery = [
       { id: 1, species: "garden", growth: 0, meal: 0, investment: 0 },
-      { id: 2, species: "apple", growth: 719.95, meal: 0.05, investment: 30 },
-      { id: 3, species: "garden", growth: 720, meal: 0, investment: 48 },
+      {
+        id: 2,
+        species: "apple",
+        growth: FARM.growSeconds - 0.05,
+        meal: 0.05,
+        investment: 30,
+      },
+      {
+        id: 3,
+        species: "garden",
+        growth: FARM.growSeconds,
+        meal: 0,
+        investment: 48,
+      },
     ];
+    s.productCargo = { items: { bouquet: 3 }, values: { bouquet: 90 } };
     s.village.raw = { moonbloom: 120, starfruit: 10 };
     s.village.rawValues = { moonbloom: 240, starfruit: 100 };
     await c.addInitScript((value) => {

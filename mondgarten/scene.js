@@ -1,6 +1,6 @@
 import {padIcon,drawPadIcon} from './pad-design.mjs';
 import {BOUTIQUES} from './boutiques.mjs';
-import {SNAILS} from './snail-farm.mjs';
+import {SNAILS,FARM} from './snail-farm.mjs';
 import {upgradeInfo} from './upgrade-info.mjs';
 import * as T from './vendor/three.module.js';
 import {GARDENS,WORLD,getCrop,stackLevels,COLLECTIBLES} from './content.mjs';
@@ -311,7 +311,7 @@ export class GardenScene {
     this.time=time;this.updateCamera(dt,player);this.growthClock+=dt;if(this.growthClock>.09){this.updatePlants(growthTime);this.growthClock=0;}
     if(this.workshopVisuals)for(const [id,visual]of this.workshopVisuals){const w=WORKSHOPS.find(w=>w.id===id),v=this.villageState.village;const raw=Object.values(v.workshops[id].inputs??{}).reduce((sum,n)=>sum+n,0);visual.input.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(raw/6)));visual.output.children.forEach((m,i)=>m.visible=i<Math.min(4,Math.ceil(v.finished[w.product]??0)));}
     const bird=this.villageState?.village?.woodcock;if(bird){const visual=this.woodcock;visual.root.visible=bird.unlocked;visual.root.position.set(bird.x,0,bird.z);visual.root.rotation.y=bird.angle??0;visual.body.position.y=this.reducedMotion()?0:bird.moving?Math.abs(Math.sin(time*12))*.07:0;const carried=Object.values(bird.cargo.items).reduce((sum,n)=>sum+n,0)>0;if(carried&&!visual.load.children.length){const bundle=this.bundleTemplate.clone(true);bundle.scale.setScalar(.38);visual.load.add(bundle);}if(!carried)visual.load.clear();}
-    if(this.farmVisuals)for(const [i,visual]of this.farmVisuals.entries()){const n=this.villageState.village.farm.nursery[i];visual.root.visible=!!n;if(n){visual.setSpecies(n.species);visual.root.scale.setScalar(.3+.35*n.growth/720);}}
+    if(this.farmVisuals)for(const [i,visual]of this.farmVisuals.entries()){const n=this.villageState.village.farm.nursery[i];visual.root.visible=!!n;if(n){visual.setSpecies(n.species);visual.root.scale.setScalar(.3+.35*n.growth/FARM.growSeconds);}}
     const actors=this.actors;
     for(let i=0;i<2;i++){const a=actors[i],p=i?partner:player;a.setAccessory(this.villageState?.village?.boutiques?.equipped?.[i]);a.root.visible=!i||p.visible!==false;if(!a.root.visible)continue;a.root.position.set(p.x,0,p.z);if(p.moving)a.walk+=dt*11;
       a.angle=T.MathUtils.lerp(a.angle,p.angle??a.angle,Math.min(1,dt*12));a.body.rotation.y=a.angle;a.body.position.y=this.reducedMotion()?0:Math.abs(Math.sin(a.walk))*.055;const sleeping=!i&&this.villageState?.journey?.asleep;a.body.rotation.z=sleeping?Math.PI*.43:0;if(sleeping)a.body.position.y=.05;

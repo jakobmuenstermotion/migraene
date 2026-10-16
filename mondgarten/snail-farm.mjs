@@ -1,21 +1,23 @@
-import { credit } from './money.mjs';
+import { availableProducts } from "./village.mjs";
+import { credit } from "./money.mjs";
 export const SNAILS = [
-  { id: 'garden', name: 'Gartenschnecke', color: '#d4b38b', round: 18 },
-  { id: 'dew', name: 'Tauschnecke', color: '#a4c9bc', round: 18 },
-  { id: 'lavender', name: 'Lavendelschnecke', color: '#b6a0d4', round: 25 },
-  { id: 'honey', name: 'Honigschnecke', color: '#e1bf76', round: 25 },
-  { id: 'moss', name: 'Moosschnecke', color: '#91b17c', round: 32 },
-  { id: 'coral', name: 'Korallenschnecke', color: '#dca19a', round: 36 },
-  { id: 'moon', name: 'Mondschnecke', color: '#c4cadf', round: 43 },
-  { id: 'apple', name: 'Apfelschnecke', color: '#c3cc7e', round: 47 },
-  { id: 'amber', name: 'Bernsteinschnecke', color: '#cd9d65', round: 59 },
-  { id: 'star', name: 'Sternenschnecke', color: '#8ea9d0', round: 68 },
+  { id: "garden", name: "Gartenschnecke", color: "#d4b38b", round: 18 },
+  { id: "dew", name: "Tauschnecke", color: "#a4c9bc", round: 18 },
+  { id: "lavender", name: "Lavendelschnecke", color: "#b6a0d4", round: 25 },
+  { id: "honey", name: "Honigschnecke", color: "#e1bf76", round: 25 },
+  { id: "moss", name: "Moosschnecke", color: "#91b17c", round: 32 },
+  { id: "coral", name: "Korallenschnecke", color: "#dca19a", round: 36 },
+  { id: "moon", name: "Mondschnecke", color: "#c4cadf", round: 43 },
+  { id: "apple", name: "Apfelschnecke", color: "#c3cc7e", round: 47 },
+  { id: "amber", name: "Bernsteinschnecke", color: "#cd9d65", round: 59 },
+  { id: "star", name: "Sternenschnecke", color: "#8ea9d0", round: 68 },
 ];
 export const FARM = {
   slots: 6,
   maxShells: 30,
-  growSeconds: 720,
-  mealSeconds: 240,
+  careVersion: 2,
+  growSeconds: 40 * 60,
+  mealSeconds: 10 * 60,
   helperMax: 12,
   findEvery: 240,
   findCooldown: 180,
@@ -26,6 +28,7 @@ const num = (x, max = 1e9) =>
 const species = (id) => SNAILS.some((s) => s.id === id);
 export function freshFarm() {
   return {
+    careVersion: FARM.careVersion,
     built: false,
     shells: {},
     nursery: [],
@@ -46,7 +49,7 @@ export function normalizeFarm(raw) {
   const f = freshFarm();
   if (!raw) return f;
   f.built = raw.built === true;
-  for (const key of ['food', 'nextID', 'findRound', 'findsToday', 'sold'])
+  for (const key of ["food", "nextID", "findRound", "findsToday", "sold"])
     f[key] = Math.floor(num(raw[key]));
   f.nextID = Math.max(1, f.nextID);
   f.foodValue = num(raw.foodValue);
@@ -79,7 +82,10 @@ export function normalizeFarm(raw) {
     .map((n) => ({
       id: n.id,
       species: n.species,
-      growth: num(n.growth, FARM.growSeconds),
+      growth:
+        raw.careVersion !== FARM.careVersion && n.growth >= 720
+          ? FARM.growSeconds
+          : num(n.growth, FARM.growSeconds),
       meal: num(n.meal, FARM.mealSeconds),
       investment: num(n.investment),
     }));
@@ -187,27 +193,67 @@ function takeRaw(s, id, count) {
   }
   return value;
 }
-export function makeSnailFood(s, recipe = 'flowers') {
+export const FOOD_RECIPES = {
+  flowers: { inputs: { moonbloom: 60, bouquet: 3 }, portions: 2 },
+  fruit: { inputs: { moonbloom: 30, starfruit: 8, tea: 1 }, portions: 3 },
+};
+// Retain a small batch at the workshops so automatic sellers cannot make food impossible.
+export function farmFoodReserve(s, id) {
+  const f = s.village.farm;
+  if (
+    !f?.built ||
+    f.food >= 2 ||
+    !f.nursery.some((n) => n.growth < FARM.growSeconds)
+  )
+    return 0;
+  return id === "bouquet" ? 3 : id === "tea" && s.village.beds[4] ? 1 : 0;
+}
+const productIDs = new Set(["bouquet", "tea"]);
+export function foodIngredientCount(s, id) {
+  return productIDs.has(id)
+    ? (s.productCargo?.items?.[id] ?? 0) +
+        availableProducts(s, id, true, { forFarm: true })
+    : rawCount(s, id);
+}
+function takeFoodIngredient(s, id, count) {
+  if (!productIDs.has(id)) return takeRaw(s, id, count);
+  const cargo = s.productCargo,
+    carried = Math.min(count, cargo?.items?.[id] ?? 0);
+  let value = 0;
+  if (carried) {
+    value = (cargo.values[id] * carried) / cargo.items[id];
+    cargo.items[id] -= carried;
+    cargo.values[id] -= value;
+    count -= carried;
+  }
+  if (count) {
+    const v = s.village,
+      cost = ((v.finishedValues[id] ?? 0) * count) / v.finished[id];
+    v.finished[id] -= count;
+    v.finishedValues[id] -= cost;
+    value += cost;
+  }
+  return value;
+}
+export function makeSnailFood(s, recipe = "flowers") {
   const f = s.village.farm,
-    inputs =
-      recipe === 'fruit'
-        ? { moonbloom: 6, starfruit: 2 }
-        : recipe === 'flowers'
-          ? { moonbloom: 12 }
-          : null;
+    definition = Object.hasOwn(FOOD_RECIPES, recipe)
+      ? FOOD_RECIPES[recipe]
+      : null;
   if (
     !f.built ||
-    !inputs ||
-    f.food >= 100 ||
-    !Object.entries(inputs).every(([id, n]) => rawCount(s, id) >= n)
+    !definition ||
+    f.food + definition.portions > 100 ||
+    !Object.entries(definition.inputs).every(
+      ([id, count]) => foodIngredientCount(s, id) >= count,
+    )
   )
     return false;
-  const portions = recipe === 'fruit' ? 4 : 2;
-  if (f.food + portions > 100) return false;
   let value = 0;
-  for (const [id, n] of Object.entries(inputs)) value += takeRaw(s, id, n);
+  for (const [id, count] of Object.entries(definition.inputs))
+    value += takeFoodIngredient(s, id, count);
   f.foodValue = (f.foodValue ?? 0) + value;
-  f.food += portions;
+  f.food += definition.portions;
   return true;
 }
 export function feedSnail(s, id) {
@@ -240,14 +286,14 @@ export function releaseSnail(s, id, mode) {
     i = f.nursery.findIndex((n) => n.id === id);
   if (i < 0 || f.nursery[i].growth < FARM.growSeconds) return false;
   const n = f.nursery[i];
-  if (mode === 'helper') {
+  if (mode === "helper") {
     if (s.village.snails >= farmHelperLimit(s)) return false;
     s.village.snails++;
     s.helpers = s.village.snails;
     s.stats.helpers++;
     while (f.helpers.length < s.village.snails - 1) f.helpers.push(null);
     f.helpers[s.village.snails - 1] = n.species;
-  } else if (mode === 'sell') {
+  } else if (mode === "sell") {
     // A shell is a collectible, never an unlimited money multiplier.
     credit(
       s,
