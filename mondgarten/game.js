@@ -3,7 +3,7 @@ import {OUTDOOR_TOOLS,FISH,LAKE,COMPOST_WORKSHOP,setHarvestMode,collectFertilize
 import {BUTTERFLIES,advanceHarvestMoments,recordManualHarvest,equipButterflyWings} from './harvest-moments.mjs';
 import {HIVES,HONEY_SECONDS,HIVE_CAPACITY,CONFECTION_ROUND} from './honey-content.mjs';
 import {advanceApiary,collectHoney,honeyCount,storeHoney,giveHelperSnack,helperBoost,startHoneyApples,advanceHoneyApples} from './apiary.mjs';
-import {feedbackPending,workshopQuestionAvailable,submitFeedback,skipFeedback} from './day-feedback.mjs';
+import {FEEDBACK_QUESTIONS,feedbackQuestionIds,feedbackPending,submitFeedback,skipFeedback} from './day-feedback.mjs';
 import {FARM_PLACES} from './snail-appearance.mjs';
 import {SEED_ROUNDS,seedsDue,seedCatchupAvailable,seedCatchupPrice,buyCatchupSeed} from './journey.mjs';
 import {SNAIL_TASKS,snailProfile,snailName,setSnailProfile,purchasedSnailCount,snailPurchaseLimit} from './snail-care.mjs';
@@ -201,14 +201,9 @@ function openCompanionSeeds(){
 }
 
 function openDayGoal(){if(state.journey.asleep){openSleep();return;}if(state.journey.closed){openDayEnd();return;}const p=getBuildPads(state,TOOLS).find(p=>p.id==='endDay'),kind=state.journey.rewardKind;if(kind==='rest'){openModal(title('EIN RUHIGER FEIERABEND','Gartenpause.','Deine Pflanzenbelohnungen sind vollständig gesammelt. Du kannst den Garten in weiteren verdienten Runden fertig ausbauen.')+'<p>Dieser Tagesabschluss vergibt keine zusätzliche Gießaktion und keinen weiteren Samen.</p>'+padButton(p,'Zum Tagesabschluss ↗'),'day-goal');return;}openModal(title('DEIN KLEINER FEIERABEND','Was wächst in der Begleit-App weiter?','Sichere eine Gießaktion oder einen Samen. Der Kauf beendet diesen Gartentag.')+'<div class="reward-choice"><button id="chooseWater" class="'+(kind==='water'?'selected':'')+'" '+(rewardCount(state,'water')>=70?'disabled':'')+'>☂ Gießkanne</button><button id="chooseSeed" class="'+(kind==='seed'?'selected':'')+'" '+(rewardCount(state,'seed')>=seedsDue(state.journey.round)?'disabled':'')+'>✧ Samen</button></div><p>Bis zum Abschluss kannst du dein Geld frei für Ausbauten verwenden oder auf größere Wünsche sparen.</p><div class="reward-grid"><div>Gießaktionen<strong>'+rewardCount(state,'water')+'</strong></div><div>Samen<strong>'+rewardCount(state,'seed')+'</strong></div></div><p class="shop-note">'+(embedded?'Danach kannst du im Garten bleiben oder zur Begleitseite zurückgehen und deine Pflanzen versorgen.':'Vorschau: Belohnungen werden hier gespeichert.')+'</p>'+padButton(p,'Zum Tagesabschluss ↗'),'day-goal');$('chooseWater').onclick=()=>{state.journey.rewardKind='water';refreshWorld(false);save();openDayGoal();};$('chooseSeed').onclick=()=>{if(rewardCount(state,'seed')>=seedsDue(state.journey.round))return;state.journey.rewardKind='seed';refreshWorld(false);save();openDayGoal();};}
-const FEEDBACK_QUESTIONS={
- length:{question:'Wie lange hat es sich angefühlt, die heutige Tagesbelohnung zu erreichen?',left:'Viel zu kurz',right:'Viel zu lang'},
- income:{question:'Wie hat sich das Geldverdienen heute angefühlt?',left:'Viel zu mühsam',right:'Viel zu leicht'},
- workshop:{question:'Wie haben sich die Wartezeiten an den Werkstätten angefühlt?',left:'Viel zu kurz',right:'Viel zu lang'}
-};
 function openDayFeedback(){
  if(!feedbackPending(state)){openDayEnd();return;}
- const questions=['length','income',...(workshopQuestionAvailable(state)?['workshop']:[])];
+ const questions=feedbackQuestionIds(state);
  let html='<div class="feedback-page">'+title('DEINE BELOHNUNG IST GESICHERT','Wie war dein Gartentag?','Wenn du magst: Sag kurz, wie es sich für dich angefühlt hat. Dein Garten passt sich für kommende Tage behutsam an. Du kannst die Fragen jederzeit überspringen.')+'<form id="dayFeedbackForm"><button class="feedback-skip-link" type="button" id="skipDayFeedback">Heute überspringen</button>';
  for(const id of questions){const q=FEEDBACK_QUESTIONS[id];html+=`<section class="feedback-question"><label for="feedback-${id}">${q.question}</label><output id="feedback-${id}-value" for="feedback-${id}" aria-live="polite">Genau richtig</output><input type="range" id="feedback-${id}" name="${id}" min="-100" max="100" step="5" value="0" aria-valuetext="Genau richtig" list="feedbackTicks"><div class="feedback-scale" aria-hidden="true"><span>${q.left}</span><span>Genau richtig</span><span>${q.right}</span></div></section>`;}
  html+='<datalist id="feedbackTicks"><option value="-100"></option><option value="0"></option><option value="100"></option></datalist><button class="modal-action" type="submit" id="submitDayFeedback">Rückmeldung speichern</button><button class="modal-action secondary" type="button" id="skipDayFeedbackBottom">Heute überspringen</button></form></div>';

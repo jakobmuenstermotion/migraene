@@ -24,6 +24,8 @@ import {
   submitFeedback,
   skipFeedback,
   workshopQuestionAvailable,
+  feedbackQuestionIds,
+  FEEDBACK_QUESTIONS,
 } from "./mondgarten/day-feedback.mjs";
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
 const logDistance = (a, b) =>
@@ -267,4 +269,38 @@ test("growth slowdown, ten-minute rhythm, food kitchen and snail growth remain i
   assert.equal(growthFactor(s), before);
   assert.equal(s.journey.elapsed, 540);
   assert.deepEqual(FARM, farm);
+});
+
+test('workshop sale-value question is separate from waiting time and only shown with a built workshop',()=>{
+ const early=purchased(),built=purchased({workshop:true});
+ assert.deepEqual(feedbackQuestionIds(early),['length','income']);
+ assert.deepEqual(feedbackQuestionIds(built),['length','income','workshop','workshopValue']);
+ assert.equal(FEEDBACK_QUESTIONS.workshopValue.left,'Viel zu wenig Geld');
+ assert.equal(FEEDBACK_QUESTIONS.workshopValue.right,'Viel zu viel Geld');
+});
+test('sale-value feedback survives reload without repricing goods or changing adaptive factors',()=>{
+ const s=purchased({workshop:true}),neutral=structuredClone(s);
+ s.village.finished.bouquet=2;s.village.finishedValues.bouquet=33;
+ const before=structuredClone(s.village);
+ assert.ok(submitFeedback(s,{length:0,income:0,workshop:0,workshopValue:-100}));
+ assert.ok(submitFeedback(neutral,{length:0,income:0,workshop:0}));
+ assert.deepEqual(s.feedback.next,neutral.feedback.next);assert.deepEqual(s.village,before);
+ const restored=normalize(JSON.parse(JSON.stringify(s)));
+ assert.equal(restored.feedback.history.at(-1).answers.workshopValue,-100);
+ assert.equal(restored.village.finishedValues.bouquet,33);
+ for(const vote of [-100,0,100]){
+  const fresh=purchased({workshop:true});assert.ok(submitFeedback(fresh,{length:0,income:0,workshop:0,workshopValue:vote}));
+  assert.equal(fresh.feedback.history.at(-1).answers.workshopValue,vote);
+ }
+});
+test('invalid workshop value votes are rejected, unavailable votes ignored and old histories stay compatible',()=>{
+ const s=purchased({workshop:true}),before=structuredClone(s.feedback);
+ for(const vote of [NaN,Infinity,-101,101,'100',null]){
+  assert.equal(submitFeedback(s,{length:0,income:0,workshop:0,workshopValue:vote}),false);
+  assert.deepEqual(s.feedback,before);
+ }
+ const early=purchased();assert.ok(submitFeedback(early,{length:0,income:0,workshopValue:100}));
+ assert.equal('workshopValue' in early.feedback.history.at(-1).answers,false);
+ assert.ok(submitFeedback(s,{length:0,income:0,workshop:0}));
+ assert.equal('workshopValue' in normalize(s).feedback.history.at(-1).answers,false);
 });

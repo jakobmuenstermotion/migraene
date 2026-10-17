@@ -112,7 +112,7 @@ const root = path.resolve(__dirname, "..");
     await page.waitForFunction(() => !document.querySelector("#loading"));
     await install();
     await buyReward();
-    assert.equal(await page.locator("input[type=range]").count(), 3);
+    assert.equal(await page.locator("input[type=range]").count(), 4);
     const before = await saved();
     assert.equal(before.journey.closed, true);
     assert.equal(before.feedback.pendingRound, 7);
@@ -136,6 +136,11 @@ const root = path.resolve(__dirname, "..");
     await slider("length", "End");
     await slider("income", "Home");
     await slider("workshop", "End");
+    await slider("workshopValue", "Home");
+    assert.equal(
+      await page.locator("#feedback-workshopValue").getAttribute("aria-valuetext"),
+      "Viel zu wenig Geld",
+    );
     assert.equal(
       await page.locator("#feedback-length").getAttribute("aria-valuetext"),
       "Viel zu lang",
@@ -154,6 +159,7 @@ const root = path.resolve(__dirname, "..");
       length: 100,
       income: -100,
       workshop: 100,
+      workshopValue: -100,
     });
     assert.deepEqual(after.feedback.active, before.feedback.active);
     assert.equal(after.coins, before.coins);
@@ -205,6 +211,7 @@ const root = path.resolve(__dirname, "..");
     await buyReward();
     assert.equal(await page.locator("input[type=range]").count(), 2);
     assert.equal(await page.locator("#feedback-workshop").count(), 0);
+    assert.equal(await page.locator("#feedback-workshopValue").count(), 0);
     await page.locator("#skipDayFeedback").click();
     await page.waitForSelector("#nightGarden");
     const skipped = await saved();

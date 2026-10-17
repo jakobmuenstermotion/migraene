@@ -1,5 +1,14 @@
 // Local, bounded preferences. The current day keeps its own frozen settings.
 export const FEEDBACK_LIMITS = { step: 1.03, total: 1.2, history: 100 };
+export const FEEDBACK_QUESTIONS = {
+  length: { question: 'Wie lange hat es sich angefühlt, die heutige Tagesbelohnung zu erreichen?', left: 'Viel zu kurz', right: 'Viel zu lang' },
+  income: { question: 'Wie hat sich das Geldverdienen heute angefühlt?', left: 'Viel zu mühsam', right: 'Viel zu leicht' },
+  workshop: { question: 'Wie haben sich die Wartezeiten an den Werkstätten angefühlt?', left: 'Viel zu kurz', right: 'Viel zu lang' },
+  workshopValue: { question: 'Wie viel Geld bringen die in den Werkstätten hergestellten Waren beim Verkauf?', left: 'Viel zu wenig Geld', right: 'Viel zu viel Geld' },
+};
+export function feedbackQuestionIds(s) {
+  return ['length', 'income', ...(workshopQuestionAvailable(s) ? ['workshop', 'workshopValue'] : [])];
+}
 const keys = ["effort", "income", "workshop"];
 const neutral = () => ({ effort: 1, income: 1, workshop: 1 });
 const norm = (values) => values.reduce((sum, v) => sum + Math.abs(v), 0);
@@ -68,6 +77,10 @@ export function normalizeFeedback(raw, round) {
               Math.abs(r.answers.workshop) <= 100
                 ? { workshop: r.answers.workshop }
                 : {}),
+              ...(Number.isFinite(r.answers.workshopValue) &&
+              Math.abs(r.answers.workshopValue) <= 100
+                ? { workshopValue: r.answers.workshopValue }
+                : {}),
             }
           : null,
     }));
@@ -125,6 +138,10 @@ export function submitFeedback(s, answers) {
   )
     return false;
   const hasWorkshop = workshopQuestionAvailable(s);
+  // Optional for saves and clients created before this question existed.
+  if (hasWorkshop && answers.workshopValue !== undefined &&
+      (!Number.isFinite(answers.workshopValue) || Math.abs(answers.workshopValue) > 100))
+    return false;
   if (
     hasWorkshop &&
     (!Number.isFinite(answers.workshop) || Math.abs(answers.workshop) > 100)
@@ -134,10 +151,13 @@ export function submitFeedback(s, answers) {
     length: answers.length,
     income: answers.income,
     ...(hasWorkshop ? { workshop: answers.workshop } : {}),
+    ...(hasWorkshop && answers.workshopValue !== undefined
+      ? { workshopValue: answers.workshopValue } : {}),
   };
   const amount = (n) => (Math.abs(n) < 10 ? 0 : n / 100);
   // Long days -> less reference effort; difficult income -> higher new harvest value;
-  // long waits -> shorter production. Share a single budget across all questions.
+  // long waits -> shorter production. Share a single budget across adaptive questions.
+  // Workshop sale-value feedback is recorded for balancing, without repricing goods.
   let delta = [
     -amount(vote.length),
     -amount(vote.income),

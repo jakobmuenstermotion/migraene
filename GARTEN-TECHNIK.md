@@ -311,3 +311,11 @@ Der Rückenstapel liest die tatsächlichen Rohstoff- und Produktbestände. Rohst
 ### Sichtbare Beetstreifen und Lagerplatz
 
 Das Lager steht bei (-11, 0), mit Kaufpunkt (-7, 3), außerhalb aller vollständig erweiterten Beete. Die nächste Erweiterung zeigt ausschließlich den tatsächlich hinzukommenden Pflanzstreifen: halbtransparent, mit gestricheltem Rand. Die gesamte Fläche dient als Kaufbereich. Zwei Sekunden stillstehen startet die fünfsekündige Bezahlung; Anzahlungen bleiben erhalten. Acht Grundpreise: 200, 275, 350, 425, 500, 575, 650 und 725 Sternenstaub, jeweils mit dem bestehenden Freischaltrunden-Faktor des Beets. Andere Preise, Erntemengen und Verkaufswerte bleiben unverändert.
+
+### Rückmeldung zum Werkstatt-Verkaufswert
+
+Am Tagesende erscheint ab der ersten gebauten Werkstatt zusätzlich zur Wartezeit-Frage die Frage „Wie viel Geld bringen die in den Werkstätten hergestellten Waren beim Verkauf?“. Ihr Regler reicht von „Viel zu wenig Geld“ über „Genau richtig“ bis „Viel zu viel Geld“. Die Antwort wird separat als `workshopValue` in der lokalen Feedbackhistorie gespeichert und bleibt beim Laden erhalten. Sie verändert keine Preise, Bestandswerte oder Produktionszeiten. Ältere Antworten ohne diesen Wert bleiben gültig.
+
+### Abgestimmte Rezeptidee: Mondgarten-Geschenkbox
+
+Für die vorgeschlagene, noch nicht eingebaute Geschenkwerkstatt gilt jetzt ein Aufschlag von **100 Prozent** statt 50 Prozent: Verkaufswert = 2 × Summe der tatsächlichen Werte aller eingesetzten Zutaten (Lavendel, Mondstrauß und Honig). Die vorgeschlagene Grundzeit bleibt 30 Sekunden. Bestehende Werkstattrezepte ändern sich dadurch nicht.
