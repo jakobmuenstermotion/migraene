@@ -78,7 +78,7 @@ function update(dt){const previousGrowthTime=state.journey.growthTime;clock+=dt;
   if(simDt){advanceFarm(state,simDt);const found=discoverShell(state,farmHarvest,simDt);farmHarvest=0;if(found)toast('Ein Häuschen gefunden: '+found.name+'! In deiner Farm wartet ein Platz.',true);}
   updateFarmInteractions(simDt);updatePurchase(dt);updateBoutiqueEntry(simDt);
   uiClock+=dt;saveClock+=dt;checkClock+=dt;if(uiClock>.25){uiClock=0;syncUI();}if(saveClock>10){saveClock=0;save();}if(checkClock>2){checkClock=0;for(const a of checkAchievements(state))toast('Neue Erinnerung: '+a.name,true);}
-  scene.setDestination(controls.target);scene.update(dt,{player,partner:automation.partner,bag:state.bag+productCargoCount(state),bagCapacity:capacity(state),productID:Object.keys(state.productCargo.items).find(id=>state.productCargo.items[id]>0),coins:state.coins,growthTime,range:reach(state)/38,time:clock,moving:player.moving,snails:automation.snails,payingPad:activePad});updateLabels(dt);
+  scene.setDestination(controls.target);scene.update(dt,{player,partner:automation.partner,bag:state.bag+productCargoCount(state),bagCapacity:capacity(state),cargo:state.cargo,productCargo:state.productCargo.items,coins:state.coins,growthTime,range:reach(state)/38,time:clock,moving:player.moving,snails:automation.snails,payingPad:activePad});updateLabels(dt);
 }
 let activePad=null,productPickupClock=0,farmHarvest=0,feedClock=0;
 function updatePurchase(dt){const radius=VILLAGE.buying.radius;activePad=pads.filter(p=>p.visible&&!p.max&&Math.hypot(player.x-p.x,player.z-p.z)<radius).sort((a,b)=>Math.hypot(player.x-a.x,player.z-a.z)-Math.hypot(player.x-b.x,player.z-b.z))[0]??null;
