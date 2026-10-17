@@ -13,3 +13,21 @@ export function expandedFieldCells(bed,level=0){
  }
  return cells;
 }
+
+export function fieldExpansionPreview(bed,level=0){
+ if(level>=FIELD_EXPANSION_STEPS)return null;
+ const before=expandedFieldCells(bed,level),after=expandedFieldCells(bed,level+1),added=after.slice(before.length);
+ const xs=added.map(c=>c.x),zs=added.map(c=>c.z),x=(Math.min(...xs)+Math.max(...xs))/2,z=(Math.min(...zs)+Math.max(...zs))/2;
+ // A small visible border keeps outer strips reachable at the world edge.
+ const width=Math.max(...xs)-Math.min(...xs)+bed.spacing+.3,depth=Math.max(...zs)-Math.min(...zs)+bed.spacing+.3;
+ const clamp=n=>Math.max(-34,Math.min(34,n));
+ return{x:clamp(x),z:clamp(z),area:{x,z,width,depth},added:added.length};
+}
+export function isInsideBuildPad(pad,position,padding=0,radius=1.15){
+ if(pad.area)return Math.abs(position.x-pad.area.x)<=pad.area.width/2+padding&&Math.abs(position.z-pad.area.z)<=pad.area.depth/2+padding;
+ return Math.hypot(position.x-pad.x,position.z-pad.z)<radius+padding;
+}
+export function buildPadDistance(pad,position){
+ if(!pad.area)return Math.hypot(position.x-pad.x,position.z-pad.z);
+ return Math.hypot(Math.max(0,Math.abs(position.x-pad.area.x)-pad.area.width/2),Math.max(0,Math.abs(position.z-pad.area.z)-pad.area.depth/2));
+}
