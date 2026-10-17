@@ -19,7 +19,7 @@ export const PRODUCTS={
   elixir:{name:'Mondelixier',plural:'Mondelixiere',icon:'◇',color:'#a796d8',value:160}
 };
 export const WORKSHOPS=[
-  {id:'bouquet',name:'Blumenbinderei',model:'bouquet',product:'bouquet',inputs:{moonbloom:6},seconds:12,cost:900,x:0,z:12,pad:{x:0,z:15},requires:null,description:'6 Mondblüten → 1 Mondstrauß. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
+  {id:'bouquet',name:'Blumenbinderei',model:'bouquet',product:'bouquet',inputs:{moonbloom:6},seconds:15,valueMultiplier:2,cost:900,x:0,z:12,pad:{x:0,z:15},requires:null,description:'6 Mondblüten → 1 Mondstrauß. 15 Sekunden Grundzeit; der Strauß ist mindestens doppelt so viel wert wie die verwendeten Blumen. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
   {id:'tea',name:'Sternenteeküche',model:'tea',product:'tea',inputs:{lavender:8},seconds:16,cost:1600,x:8,z:12,pad:{x:8,z:15},requires:'bouquet',description:'8 Lavendelbündel → 1 Sternentee. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
   {id:'oil',name:'Duftöldestille',model:'oil',product:'oil',inputs:{coral:10},seconds:20,cost:2400,x:17,z:10,pad:{x:17,z:13},requires:'tea',description:'10 Korallenblüten → 1 Blütenduftöl.'},
   {id:'elixir',name:'Mondalchemie',model:'elixir',product:'elixir',inputs:{tea:1,oil:1,mushroom:6},seconds:26,cost:4200,x:26,z:9,pad:{x:26,z:12},requires:'oil',description:'1 Sternentee + 1 Duftöl + 6 Glühpilze → 1 Mondelixier.'}

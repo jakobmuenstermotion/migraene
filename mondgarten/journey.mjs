@@ -49,7 +49,9 @@ export function roundYield(s){return Math.pow(JOURNEY.yieldGrowth,Math.min(77,s.
 export function dayPrice(s){if(s.journey.goalCost>0)return s.journey.goalCost;return Math.ceil(ECONOMY.dayBase*Math.min(Math.pow(ECONOMY.dayGrowth,Math.min(76,s.journey.round-1)),Math.max(1,...BEDS.map((b,i)=>s.village.beds[i]?COLLECTIBLES[b.crop].value*Math.pow(ECONOMY.bedUpgrade,s.village.beds[i]-1):0))*Math.pow(ECONOMY.valueUpgrade,s.tools.value))*roundYield(s));}
 // Availability widens without prescribing purchases. All branches reach their cap by 77.
 export function buildRule(id){
+  if(id.startsWith('expand:'))return{start:[1,12,47,36,25,59,68][Number(id.slice(7))],stride:0,max:8};
   if(id.startsWith('hive:'))return{start:HIVES[Number(id.slice(5))].round,stride:1,max:1};
+  if(id==='composter')return{start:12,stride:1,max:1};
   if(id==='bus')return{start:77,stride:1,max:1};
   if(id==='endDay')return{start:1,stride:1,max:10001};
   if(id.startsWith('tool:'))return{start:['reach','bag'].includes(id.slice(5))?1:2,stride:5,max:16};

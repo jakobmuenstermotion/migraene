@@ -13,7 +13,7 @@ function button(text,fn){const b=node('button','garden-control',text);b.type='bu
 function eligible(id){const p=ledger?.beds[id],type=plants.find(x=>x.id===p?.id);return mode==='seed'?!p:mode==='water'?!!type&&p.stage<type.stages.length:false;}
 function mount(){
  const app=document.getElementById('app'),first=app?.querySelector('.big[data-act]');if(!first)return;collectRewards();
- if(!toolbar?.isConnected){toolbar=node('section','garden-inline');toolbar.setAttribute('aria-label','Samen und Gießkanne');(first.closest('.grid')||first).before(toolbar);signature='';}
+ if(!toolbar?.isConnected){toolbar=node('section','garden-inline');toolbar.setAttribute('aria-label','Samen und Gießkanne');const entryButtons=[...app.querySelectorAll('.big[data-act]')];const last=entryButtons.at(-1);(last.closest('.grid')||last).after(toolbar);signature='';}
  if(!footer?.isConnected){footer=node('section','garden-footer');footer.setAttribute('aria-label','Gartentage');const row=node('div','garden-controls');row.append(button('Gartentag starten',()=>openGame(true)),button('☾ Nachtbesuch',()=>openGame(false)));status=node('p','garden-status');status.setAttribute('role','status');footer.append(row,status);app.append(footer);}
  if(!journal||!ledger){status.textContent=issue;return;}
  if(mode&&!ledger.tokens.some(t=>t.kind===mode)){mode=null;selection=null;}
@@ -26,9 +26,10 @@ function mount(){
 function renderToolbar(){
  toolbar.replaceChildren();toolbar.hidden=!ledger.tokens.length&&!notice;if(toolbar.hidden)return;
  const seeds=ledger.tokens.filter(t=>t.kind==='seed').length,water=ledger.tokens.filter(t=>t.kind==='water').length;
- const hint=node('p','garden-inline-hint',mode==='water'?'Gießkanne bereit. Tippe auf eine Pflanze – dabei wird nur gegossen.':mode==='seed'?'Tippe auf einen freien Eintragsknopf, um den Samen einzupflanzen.':notice||(seeds?'Welcher Samen darf wachsen? Wähle eine Sorte.':'Deine Gießkanne wartet.'));hint.setAttribute('role','status');toolbar.append(hint);
+ const hint=node('p','garden-inline-hint',mode==='water'?'Gießkanne bereit. Tippe auf eine Pflanze – dabei wird nur gegossen.':mode==='seed'?'Tippe auf einen freien Eintragsknopf, um den Samen einzupflanzen.':notice||(seeds?'Welcher Samen darf wachsen? Wähle eine Sorte.':'Deine Gießkanne wartet.'));hint.setAttribute('role','status');
  const actions=node('div','garden-controls');if(water){const b=button('♧ Gießkanne · '+water,()=>{mode='water';selection=null;notice='';mount();});b.setAttribute('aria-pressed',String(mode==='water'));actions.append(b);}if(mode)actions.append(button('Später · normal eintragen',()=>{mode=null;selection=null;notice='';mount();}));toolbar.append(actions);
  if(seeds){const list=node('div','garden-seed-strip');list.setAttribute('aria-label','Samen auswählen');for(const p of plants){const b=button(p.name,()=>{mode='seed';selection=p.id;notice='';mount();});b.dataset.seed=p.id;b.setAttribute('aria-pressed',String(selection===p.id&&mode==='seed'));b.prepend(renderer.preview(p.id));list.append(b);}toolbar.append(list);}
+ toolbar.append(hint);
 }
 // Only explicitly selected garden actions intercept a click, before the medical handler.
 document.addEventListener('click',e=>{

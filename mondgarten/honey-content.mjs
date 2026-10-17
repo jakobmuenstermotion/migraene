@@ -49,6 +49,7 @@ export const HIVES = [
     pad: { x: -21, z: -23 },
   },
 ];
+export const HONEY_VALUE_MULTIPLIER = 24;
 export const HONEY_SECONDS = 90,
   HIVE_CAPACITY = 3,
   SNACK_SECONDS = 120,
@@ -56,6 +57,6 @@ export const HONEY_SECONDS = 90,
 export const HONEY_PRODUCTS = Object.fromEntries(
   HIVES.map((h) => [
     h.honey,
-    { name: h.name, plural: h.name, icon: "⬡", color: h.color, value: 4 },
+    { name: h.name, plural: h.name, icon: "⬡", color: h.color, value: HONEY_VALUE_MULTIPLIER },
   ]),
 );

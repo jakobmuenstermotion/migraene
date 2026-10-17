@@ -9,7 +9,7 @@
 <body>
   <main class="game" id="game">
     <canvas id="world" tabindex="0" aria-label="3D Garten. Mit WASD, Pfeiltasten oder einem Klick auf den Boden bewegen. Automatisch sammeln, an der Verkaufsstelle automatisch verkaufen."></canvas>
-    <button id="kitchenButton" class="kitchen-button" hidden>🍃 Futterküche</button><button id="foodPouch" class="food-pouch" hidden aria-label="Schneckenfutter">🍃 0</button><div class="world-vignette"></div>
+    <button id="kitchenButton" class="kitchen-button" hidden>🍃 Futterküche</button><button id="foodPouch" class="food-pouch" hidden aria-label="Schneckenfutter">🍃 0</button><section id="outdoorHUD" class="outdoor-hud" hidden aria-label="Gartenwerkzeug"><button id="outdoorOpen">Werkzeuge</button><button id="outdoorAction" hidden>Benutzen</button><button id="outdoorWorkshop" hidden>Düngerwerkstatt</button><p id="outdoorSignal" role="status"></p></section><div class="world-vignette"></div>
     <div class="night-veil" id="nightVeil" aria-hidden="true"></div>
     <header class="hud-top">
       <div class="top-left"><a href="#" class="brand" aria-label="Mondgarten"><span>✳</span><div>mondgarten<small>EIN KLEINES STÜCK GLÜCK</small></div></a><div class="wallet"><div class="coin-icon">✧</div><div><strong id="coins">0</strong><small id="walletHint">Sternenstaub</small></div><div class="wallet-divider"></div><span class="star-icon">◇</span><strong class="star-count" id="stars">0</strong></div></div>
@@ -26,6 +26,7 @@
     <div class="game-error" id="gameError" hidden><span>☾</span><h1>Der Garten konnte nicht erwachen.</h1><p>Bitte öffnet das Spiel in einem Browser mit aktivierter 3D-Grafik und ladet die Seite neu.</p><button onclick="location.reload()">Noch einmal versuchen</button></div>
     <div class="zoom-controls"><button id="zoomOut" aria-label="Ansicht verkleinern">−</button><button id="zoomIn" aria-label="Ansicht vergrößern">+</button></div>
     <div class="joystick" id="joystick" aria-label="Touch Joystick"><div id="joystickKnob"></div></div>
+    <section id="harvestModes" class="harvest-modes" hidden aria-label="Sense oder Dünger wählen"><button id="modeScythe" aria-pressed="true">Sense</button><button id="modeFertilizer" aria-pressed="false">Düngen</button><button id="sprayFertilizer" hidden>Sprühen</button></section>
     <footer class="hud-bottom">
       <div class="duo-card"><button id="customize" aria-label="Eure Namen ändern"><span class="duo-icon">☾</span><span><strong id="duoLabel">Für euch zwei.</strong><small id="journeyText">Ein Garten. Große kleine Träume.</small></span><span class="edit-icon">✎</span></button><div class="keyboard-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>zum Laufen · Leertaste zur Bank</span></div></div>
       <div class="bag-panel" id="bagPanel"><div class="bag-symbol">♧</div><div class="bag-content"><div><strong id="bagTitle">Dein Erntestapel</strong><span id="bagCount">0 / 80</span></div><div class="progress"><span id="bagBar"></span></div><small id="bagHint">Ein bisschen Platz für ganz viel Glück.</small></div><button id="warehouse" aria-label="Ernte zum Lager bringen"><span>Lager</span></button><button id="sell" aria-label="Zur Verkaufsstelle laufen"><span>Verkaufen</span><b>↗</b></button></div>

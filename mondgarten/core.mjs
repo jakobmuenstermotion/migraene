@@ -1,3 +1,5 @@
+import {freshOutdoors,normalizeOutdoors} from './outdoors.mjs';
+import {freshHarvestMoments,normalizeHarvestMoments} from './harvest-moments.mjs';
 import {PRODUCTS} from './village-content.mjs';
 import {freshFeedback,normalizeFeedback} from './day-feedback.mjs';
 import {GARDENS,getCrop,WORLD} from './content.mjs';
@@ -17,7 +19,7 @@ export const PERMANENTS = [
   {id:'pocket',name:'Unendliche Weite',icon:'♧',desc:'Pro Stufe 40 % mehr Platz in eurer Tasche.'},
   {id:'spirit',name:'Sternengeist',icon:'✦',desc:'Pro Stufe 30 % mehr Helferertrag, auch offline.'}
 ];
-export function freshState(){return {v:2,feedback:freshFeedback(),journey:freshJourney(),coins:0,stars:0,totalStars:0,prestiges:0,biome:0,unlocked:0,bag:0,bagValue:0,productCargo:{items:{},values:{}},cargo:{},village:freshVillage(),tools:{reach:0,bag:0,speed:0,value:0},helpers:0,helperLevel:0,permanent:{bloom:0,pocket:0,spirit:0},stats:{harvested:0,earned:0,upgrades:0,helpers:0,missions:0,playSeconds:0,runEarned:0,runHarvested:0},mission:{index:0,base:0},achievements:[],names:['Du','Schnecki'],sound:false,reducedMotion:false,tutorial:0,savedAt:Date.now(),lastDaily:0,dailyStreak:0};}
+export function freshState(){return {v:2,outdoors:freshOutdoors(),harvestMoments:freshHarvestMoments(),feedback:freshFeedback(),journey:freshJourney(),coins:0,stars:0,totalStars:0,prestiges:0,biome:0,unlocked:0,bag:0,bagValue:0,productCargo:{items:{},values:{}},cargo:{},village:freshVillage(),tools:{reach:0,bag:0,speed:0,value:0},helpers:0,helperLevel:0,permanent:{bloom:0,pocket:0,spirit:0},stats:{harvested:0,earned:0,upgrades:0,helpers:0,missions:0,playSeconds:0,runEarned:0,runHarvested:0},mission:{index:0,base:0},achievements:[],names:['Du','Schnecki'],sound:false,reducedMotion:false,tutorial:0,savedAt:Date.now(),lastDaily:0,dailyStreak:0};}
 const validNumber=(n,fallback=0,max=1e280)=>typeof n==='number'&&Number.isFinite(n)&&n>=0?Math.min(n,max):fallback;
 export function normalize(raw){
   if(!raw||![1,2].includes(raw.v))throw new Error('Dieser Spielstand gehört nicht zu Mondgarten.');
@@ -38,6 +40,8 @@ export function normalize(raw){
   if(raw.cargo&&typeof raw.cargo==='object'){for(const id of ['moonbloom','lavender','coral','crystal','mushroom','starfruit','sunbloom','nebula']){const e=raw.cargo[id];if(e?.count>0)s.cargo[id]={count:validNumber(e.count),value:validNumber(e.value)};}}
   const count=Object.values(s.cargo).reduce((a,e)=>a+e.count,0),value=Object.values(s.cargo).reduce((a,e)=>a+e.value,0);
   if(s.bag===0)s.cargo={};else if(!count||Math.abs(count-s.bag)>1e-6||Math.abs(value-s.bagValue)>1e-5)s.cargo={[getCrop(s.biome)===getCrop(0)?'moonbloom':GARDENS[s.biome].crop]:{count:s.bag,value:s.bagValue}};
+  s.outdoors=normalizeOutdoors(raw.outdoors);
+  s.harvestMoments=normalizeHarvestMoments(raw.harvestMoments,s.village.snails);
   s.feedback=normalizeFeedback(raw.feedback,s.journey.round);
   return s;
 }

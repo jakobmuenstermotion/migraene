@@ -1,3 +1,4 @@
+import {BEDS} from './village-content.mjs';
 export const SNAIL_TASKS = {
   workshop: "Werkstatt beliefern",
   sell: "Direkt verkaufen",
@@ -16,6 +17,7 @@ export function normalizeSnailProfile(raw) {
   return {
     name:
       typeof raw?.name === "string" ? raw.name.trim().slice(0, 24).trim() : "",
+    field: Number.isInteger(raw?.field)&&raw.field>=0&&raw.field<BEDS.length?raw.field:null,
     task: Object.hasOwn(SNAIL_TASKS, raw?.task) ? raw.task : "workshop",
   };
 }
@@ -31,6 +33,14 @@ export function setSnailProfile(s, index, profile) {
   s.village.snailProfiles ??= [];
   while (s.village.snailProfiles.length < s.village.snails)
     s.village.snailProfiles.push(normalizeSnailProfile());
-  s.village.snailProfiles[index] = normalizeSnailProfile(profile);
+  const normalized=normalizeSnailProfile(profile);
+  if(normalized.field!==null&&!s.village.beds[normalized.field])return false;
+  s.village.snailProfiles[index] = normalized;
   return true;
 }
+
+// Farm helpers retain their species at their helper index; purchased snails have
+// no species entry. Derive provenance so old saves need no speculative counters.
+export function purchasedSnailCount(s){const v=s.village;return Math.max(0,v.snails-(v.farm?.helpers??[]).slice(0,v.snails).filter(Boolean).length);}
+export function snailPurchaseLimit(s){return Math.min(BEDS.length,s.village.beds.filter(n=>n>0).length);}
+export function canBuySnail(s){return s.village.snails<12&&purchasedSnailCount(s)<snailPurchaseLimit(s);}

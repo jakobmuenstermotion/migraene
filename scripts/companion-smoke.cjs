@@ -114,6 +114,7 @@ const root = path.resolve(__dirname, "..");
     await page.locator('.big[data-act="drink"]').click();
     releaseGarden();
     await page.waitForSelector(".garden-footer");
+    assert.equal(await page.evaluate(() => {const toolbar=document.querySelector('.garden-inline');return !!toolbar&&[...document.querySelectorAll('#app .big[data-act]')].every(button=>!!(button.compareDocumentPosition(toolbar)&Node.DOCUMENT_POSITION_FOLLOWING));}),true,'Garden controls and hints must follow every entry button, including both grids during an attack');
     const journal = () =>
       page.evaluate(() =>
         JSON.parse(localStorage.getItem("mt-garden-actions-v1")),

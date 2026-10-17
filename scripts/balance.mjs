@@ -201,7 +201,7 @@ function run(style) {
           remainingCost = pads
             .filter(
               (p) =>
-                p.visible && !p.max && !p.optional && p.requiredRound <= round,
+                p.visible && !p.max && !p.optional && (!["snail","bus"].includes(p.id)||!p.locked) && p.requiredRound <= round,
             )
             .reduce((sum, p) => sum + p.cost - p.paid, 0),
           home = pads.find(
@@ -304,6 +304,7 @@ function run(style) {
                 p.visible &&
                 !p.max &&
                 p.id !== "endDay" &&
+                (!["snail","bus"].includes(p.id)||!p.locked) &&
                 !p.optional &&
                 (p.requiredRound ?? 1) <= round,
             ),
@@ -533,7 +534,11 @@ function run(style) {
       goal = null;
     }
   }
-  assert.equal(s.village.bus, true, "bus never reached");
+  // The last five helper places now require nursery work. Purchase-only
+  // strategies can finish all reward days without completing the final bus.
+  if(farmStyle)assert.equal(s.village.bus, true, "farm strategy never reached the bus");
+  else {assert.ok(s.village.snails<=BEDS.length);assert.equal(s.village.bus,false);}
+
   if (focus) assert.ok(choices > 0, `${style} never chose an early upgrade`);
   // Optional cosmetic ownership never determines completion of a day or run.
   assert.equal(s.journey.rewards.length, 77, "missing rewards");
@@ -555,6 +560,7 @@ function run(style) {
   const sorted = days.map((d) => d.activeSeconds).sort((a, b) => a - b);
   return {
     style,
+    busReached:s.village.bus,
     firstBuy,
     median: sorted[38],
     maximum: sorted.at(-1),

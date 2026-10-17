@@ -55,14 +55,14 @@ test('manual delivery conserves ingredients and value; processing and collection
   assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
   assert.equal(s.village.finished.bouquet, 1);
   assert.equal(workshopStock(s.village.workshops.bouquet), 54);
-  near(s.village.finishedValues.bouquet, 14.4);
+  near(s.village.finishedValues.bouquet, 24);
   assert.equal(s.coins, before);
   const batch = takeWorkshopGoods(s, 'bouquet', 4);
   assert.equal(batch.count, 1);
   assert.equal(productCargoCount(s), 1);
   assert.equal(s.coins, before);
-  near(sellCarriedProducts(s).value, 14.4);
-  near(s.coins, before + 14.4);
+  near(sellCarriedProducts(s).value, 24);
+  near(s.coins, before + 24);
   assert.equal(sellCarriedProducts(s).count, 0);
 });
 
@@ -92,7 +92,7 @@ test('small frame deliveries can complete exact recipes without losing fractiona
   for (let i = 0; i < 100; i++) deliverWorkshop(s, bouquet, 0.24);
   assert.equal(s.bag, 0);
   assert.equal(advanceProduction(s, productionSeconds(s, bouquet)).length, 1);
-  near(s.village.finishedValues.bouquet, 14.4);
+  near(s.village.finishedValues.bouquet, 24);
 });
 
 test('workshops have finite input and output stacks; collection respects available carrying space', () => {
@@ -140,7 +140,7 @@ test('alternative and compound recipes consume real local supplies', () => {
   s.bagValue = 100;
   deliverWorkshop(s, bouquet);
   advanceProduction(s, productionSeconds(s, bouquet));
-  near(s.village.finishedValues.bouquet, 120);
+  near(s.village.finishedValues.bouquet, 200);
   const w = WORKSHOPS.find((w) => w.id === 'elixir');
   s.village.workshops.elixir.level = 1;
   s.productCargo = { items: { tea: 1, oil: 1 }, values: { tea: 20, oil: 30 } };

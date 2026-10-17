@@ -132,3 +132,33 @@ test("new harvest remains open after repeated sales and after buying the daily r
   assert.ok(sellFullBag(s) > 0);
   assert.ok(s.coins > before);
 });
+
+test('manual and helper harvests have the same 25 percent unit bonus across crops and fertilizer', async () => {
+  const {GardenAutomation}=await import('./mondgarten/automation.mjs');
+  const {setHarvestMode,sprayFertilizer}=await import('./mondgarten/outdoors.mjs');
+  const {BEDS,VILLAGE}=await import('./mondgarten/village-content.mjs');
+  for(const index of BEDS.keys())for(const fertilized of index===0?[false,true]:[false]){
+    const manual=freshState();manual.journey.round=70;manual.village.snails=1;manual.village.beds[index]=1;manual.village.snailProfiles=[{task:'warehouse',field:index}];
+    const cells=createVillageField(manual).filter(c=>c.bed===index);for(const c of cells)c.rare=false;const cell=cells[0];
+    if(fertilized){manual.outdoors.fertilizer=1;setHarvestMode(manual,'fertilizer');assert.equal(sprayFertilizer(manual,cells,cell),true);}
+    const helper=structuredClone(manual),helperCells=structuredClone(cells),automation=new GardenAutomation(helper),snail=automation.snails[0];snail.x=cell.x;snail.z=cell.z;
+    for(let i=0;i<60&&!manual.bag;i++)harvestAt(manual,[cell],cell.x,cell.z,0,1,{moving:false,dt:.5});
+    for(let i=0;i<100&&!snail.bag;i++)automation.update(helper,helperCells,null,.1,0);
+    assert.ok(manual.bag>0);assert.ok(snail.bag>0);
+    const expected=bedYield(manual,index)*VILLAGE.manualBonus*(fertilized?1.2:1);
+    assert.ok(Math.abs(manual.bagValue/manual.bag-expected)<1e-8);
+    assert.ok(Math.abs(snail.values[cell.crop]/snail.items[cell.crop]-expected)<1e-8);
+  }
+});
+
+test('bouquets take 15 base seconds and sell for double their real input value, with matching estimates', async () => {
+  const {WORKSHOPS}=await import('./mondgarten/village-content.mjs');
+  const {deliverWorkshop,advanceProduction,takeWorkshopGoods,sellCarriedProducts,productValue,productionSeconds,processingMultiplier}=await import('./mondgarten/village.mjs');
+  const w=WORKSHOPS.find(w=>w.id==='bouquet'),s=freshState();s.village.workshops.bouquet.level=1;
+  const cells=createVillageField(s).slice(0,6);for(const c of cells){c.rare=false;harvestAt(s,[c],c.x,c.z,0);}const rawValue=s.bagValue;
+  assert.equal(productionSeconds(s,w),15);assert.ok(Math.abs(productValue(s,w)-rawValue*2)<1e-8);
+  deliverWorkshop(s,w);advanceProduction(s,14.99);assert.equal(s.village.finished.bouquet??0,0);
+  const loaded=normalize(JSON.parse(JSON.stringify(s)));advanceProduction(loaded,.01);assert.equal(loaded.village.finished.bouquet,1);takeWorkshopGoods(loaded,'bouquet',1);assert.ok(Math.abs(sellCarriedProducts(loaded).value-rawValue*2)<1e-8);
+  for(const other of WORKSHOPS.filter(x=>x!==w)){s.village.workshops[other.id].level=1;assert.equal(processingMultiplier(s,other),1.2);}
+  s.village.workshops.bouquet.level=7;assert.ok(processingMultiplier(s,w)>2);assert.ok(productionSeconds(s,w)<15);
+});

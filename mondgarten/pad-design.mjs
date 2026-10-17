@@ -22,6 +22,7 @@ export function padIcon(pad) {
       snailLevel: "snail",
       farm: "snail",
       warehouse: "crate",
+      composter: "house",
       sprinkler: "water",
       partner: "house",
       endDay: pad.icon === "✧" ? "seed" : "water",

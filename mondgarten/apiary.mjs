@@ -1,5 +1,6 @@
 import {
   HIVES,
+  HONEY_VALUE_MULTIPLIER,
   HONEY_SECONDS,
   HIVE_CAPACITY,
   SNACK_SECONDS,
@@ -82,7 +83,7 @@ export function advanceApiary(s, cells, dt) {
     while (h.progress >= HONEY_SECONDS && h.count < HIVE_CAPACITY) {
       h.progress -= HONEY_SECONDS;
       h.count++;
-      h.value += bedYield(s, type.bed) * 4;
+      h.value += bedYield(s, type.bed) * HONEY_VALUE_MULTIPLIER;
     }
     if (h.count === HIVE_CAPACITY) h.progress = 0;
   }

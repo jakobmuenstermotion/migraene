@@ -1,3 +1,5 @@
+import {fertilizerValue} from './outdoors.mjs';
+import {wearsButterflyWings} from './harvest-moments.mjs';
 import { helperBoost } from "./apiary.mjs";
 import { snailProfile, snailName, snailsResting } from "./snail-care.mjs";
 import { advanceWoodcock } from "./woodcock.mjs";
@@ -116,12 +118,16 @@ export class GardenAutomation {
     for (const [i, a] of this.snails.entries()) {
       const profile = snailProfile(s, i);
       if (a.task !== undefined && a.task !== profile.task) a.saleCrop = null;
+      const field=profile.field!==null&&s.village.beds[profile.field]?profile.field:null;
+      if(a.assignedField!==field){a.target=null;a.timer=0;}
+      a.assignedField=field;
       a.task = profile.task;
       a.name = snailName(s, i);
       a.sleeping = snailsResting(s) || profile.task === "rest";
       if (a.sleeping) a.moving = false;
       a.level = s.village.snailLevel;
       a.species = s.village.farm.helpers[i] ?? null;
+      a.flying = wearsButterflyWings(s,i);
       a.hat = s.village.boutiques.snailHats?.[i] ?? null;
     }
   }
@@ -148,7 +154,7 @@ export class GardenAutomation {
       const snail = this.snails[i],
         speed =
           Math.min(3, VILLAGE.snail.speed * Math.pow(1.18, v.snailLevel)) *
-          helperBoost(s, "snail:" + i);
+          helperBoost(s, "snail:" + i) * (snail.flying ? 2 : 1);
       if (snail.sleeping) continue;
       if (snail.mode === "deliver") {
         if (snail.task === "warehouse") {
@@ -200,7 +206,8 @@ export class GardenAutomation {
         if (snail.bag > 0) snail.mode = "deliver";
         continue;
       }
-      snail.bed = beds[i % beds.length].index;
+      if(!beds.length){snail.moving=false;continue;}
+      snail.bed = snail.assignedField??beds[i % beds.length].index;
       if (
         snail.target &&
         player &&
@@ -233,6 +240,7 @@ export class GardenAutomation {
       if (!snail.target) {
         snail.moving = false;
         if (snail.bag > 0) snail.mode = "deliver";
+        else if(snail.assignedField!==null)walk(snail,BEDS[snail.bed],speed,dt);
         continue;
       }
       if (walk(snail, snail.target, speed, dt)) {
@@ -257,7 +265,7 @@ export class GardenAutomation {
                 cell.rare ? 2 : 1,
                 materialHarvestRemaining(s, cell.crop),
               ),
-              value = count * bedYield(s, cell.bed);
+              value = count * bedYield(s, cell.bed) * VILLAGE.manualBonus * fertilizerValue(s,cell);
             cell.cutAt = time;
             cell.readyAt = time + bedRegrow(s, cell.bed);
             snail.items[cell.crop] = (snail.items[cell.crop] ?? 0) + count;
