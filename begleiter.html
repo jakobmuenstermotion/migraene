@@ -215,7 +215,7 @@ if(cfg && location.hash && parseLink(location.hash)){
   if(st.cfg && (st.cfg.t!==cfg.t || st.cfg.k!==cfg.k)){ st.entries = []; st.acked = {}; }
   if(st.meds && st.cfg && st.cfg.t===cfg.t && !cfg.m.length) cfg.m = st.meds;
 }
-st.cfg = cfg; st.entries = st.entries || []; st.acked = st.acked || {}; st.lists = st.lists || {};
+st.cfg = cfg; st.entries = st.entries || []; st.acked = st.acked || {}; st.lists = st.lists || {}; st.sleepAsk = st.sleepAsk || {};
 if(cfg && cfg.m && cfg.m.length && !(st.lists.m && st.lists.m.length)) st.lists.m = cfg.m;
 persist();
 window.CompanionGardenEvents.snapshot=function(){return st.entries.map(function(e){return{id:e.id,ts:e.ts,deleted:!!e.del};});};
@@ -257,7 +257,7 @@ function label(e){
   if(e.k==='med') return 'Medikament'+(e.n ? ': '+e.n : '');
   if(e.k==='pain') return 'Kopfschmerz beginnt';
   if(e.k==='lvl') return e.d>0 ? 'Stärker' : 'Schwächer';
-  if(e.k==='painEnd') return 'Kopfschmerz vorbei';
+  if(e.k==='painEnd') return e.sl ? 'Kopfschmerz im Schlaf vorbei' : 'Kopfschmerz vorbei';
   if(e.k==='sleepQ') return 'Schlafqualität '+e.v+'/5';
   if(e.k==='wakeN') return 'Nachts '+(['nicht','kurz','lange'][e.v-1]||'')+' wach gelegen';
   var early = new Date(e.ts).getHours()<5;
@@ -331,7 +331,7 @@ function publish(){
   /* in Pakete aufteilen (älteste zuerst), damit jede Nachricht unter der ntfy-Grenze von 4 KB bleibt */
   var enc = new TextEncoder(), chunks = [[]];
   p.slice().sort(function(a,b){ return a.ts-b.ts; }).forEach(function(e){
-    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del','ml','b','l','kd'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
+    var o = {id:e.id, ts:e.ts, u:e.u, k:e.k}; ['v','n','s','i','d','ref','del','ml','b','l','kd','sl'].forEach(function(f){ if(e[f]!=null) o[f] = e[f]; });
     var last = chunks[chunks.length-1];
     if(last.length && enc.encode(JSON.stringify({v:1, e:last.concat([o])})).length > 2800) chunks.push([o]); else last.push(o);
   });
@@ -449,6 +449,14 @@ function fuHtml(){
     '<p class="q">Wo?</p><div class="chips">'+FU_SIDE.map(function(x){ return chip('sd', x[0], cur.sd===x[0], x[1]); }).join('')+'</div>'+
     '<button class="chip" data-act="fudone" style="margin-top:14px;width:100%">Fertig</button></div>';
 }
+/* v311: Nach dem Aufwachen fragen, ob eine in der Nacht begonnene Attacke vorbei ist (Ende dann im Schlaf, Dauer wird geschätzt) */
+function sleepAskHtml(){
+  var op = openPain(); if(!op) return '';
+  var hr = new Date().getHours(), sh = new Date(op.ts).getHours();
+  if(!(hr>=4 && hr<13) || Date.now()-op.ts<5*3600000 || !(sh>=18 || sh<5) || (st.sleepAsk||{})[op.id]) return '';
+  return '<div class="card qcard"><b>Du bist aufgewacht – sind die Kopfschmerzen weg?</b><p class="hint" style="margin:2px 0 10px">Seit '+hm(op.ts)+' eingetragen. Gingen sie im Schlaf vorbei, schätzt die App, wie lange sie gedauert haben.</p>'+
+    '<div class="chips g2"><button class="chip" data-act="sleepyes">Ja, weg</button><button class="chip" data-act="sleepno">Noch da</button></div><button class="link" data-act="sleepskip" style="margin-top:6px">Weiß nicht</button></div>';
+}
 function askHtml(){
   if(ask!=='endmed') return '';
   return '<div class="card done"><b>Medikament genommen?</b><p class="hint" style="margin:2px 0 10px">Während dieser Attacke ist noch keins eingetragen.</p>'+
@@ -480,6 +488,7 @@ function render(){
       '<button class="link" data-act="tipok" style="margin-top:6px">Verstanden</button></div>';
   }
   h += askHtml() || flashHtml();
+  h += sleepAskHtml();
   h += dailyQHtml();
   h += fuHtml();
   if(op){
@@ -521,7 +530,9 @@ document.addEventListener('click', function(ev){
     if(fe0){ fe0.n = fi.value.replace(/[\s,]+$/, '').trim(); fe0.u = Date.now(); persist(); }
     fi.value = '';
   }
-  if(a==='pain') add('pain', {v:START_LEVEL}, 'pain');
+  if(a==='sleepyes'){ var sp0 = openPain(); if(sp0) add('painEnd', {ref:sp0.id, sl:1}); }
+  else if(a==='sleepno' || a==='sleepskip'){ var sp1 = openPain(); if(sp1){ st.sleepAsk[sp1.id] = Date.now(); persist(); render(); } }
+  else if(a==='pain') add('pain', {v:START_LEVEL}, 'pain');
   else if(a==='worse' && op) add('lvl', {ref:op.id, d:1});
   else if(a==='better' && op) add('lvl', {ref:op.id, d:-1});
   else if(a==='end' && op){
