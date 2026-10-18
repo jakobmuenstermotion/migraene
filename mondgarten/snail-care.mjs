@@ -1,8 +1,9 @@
-import {BEDS} from './village-content.mjs';
+import {BEDS,WORKSHOPS} from './village-content.mjs';
 export const SNAIL_TASKS = {
   workshop: "Werkstatt beliefern",
   sell: "Direkt verkaufen",
   warehouse: "Ins Lager bringen",
+  supply: "Lager → feste Werkstatt",
   rest: "Ausruhen",
 };
 export const SNAIL_NIGHT_LIGHT = 0.68;
@@ -18,6 +19,7 @@ export function normalizeSnailProfile(raw) {
     name:
       typeof raw?.name === "string" ? raw.name.trim().slice(0, 24).trim() : "",
     field: Number.isInteger(raw?.field)&&raw.field>=0&&raw.field<BEDS.length?raw.field:null,
+    workshop: WORKSHOPS.some(w=>w.id===raw?.workshop)?raw.workshop:null,
     task: Object.hasOwn(SNAIL_TASKS, raw?.task) ? raw.task : "workshop",
   };
 }
@@ -35,6 +37,7 @@ export function setSnailProfile(s, index, profile) {
     s.village.snailProfiles.push(normalizeSnailProfile());
   const normalized=normalizeSnailProfile(profile);
   if(normalized.field!==null&&!s.village.beds[normalized.field])return false;
+  if(normalized.workshop!==null&&!s.village.workshops[normalized.workshop]?.level)return false;
   s.village.snailProfiles[index] = normalized;
   return true;
 }

@@ -8,7 +8,6 @@ import { harvestingAllowed } from "./journey.mjs";
 import { BEDS, WORKSHOPS, VILLAGE, PRODUCTS } from "./village-content.mjs";
 import { WORLD } from "./content.mjs";
 import {
-  depositRaw,
   availableProducts,
   bedYield,
   bedRegrow,
@@ -25,7 +24,7 @@ import {
   ingredientDestination,
   planSupply,
   supplySourceSpot,
-  takeSupply,
+  takeSupply,planWarehouseSupply,takeWarehouseSupply,returnSupplyToWarehouse,
 } from "./logistics.mjs";
 function walk(actor, target, speed, dt) {
   const dx = target.x - actor.x,
@@ -111,15 +110,19 @@ export class GardenAutomation {
         timer: 0,
         mode: load?.mode ?? "graze",
         saleCrop: load?.saleCrop ?? null,
+        supplyWorkshop:load?.supplyWorkshop??null,
+        supplyClock:0,
       });
     }
     this.snails.length = s.village.snails;
     this.partner.visible = s.village.partner;
     for (const [i, a] of this.snails.entries()) {
       const profile = snailProfile(s, i);
-      if (a.task !== undefined && a.task !== profile.task) a.saleCrop = null;
+      if(a.task!==undefined&&a.task!==profile.task){a.saleCrop=null;a.supplyWorkshop=null;a.target=null;a.timer=0;a.supplyClock=0;a.mode=cargoCount(a)>1e-8?'deliver':'graze';}
       const field=profile.field!==null&&s.village.beds[profile.field]?profile.field:null;
       if(a.assignedField!==field){a.target=null;a.timer=0;}
+      if(a.assignedWorkshop!==undefined&&a.assignedWorkshop!==profile.workshop){a.supplyWorkshop=null;a.target=null;a.timer=0;a.supplyClock=0;}
+      a.assignedWorkshop=profile.workshop;
       a.assignedField=field;
       a.task = profile.task;
       a.name = snailName(s, i);
@@ -139,6 +142,7 @@ export class GardenAutomation {
       values: { ...a.values },
       mode: a.mode,
       saleCrop: a.saleCrop,
+      supplyWorkshop:a.supplyWorkshop,
     }));
   }
   update(s, cells, player, dt, time) {
@@ -156,17 +160,25 @@ export class GardenAutomation {
           Math.min(3, VILLAGE.snail.speed * Math.pow(1.18, v.snailLevel)) *
           helperBoost(s, "snail:" + i) * (snail.flying ? 2 : 1);
       if (snail.sleeping) continue;
+      if(snail.task==='supply'){
+        snail.target=null;snail.timer=0;snail.bag=cargoCount(snail);
+        if(snail.bag>1e-8){snail.mode='deliver';const w=WORKSHOPS.find(w=>w.id===snail.assignedWorkshop&&w.id===snail.supplyWorkshop&&v.workshops[w.id].level);
+          if(w){if(walk(snail,workshopSpot(w,'input'),speed*1.25,dt)){const count=depositWorkshopSupplies(s,w,snail);if(count)events.push({kind:'helperDelivery',x:snail.x,z:snail.z,to:{x:w.x,z:w.z},count});}}
+          else if(walk(snail,VILLAGE.warehouse,speed*1.25,dt)){const count=returnSupplyToWarehouse(s,snail);if(count)events.push({kind:'helperDelivery',x:snail.x,z:snail.z,to:{...VILLAGE.warehouse},count});}
+          snail.bag=cargoCount(snail);if(snail.bag<1e-8){snail.items={};snail.values={};snail.bag=0;snail.supplyWorkshop=null;snail.mode='supply';}continue;
+        }
+        snail.mode='supply';snail.supplyWorkshop=null;
+        if(walk(snail,VILLAGE.warehouse,speed*1.25,dt)){
+          snail.supplyClock=Math.max(0,snail.supplyClock-dt);if(snail.supplyClock>0)continue;snail.supplyClock=.5;
+          const limit=Math.min(64,VILLAGE.snail.capacity+v.snailLevel*VILLAGE.snail.capacityPerLevel),job=planWarehouseSupply(s,limit,this.snails,snail.assignedWorkshop);
+          if(job){takeWarehouseSupply(s,job);snail.items=job.items;snail.values=job.values;snail.bag=cargoCount(snail);if(snail.bag){snail.supplyWorkshop=job.workshop;snail.mode='deliver';events.push({kind:'snailSupplyPickup',x:snail.x,z:snail.z,items:{...snail.items},count:snail.bag});}}
+        }
+        continue;
+      }
       if (snail.mode === "deliver") {
         if (snail.task === "warehouse") {
           if (walk(snail, VILLAGE.warehouse, speed * 1.25, dt)) {
-            let delivered = 0;
-            for (const [id, before] of Object.entries(snail.items)) {
-              if (before <= 0) continue;
-              const count = depositRaw(s, id, before, snail.values[id]);
-              snail.items[id] -= count;
-              snail.values[id] *= 1 - count / before;
-              delivered += count;
-            }
+            const delivered=returnSupplyToWarehouse(s,snail);
             if (delivered)
               events.push({
                 kind: "helperDelivery",

@@ -4,6 +4,7 @@ export function padIcon(pad) {
     return { reach: "sickle", bag: "bag", speed: "boot", value: "coin" }[
       pad.id.slice(5)
     ];
+  if (pad.kind === "boutique") return "house";
   if (pad.kind === "hive") return "honey";
   if (pad.kind === "workshop")
     return { bouquet: "flower", tea: "cup", oil: "bottle", elixir: "potion", gifts:"crate" }[

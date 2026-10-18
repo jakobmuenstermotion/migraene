@@ -1,3 +1,4 @@
+import {takeStoredGood} from './warehouse-stock.mjs';
 import {
   HIVES,
   HONEY_VALUE_MULTIPLIER,
@@ -112,7 +113,7 @@ export function honeyCount(s, id = null, source = "all") {
     (sum, h) =>
       sum +
       (source !== "storage" ? (s.productCargo.items[h.honey] ?? 0) : 0) +
-      (source !== "carried" ? (s.village.finished[h.honey] ?? 0) : 0),
+      (source !== "carried" ? (s.village.finished[h.honey] ?? 0)+(s.village.storedGoods?.[h.honey]?.count??0) : 0),
     0,
   );
 }
@@ -135,6 +136,7 @@ export function takeHoney(s, count, id = null, source = "all") {
         value += cost;
       }
     }
+  if(source!=='carried'&&count>0)for(const h of HIVES.filter(h=>!id||h.honey===id)){const batch=takeStoredGood(s.village,h.honey,count);count-=batch.count;value+=batch.value;}
   return value;
 }
 export function storeHoney(s) {

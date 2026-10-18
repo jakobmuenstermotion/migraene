@@ -1,6 +1,7 @@
+import {takeStoredGood} from './warehouse-stock.mjs';
 import { HIVES } from "./honey-content.mjs";
 import { honeyCount, takeHoney } from "./apiary.mjs";
-import { availableProducts } from "./village.mjs";
+import { availableProducts,availableStoredProducts } from "./village.mjs";
 import { credit } from "./money.mjs";
 export const SNAILS = [
   { id: "garden", name: "Gartenschnecke", color: "#d4b38b", round: 18 },
@@ -314,7 +315,7 @@ export function foodIngredientCount(s, id) {
     return honeyCount(s, id === "honey" ? null : id);
   return productIDs.has(id)
     ? (s.productCargo?.items?.[id] ?? 0) +
-        availableProducts(s, id, true, { forFarm: true })
+        (availableProducts(s, id, true, { forFarm: true })+availableStoredProducts(s,id,{forFarm:true}))
     : rawCount(s, id);
 }
 function takeFoodIngredient(s, id, count) {
@@ -331,13 +332,7 @@ function takeFoodIngredient(s, id, count) {
     cargo.values[id] -= value;
     count -= carried;
   }
-  if (count) {
-    const v = s.village,
-      cost = ((v.finishedValues[id] ?? 0) * count) / v.finished[id];
-    v.finished[id] -= count;
-    v.finishedValues[id] -= cost;
-    value += cost;
-  }
+  if(count){const v=s.village,n=Math.min(count,availableProducts(s,id,true,{forFarm:true}));if(n){const cost=(v.finishedValues[id]??0)*n/v.finished[id];v.finished[id]-=n;v.finishedValues[id]-=cost;value+=cost;count-=n;}if(count)value+=takeStoredGood(v,id,count).value;}
   return value;
 }
 export function kitchenEmpty(k) {
@@ -369,7 +364,7 @@ export function kitchenIngredientCount(s, id, source = "all") {
       : (s.cargo?.[id]?.count ?? 0);
   if (source === "storage")
     return productIDs.has(id)
-      ? availableProducts(s, id, true, { forFarm: true })
+      ? (availableProducts(s, id, true, { forFarm: true })+availableStoredProducts(s,id,{forFarm:true}))
       : (s.village.raw[id] ?? 0);
   return foodIngredientCount(s, id);
 }
@@ -378,6 +373,7 @@ function takeKitchenIngredient(s, id, count, source) {
   if (id === "honey" || HIVES.some((h) => h.honey === id))
     return takeHoney(s, count, id === "honey" ? null : id, source);
   if (source === "all") return takeFoodIngredient(s, id, count);
+  if(source==='storage'&&productIDs.has(id)){const v=s.village,n=Math.min(count,availableProducts(s,id,true,{forFarm:true}));let value=0;if(n){value=(v.finishedValues[id]??0)*n/v.finished[id];v.finished[id]-=n;v.finishedValues[id]-=value;}return value+takeStoredGood(v,id,count-n).value;}
   if (source === "storage") {
     const v = s.village,
       quantities = productIDs.has(id) ? v.finished : v.raw,

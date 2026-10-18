@@ -50,13 +50,13 @@ test("snail profiles survive saving, old saves default to workshop work, and inv
   assert.equal(snailProfile(s, 0).task, "workshop");
   setSnailProfile(s, 0, { name: "Flitzi", task: "warehouse" });
   s = normalize(JSON.parse(JSON.stringify(s)));
-  assert.deepEqual(snailProfile(s, 0), { name: "Flitzi", task: "warehouse", field:null });
+  assert.deepEqual(snailProfile(s, 0), { name: "Flitzi", task: "warehouse", field:null, workshop:null });
   assert.equal(s.village.snailProfiles.length, 1);
   delete s.village.snailProfiles;
   assert.deepEqual(snailProfile(normalize(s), 0), {
     name: "",
     task: "workshop",
-    field:null,
+    field:null, workshop:null,
   });
 });
 

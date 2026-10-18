@@ -51,6 +51,7 @@ export function dayPrice(s){if(s.journey.goalCost>0)return s.journey.goalCost;re
 export function buildRule(id){
   if(id.startsWith('expand:'))return{start:[1,12,47,36,25,59,68][Number(id.slice(7))],stride:0,max:8};
   if(id.startsWith('hive:'))return{start:HIVES[Number(id.slice(5))].round,stride:1,max:1};
+  if(id==='boutique:style')return{start:12,stride:0,max:1};
   if(id==='composter')return{start:12,stride:1,max:1};
   if(id==='bus')return{start:77,stride:1,max:1};
   if(id==='endDay')return{start:1,stride:1,max:10001};

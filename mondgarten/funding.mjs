@@ -1,9 +1,9 @@
-import {WORKSHOPS} from './village-content.mjs';
+import {PRODUCTS} from './village-content.mjs';
 const sum=o=>Object.values(o??{}).reduce((a,b)=>a+b,0);
 // The daily quote guides prices and goals; it no longer caps harvest income.
 export function materialHarvestRemaining(){return Infinity;}
 export function neededMaterials(s){const need={};for(const step of s.journey.plan?.materials??[])if(step.level>=s.village.house)for(const [id,n]of Object.entries(step.items))need[id]=(need[id]??0)+n;return need;}
-export function liquidFunds(s){const v=s.village,need=neededMaterials(s);let value=s.coins+s.bagValue+sum(s.productCargo?.values)+sum(v.rawValues)+Object.values(v.workshops).reduce((a,m)=>a+(m.running?m.outputValue:0)+sum(m.inputValues),0)+sum(v.hauler.values)+sum(v.woodcock?.cargo?.values)+(v.snailLoads??[]).reduce((a,l)=>a+sum(l.values),0);for(const [id,total]of Object.entries(v.finishedValues)){const count=v.finished[id]??0;value+=count?total*Math.max(0,count-Math.max(need[id]??0,v.workshops.elixir.level&&['tea','oil'].includes(id)?2:0))/count:0;}return value;}
+export function liquidFunds(s){const v=s.village,need=neededMaterials(s);let value=Object.entries(v.storedGoods??{}).reduce((n,[id,e])=>n+(PRODUCTS[id]?e.value:0),0)+s.coins+s.bagValue+sum(s.productCargo?.values)+sum(v.rawValues)+Object.values(v.workshops).reduce((a,m)=>a+(m.running?m.outputValue:0)+sum(m.inputValues),0)+sum(v.hauler.values)+sum(v.woodcock?.cargo?.values)+(v.snailLoads??[]).reduce((a,l)=>a+sum(l.values),0);for(const [id,total]of Object.entries(v.finishedValues)){const count=v.finished[id]??0;value+=count?total*Math.max(0,count-Math.max(need[id]??0,v.workshops.elixir.level&&['tea','oil'].includes(id)?2:0))/count:0;}return value;}
 export function fundingProgress(s){const p=s.journey.plan;return p?Math.min(1,(liquidFunds(s)+p.spent)/Math.max(1,p.target)):0;}
 export function materialsReady(s){return Object.entries(neededMaterials(s)).every(([id,n])=>(s.village.finished[id]??0)>=n);}
 export function funded(s){return !!s.journey.plan&&fundingProgress(s)>=1&&materialsReady(s);}

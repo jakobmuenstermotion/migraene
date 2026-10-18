@@ -106,7 +106,7 @@ test("a large cosmetic savings goal preserves partial payments over earned days 
   assert.equal(s.village.boutiques.payments.decor, undefined);
 });
 
-test("accessories open before farm decorations without repricing existing savings or removing old ownership", () => {
+test("accessories open before decorations at the new fixed building price while keeping previous ownership", () => {
   let s = freshState();
   s.coins = 1e7;
   s.journey.round = 11;
@@ -123,8 +123,8 @@ test("accessories open before farm decorations without repricing existing saving
   assert.equal(contributeCosmetic(s, "decor", 1e7).complete, true);
   assert.equal(contributeCosmetic(s, "lanterns", 100).paid, 100);
 
-  // Moving a shop's opening must not lower the price below a saved deposit.
-  assert.equal(cosmeticPrice("style"), 790298);
+  // Only the explicitly repriced accessories building changes; decor keeps its total.
+  assert.equal(cosmeticPrice("style"), 49000);
   assert.equal(cosmeticPrice("decor"), 276952);
   s = freshState();
   s.journey.round = 12;
@@ -134,10 +134,10 @@ test("accessories open before farm decorations without repricing existing saving
   s = normalize(JSON.parse(JSON.stringify(s)));
   assert.ok(s.village.boutiques.built.includes("decor"));
   assert.ok(s.village.boutiques.owned.includes("lanterns"));
-  assert.equal(s.village.boutiques.payments.style, 700000);
+  assert.equal(s.village.boutiques.payments.style, 49000);
   s.coins = 90298;
-  assert.equal(contributeCosmetic(s, "style", 90298).complete, true);
-  assert.equal(s.coins, 0);
+  assert.equal(payBuild(s, getBuildPads(s, TOOLS).find(p=>p.id==="boutique:style"), 1).complete, true);
+  assert.equal(s.coins, 90298);
 });
 
 test("snail eyes are available after shop construction, preserve instalments, and equip independently", () => {
