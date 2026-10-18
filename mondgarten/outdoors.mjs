@@ -1,10 +1,14 @@
+import {ECONOMY} from './economy.mjs';
 import {credit} from './money.mjs';
 export const OUTDOOR_TOOLS=[
- {id:'detector',name:'Metalldetektor',cost:1800,description:'Entdeckt Kleinfunde, gelegentlich Schrottteile für Schneckis Haus und zwei einmalige Schneckenhäuser. Ausrüsten und auf das Signal achten.'},
+ {id:'detector',name:'Metalldetektor',cost:10000,description:'Entdeckt Kleinfunde, gelegentlich Schrottteile für Schneckis Haus und zwei einmalige Schneckenhäuser. Ausrüsten und auf das Signal achten.'},
  {id:'rod',name:'Angel',cost:2400,description:'Am Gartensee angeln. Den Marker mit dem Angelknopf im grünen Bereich halten.'},
 ];
+export function outdoorToolPrice(s,id){const t=OUTDOOR_TOOLS.find(t=>t.id===id);if(!t)return Infinity;if(id!=='detector')return t.cost;const tier=Math.max(0,Math.min(15,Math.floor(((s.journey.round??1)-2)/5))),round=2+tier*5;return Math.max(t.cost,Math.ceil(1000*1.55**tier*ECONOMY.costGrowth**(round-1)));}
+export const FINDS=[{id:'coin',name:'Alte Münze',icon:'◉'},{id:'button',name:'Blütenknopf',icon:'✿'},{id:'buckle',name:'Alte Schnalle',icon:'▱'},{id:'medal',name:'Gartenplakette',icon:'✦'}];
+export const FISH_MOTIONS={silver:{speed:1,amplitude:.14,band:.2,hint:'Zieht ruhig'},perch:{speed:1.8,amplitude:.23,band:.18,hint:'Wechselt flink die Richtung'},carp:{speed:.7,amplitude:.3,band:.18,hint:'Zieht in weiten Bögen'},blue:{speed:2.3,amplitude:.18,band:.16,hint:'Macht kurze, schnelle Haken'}};
 export const COMPOST_WORKSHOP={name:'Düngerwerkstatt',round:12,cost:2000,x:14,z:-19,pad:{x:14,z:-22},output:{x:15.8,z:-17.5}};
-export const LAKE={x:-23,z:11,shore:{x:-23,z:8.5}};
+export const LAKE={x:-21.5,z:11,width:7.2,depth:5,shore:{x:-21.5,z:10.4},dock:{x:-21.5,z:9.4,width:1.65,depth:3}};
 export const BURIED_SHELLS=[{id:'shell-garden',species:'garden',name:'Gartenschneckenhaus',x:-30,z:-10},{id:'shell-dew',species:'dew',name:'Tauschneckenhaus',x:-25,z:-11}];
 export const FISH=[{id:'silver',name:'Silberflosse',color:'#c5dce2',value:12},{id:'perch',name:'Sonnenbarsch',color:'#e7bf70',value:16},{id:'carp',name:'Mondkarpfen',color:'#baa3d6',value:22},{id:'blue',name:'Sternenforelle',color:'#85becb',value:30}];
 export const SCRAP_CHANCE=.25,SCRAP_PITY=4;
@@ -12,21 +16,22 @@ export const FERTILIZER_SECONDS=180,FERTILIZER_RADIUS=2.2;
 const flowers=['moonbloom','lavender','coral','sunbloom'];
 const num=(v,f=0,max=1e100)=>Number.isFinite(v)&&v>=0?Math.min(v,max):f;
 const active=s=>!s.journey.asleep&&s.journey.round>0;
-export function freshOutdoors(){return{owned:[],equipped:null,harvestMode:'scythe',composterBuilt:false,clock:0,treasures:0,treasureValue:0,scrap:0,scrapMisses:0,findWait:90,site:null,dug:[],dig:0,fish:{},fishValues:{},compost:{remaining:0,portions:0,ready:0},fertilizer:0,patches:[],fishing:null};}
+export function freshOutdoors(){return{owned:[],equipped:null,harvestMode:'scythe',composterBuilt:false,clock:0,treasures:0,treasureValue:0,scrap:0,scrapMisses:0,findWait:90,site:null,dug:[],dig:0,fish:{},fishValues:{},compost:{remaining:0,portions:0,ready:0},fertilizer:0,patches:[],fishing:null,findsFound:[],fishFound:[]};}
 export function normalizeOutdoors(raw){
  const o=freshOutdoors();o.owned=OUTDOOR_TOOLS.filter(t=>Array.isArray(raw?.owned)&&raw.owned.includes(t.id)).map(t=>t.id);o.equipped=o.owned.includes(raw?.equipped)?raw.equipped:null;
  o.composterBuilt=raw?.composterBuilt===true||raw?.owned?.includes?.('sprayer')===true;
  o.treasures=Math.floor(num(raw?.treasures,0,1000));o.treasureValue=o.treasures?num(raw?.treasureValue):0;
  o.scrap=Math.floor(num(raw?.scrap,0,1000));o.scrapMisses=Math.floor(num(raw?.scrapMisses,0,SCRAP_PITY-1));
  o.clock=num(raw?.clock);o.findWait=num(raw?.findWait,90,180);o.dug=BURIED_SHELLS.filter(p=>raw?.dug?.includes?.(p.id)).map(p=>p.id);
- if(raw?.site&&Number.isFinite(raw.site.x)&&Number.isFinite(raw.site.z)&&Math.abs(raw.site.x)<=34&&Math.abs(raw.site.z)<=34)o.site={id:'treasure',x:raw.site.x,z:raw.site.z,value:num(raw.site.value)};
+ if(raw?.site&&Number.isFinite(raw.site.x)&&Number.isFinite(raw.site.z)&&Math.abs(raw.site.x)<=34&&Math.abs(raw.site.z)<=34)o.site={id:'treasure',x:raw.site.x,z:raw.site.z,value:num(raw.site.value),findKind:FINDS.some(f=>f.id===raw.site.findKind)?raw.site.findKind:'coin'};
  for(const f of FISH){o.fish[f.id]=Math.floor(num(raw?.fish?.[f.id],0,1000));o.fishValues[f.id]=o.fish[f.id]?num(raw?.fishValues?.[f.id]):0;}
+ o.findsFound=FINDS.filter(f=>raw?.findsFound?.includes?.(f.id)).map(f=>f.id);o.fishFound=FISH.filter(f=>raw?.fishFound?.includes?.(f.id)||(o.fish[f.id]??0)>0).map(f=>f.id);
  o.harvestMode=(raw?.harvestMode==='fertilizer'||raw?.equipped==='sprayer')&&num(raw?.fertilizer)>0?'fertilizer':'scythe';if(o.harvestMode==='fertilizer')o.equipped=null;
  o.fertilizer=Math.floor(num(raw?.fertilizer,0,99));o.compost.remaining=num(raw?.compost?.remaining,0,60);o.compost.portions=o.compost.remaining?3:0;o.compost.ready=Math.floor(num(raw?.compost?.ready,0,24));
  o.patches=(Array.isArray(raw?.patches)?raw.patches:[]).slice(-20).filter(p=>Number.isFinite(p?.x)&&Number.isFinite(p?.z)&&Math.abs(p.x)<=34&&Math.abs(p.z)<=34&&Number.isInteger(p.bed)&&p.bed>=0&&p.bed<7&&Number.isFinite(p.until)&&p.until>o.clock&&p.until<=o.clock+FERTILIZER_SECONDS).map(p=>({x:p.x,z:p.z,bed:p.bed,until:p.until}));
  return o;
 }
-export function buyOutdoorTool(s,id){const t=OUTDOOR_TOOLS.find(t=>t.id===id);if(!t||!active(s)||!s.village.boutiques.built.includes('style')||s.outdoors.owned.includes(id)||s.coins<t.cost)return false;s.coins-=t.cost;if(s.journey.plan)s.journey.plan.spent+=t.cost;s.outdoors.owned.push(id);return true;}
+export function buyOutdoorTool(s,id){const t=OUTDOOR_TOOLS.find(t=>t.id===id);if(!t||!active(s)||!s.village.boutiques.built.includes('style')||s.outdoors.owned.includes(id)||s.coins<outdoorToolPrice(s,id))return false;s.coins-=outdoorToolPrice(s,id);if(s.journey.plan)s.journey.plan.spent+=outdoorToolPrice(s,id);s.outdoors.owned.push(id);return true;}
 export function equipOutdoorTool(s,id){if(id!==null&&!s.outdoors.owned.includes(id))return false;s.outdoors.equipped=id;s.outdoors.harvestMode='scythe';s.outdoors.dig=0;s.outdoors.fishing=null;return true;}
 export function setHarvestMode(s,mode){
  if(!active(s)||!['scythe','fertilizer'].includes(mode)||mode==='fertilizer'&&s.outdoors.fertilizer<=0)return false;
@@ -55,21 +60,21 @@ export function advanceOutdoors(s,cells,player,dt,growthDelta=0,time=0,valueForB
  if(o.compost.remaining>0){o.compost.remaining=Math.max(0,o.compost.remaining-dt);if(o.compost.remaining===0){o.compost.ready+=o.compost.portions;o.compost.portions=0;events.push({kind:'compost'});}}
  if(o.equipped!=='detector'){o.dig=0;return events;}
  o.findWait=Math.max(0,o.findWait-dt);
- if(!o.site&&o.findWait===0){const choices=cells.filter(c=>flowers.includes(c.crop)&&Math.hypot(c.x-player.x,c.z-player.z)<12);if(choices.length){const c=choices[Math.min(choices.length-1,Math.floor(random()*choices.length))];o.site={id:'treasure',x:c.x,z:c.z,value:Math.max(1,valueForBed(c.bed))*8};}}
+ if(!o.site&&o.findWait===0){const choices=cells.filter(c=>flowers.includes(c.crop)&&Math.hypot(c.x-player.x,c.z-player.z)<12);if(choices.length){const c=choices[Math.min(choices.length-1,Math.floor(random()*choices.length))];o.site={id:'treasure',x:c.x,z:c.z,value:Math.max(1,valueForBed(c.bed))*8,findKind:FINDS[Math.min(FINDS.length-1,Math.floor(random()*FINDS.length))].id};}}
  const target=detectorTarget(s,player);
  if(!target||player.moving||Math.hypot(target.x-player.x,target.z-player.z)>.9){o.dig=0;return events;}
  if(target.species&&Object.values(s.village.farm.shells).reduce((a,b)=>a+b,0)>=30){o.dig=0;return events;}
  o.dig+=dt;if(o.dig<2)return events;o.dig=0;
  if(target.species){o.dug.push(target.id);const f=s.village.farm;f.shells[target.species]=(f.shells[target.species]??0)+1;if(!f.discovered.includes(target.species))f.discovered.push(target.species);events.push({kind:'buriedShell',...target});}
- else{const scrap=o.scrapMisses>=SCRAP_PITY-1||random()<SCRAP_CHANCE?1:0;o.scrap=Math.min(1000,o.scrap+scrap);o.scrapMisses=scrap?0:o.scrapMisses+1;events.push({kind:'treasure',...target,scrap});o.site=null;o.findWait=90+random()*90;o.treasureValue=(o.treasureValue??0)+target.value;o.treasures=(o.treasures??0)+1;}
+ else{const scrap=o.scrapMisses>=SCRAP_PITY-1||random()<SCRAP_CHANCE?1:0;o.scrap=Math.min(1000,o.scrap+scrap);o.scrapMisses=scrap?0:o.scrapMisses+1;const find=FINDS.find(f=>f.id===target.findKind)??FINDS[0];if(!o.findsFound.includes(find.id))o.findsFound.push(find.id);events.push({kind:'treasure',...target,scrap,find});o.site=null;o.findWait=90+random()*90;o.treasureValue=(o.treasureValue??0)+target.value;o.treasures=(o.treasures??0)+1;}
  return events;
 }
 export function sellOutdoorGoods(s){const o=s.outdoors;let count=o.treasures??0,value=o.treasureValue??0;o.treasures=0;o.treasureValue=0;for(const f of FISH){count+=o.fish[f.id]??0;value+=o.fishValues[f.id]??0;o.fish[f.id]=0;o.fishValues[f.id]=0;}credit(s,value);return{count,value};}
-export function startFishing(s,player,valueMultiplier=1,random=Math.random){const o=s.outdoors;if(!active(s)||o.equipped!=='rod'||Math.hypot(player.x-LAKE.shore.x,player.z-LAKE.shore.z)>3||o.fishing||Object.values(o.fish).reduce((a,b)=>a+b,0)>=100)return false;o.fishing={phase:'waiting',wait:2+random()*3,elapsed:0,marker:.35,target:.5,progress:.15,valueMultiplier:num(valueMultiplier,1)};return true;}
+export function startFishing(s,player,valueMultiplier=1,random=Math.random){const o=s.outdoors;if(!active(s)||o.equipped!=='rod'||Math.hypot(player.x-LAKE.shore.x,player.z-LAKE.shore.z)>3||o.fishing||Object.values(o.fish).reduce((a,b)=>a+b,0)>=100)return false;o.fishing={phase:'waiting',wait:2+random()*3,elapsed:0,marker:.35,target:.5,progress:.25,fishId:FISH[Math.min(3,Math.floor(random()*4))].id,valueMultiplier:num(valueMultiplier,1)};return true;}
 export function advanceFishing(s,dt,holding=false,random=Math.random){const f=s.outdoors.fishing;if(!f||!active(s)||dt<=0)return null;
  if(f.phase==='waiting'){f.wait-=dt;if(f.wait<=0)f.phase='catch';return null;}
- f.elapsed+=dt;f.marker=Math.max(0,Math.min(1,f.marker+(holding?.65:-.4)*dt));f.target=.5+Math.sin(f.elapsed*1.6)*.22;
- f.progress=Math.max(0,Math.min(1,f.progress+(Math.abs(f.marker-f.target)<.18?.32:-.15)*dt));
- if(f.progress>=1){const fish=FISH[Math.min(3,Math.floor(random()*4))];s.outdoors.fish[fish.id]=(s.outdoors.fish[fish.id]??0)+1;s.outdoors.fishValues[fish.id]=(s.outdoors.fishValues[fish.id]??0)+fish.value*f.valueMultiplier;s.outdoors.fishing=null;return{kind:'fish',fish};}
+ const fish=FISH.find(p=>p.id===f.fishId)??FISH[0],motion=FISH_MOTIONS[fish.id];f.elapsed+=dt;f.marker=Math.max(0,Math.min(1,f.marker+(holding?.65:-.4)*dt));f.target=.5+Math.sin(f.elapsed*motion.speed)*motion.amplitude+(fish.id==='blue'?Math.sin(f.elapsed*5)*.05:0);
+ f.progress=Math.max(0,Math.min(1,f.progress+(Math.abs(f.marker-f.target)<motion.band?.32:f.elapsed<.8?0:-.15)*dt));
+ if(f.progress>=1){if(!s.outdoors.fishFound.includes(fish.id))s.outdoors.fishFound.push(fish.id);s.outdoors.fish[fish.id]=(s.outdoors.fish[fish.id]??0)+1;s.outdoors.fishValues[fish.id]=(s.outdoors.fishValues[fish.id]??0)+fish.value*f.valueMultiplier;s.outdoors.fishing=null;return{kind:'fish',fish};}
  if(f.elapsed>=18||f.progress<=0){s.outdoors.fishing=null;return{kind:'escaped'};}return null;
 }

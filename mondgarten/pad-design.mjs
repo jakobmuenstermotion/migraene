@@ -6,7 +6,7 @@ export function padIcon(pad) {
     ];
   if (pad.kind === "hive") return "honey";
   if (pad.kind === "workshop")
-    return { bouquet: "flower", tea: "cup", oil: "bottle", elixir: "potion" }[
+    return { bouquet: "flower", tea: "cup", oil: "bottle", elixir: "potion", gifts:"crate" }[
       pad.id.slice(9)
     ];
   if (pad.kind === "seed") return "seed";

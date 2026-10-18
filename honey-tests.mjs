@@ -298,7 +298,7 @@ test("late honey apples use the existing tea workshop, consume real honey and fr
   s = normalize(JSON.parse(JSON.stringify(s)));
   advanceHoneyApples(s, 100);
   assert.equal(s.village.finished.honeyapple, 1);
-  near(s.village.finishedValues.honeyapple, 72);
+  near(s.village.finishedValues.honeyapple, 120);
   advanceHoneyApples(s, 1000);
   assert.equal(s.village.finished.honeyapple, 1);
   assert.equal(s.village.finished.moonHoney, 2);

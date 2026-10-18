@@ -316,9 +316,9 @@ Das Lager steht bei (-11, 0), mit Kaufpunkt (-7, 3), außerhalb aller vollständ
 
 Am Tagesende erscheint ab der ersten gebauten Werkstatt zusätzlich zur Wartezeit-Frage die Frage „Wie viel Geld bringen die in den Werkstätten hergestellten Waren beim Verkauf?“. Ihr Regler reicht von „Viel zu wenig Geld“ über „Genau richtig“ bis „Viel zu viel Geld“. Die Antwort wird separat als `workshopValue` in der lokalen Feedbackhistorie gespeichert und bleibt beim Laden erhalten. Sie verändert keine Preise, Bestandswerte oder Produktionszeiten. Ältere Antworten ohne diesen Wert bleiben gültig.
 
-### Abgestimmte Rezeptidee: Mondgarten-Geschenkbox
+### Mondgarten-Geschenkwerkstatt
 
-Für die vorgeschlagene, noch nicht eingebaute Geschenkwerkstatt gilt jetzt ein Aufschlag von **100 Prozent** statt 50 Prozent: Verkaufswert = 2 × Summe der tatsächlichen Werte aller eingesetzten Zutaten (Lavendel, Mondstrauß und Honig). Die vorgeschlagene Grundzeit bleibt 30 Sekunden. Bestehende Werkstattrezepte ändern sich dadurch nicht.
+Die freiwillige Geschenkwerkstatt ist ab Runde 16 nach der Sternenteeküche verfügbar. Ihr Rezept besteht aus acht Lavendel, einem Mondstrauß und einem Honig beliebiger Sorte. Neue Geschenkboxen erhalten **+400 Prozent Aufschlag**, also den fünffachen tatsächlichen Wert der eingesetzten Zutaten. Die Herstellung dauert mindestens 180 aktive Sekunden; weder Werkstattstufen noch adaptive Wartezeitverkürzungen unterschreiten diese Grenze. Verbesserungen erhöhen weiterhin den Aufschlag. Gelagerter Honig wird sichtbar aus dem Lager zur Werkstatt transportiert; Honig an den Bienenkörben wird nicht aus der Ferne abgezogen. Die Werkstatt gehört weder zur täglichen Pflichtquote noch zu den Voraussetzungen der späteren Haltestelle.
 
 ### Morgenreife, Leuchtblüten und Eingabeunterbrechungen
 
@@ -357,3 +357,27 @@ Bei einem normalen, vollständig ausgegrabenen Metalldetektor-Fund gibt es mit 2
 Der Lichtwert folgt ausschließlich aktiver Spielzeit: `smoothstep((elapsed - 240) / 360)`, begrenzt auf 0 bis 1. Bis Minute vier bleibt es Tag, bei Minute sieben ist die Kurve halb durchlaufen, bei Minute zehn ist es volle Nacht. Ein früher Kauf der Tagesbelohnung verändert den Lichtverlauf nicht. Menüs und Abwesenheit treiben ihn nicht voran. Der Schlafübergang setzt den Lichtwert vor dem Speichern auf 1; der nächste verdiente Morgen startet wieder bei 0. Umgebungslicht und Sonne werden nachts deutlich schwächer; Laternen und Orientierung bleiben sichtbar. Die zehn Minuten aktive Tagesdauer und Wachstumsregeln bleiben bestehen.
 
 Die vom Nutzer separat veröffentlichten Änderungen an `begleiter.html` und `sw.js` aus Commit `538dcfe` wurden vor diesen Anpassungen übernommen. Begleiter bleibt bytegenau auf diesem Stand; im Service Worker werden nur die generierte Cache-Version und Dateiliste erneuert.
+
+### Werkstattwerte und sichtbare Zustände
+
+Neu gestartete Produktion in sämtlichen verkäuflichen Werkstattrezepten einschließlich Honigäpfeln hat mindestens 100 Prozent Aufschlag auf die tatsächlichen Zutatenwerte. Für Geschenkboxen gelten die oben beschriebenen 400 Prozent. Eingelagerte Waren und bereits gestartete Chargen behalten ihre gespeicherten Werte. Rezeptkarten zeigen Zutatenwert, Verkaufswert, Mehrerlös, Aufschlag und aktuelle Herstellungszeit. Eine Vorschau ohne vollständige lokale Zutaten wird ausdrücklich als solche beschriftet. Die fünf Werkstätten haben eigene Arbeitsbewegungen und Schilder für wartend, produzierend, abholbereit, vollen Abholstapel und Nachtruhe. Zustandsschilder erzeugen neue Texturen nur bei Zustandswechseln; alte Texturen werden entsorgt.
+
+### Erntespuren, seltene Falter und Entdeckungsbuch
+
+Zusammenhängendes Blumenernten meldet bei zehn, zwanzig und dreißig Pflanzen kleine Erntemomente. Unterbrechungen, große Distanzen und Sortenwechsel beginnen eine neue Spur; Erntemengen und Rohstoffwerte werden dadurch nicht verändert. Falter erscheinen weiterhin frühestens nach 600 aktiven Sekunden und ausreichender Blumenernte. Nach zwei doppelten Entdeckungen wird die nächste sonst doppelte Art durch eine fehlende ersetzt. Fortschritt und Doppelzähler bleiben gespeichert, das einmalige Flügelpaar bleibt einmalig. Falter fliegen beim Sammeln zur Spielfigur; eine farbige Fundkarte öffnet die Sammlung. Sammlung und Flügelzuweisung sind direkt aus Gartenmenü, Erinnerungsbuch und Schneckenverwaltung erreichbar.
+
+Vier Fischarten haben unterschiedliche Bewegungsmuster im Angelspiel und vier Detektor-Kleinfundarten eigene Namen und Symbole. Bereits entdeckte Arten bleiben nach Verkauf im Entdeckungsbuch sichtbar. Vorhandene Fischwerte, Detektor-Grundwerte und Schrottgarantie bleiben erhalten. Der Detektor wird ausschließlich im fertig gebauten Accessoiresladen gekauft und kostet mindestens 10.000 Sternenstaub; später orientiert sich sein Preis an einer aktuellen Geschwindigkeitsverbesserung. Die Angel kostet weiterhin 2.400 Sternenstaub.
+
+### Läden, größerer Teich und Abendstimmung
+
+Faden & Blüte erscheint ab Gartenrunde 12, Gartenglück ab Runde 20, nördlich des Mondblumenbeets. Beide benötigen weiterhin ihre Finanzierung. Deutlichere Namens- und Sortimentsschilder kennzeichnen auch unbebaute Plätze. Im Ladenmenü zeigen Standorttext und Wegknopf den jeweiligen Laden; vor seiner Freischaltung wird der spätere Erscheinungszeitpunkt genannt. Dekorationen bleiben an ihren festen Plätzen.
+
+Der Teich misst nun 7,2 × 5 Meter und liegt etwas weiter östlich bei (-21,5, 11). Ein drei Meter langer Holzsteg führt vom Nordufer aufs Wasser; der Angel-Zielpunkt liegt auf seinen Planken. Teich, Steg und die vollständig gebaute spätere Bushaltestelle einschließlich Schild sind in der Platzprüfung berücksichtigt. Nur der Steg überschneidet sich absichtlich mit dem Wasser. Am Abend werden Hausfenster warm, höchstens acht Glühwürmchen sichtbar und die Gartengeräusche leiser. Schlafende Schnecken atmen leicht; reduzierte Bewegung berücksichtigt die zusätzlichen Effekte.
+
+Ein Auftragsbrett ist auf Nutzerwunsch nicht Bestandteil dieser Änderungen.
+
+### Prüfung dieser Verfeinerungen
+
+Alle 28 Testdateien bestehen mit `node --test *tests.mjs`. Neue Tests prüfen tatsächliche Rezeptwerte, mindestens drei Minuten Geschenkproduktion auch mit schnellsten Verbesserungen, alle Honigsorten, lokale Transporte, gespeicherte und laufende Warenwerte, optionale Freischaltung und Werkzeugkäufe. Weitere Tests spielen sämtliche Fischarten über die echten Eingaberegeln durch und prüfen Entdeckungsbücher, seltene Falter, einmalige Flügel, Three.js-Zustände und Animationsbudgets. Layouttests prüfen sämtliche maximalen Beete, Wege, Gebäude und Kaufbereiche; zusätzliche Geometrietests prüfen den verbundenen Steg und die Sichtbarkeit der Läden ab ihren Freischaltrunden.
+
+Je ein Durchlauf über alle 77 Gartentage mit manueller Ernte beziehungsweise Helferschnecken erreichte jede Tagesbelohnung: längster Tag 267,5 beziehungsweise 238,5 aktive Sekunden. Diese Durchläufe prüfen die Tagesprogression; freiwillige Geschenkproduktion, Detektor-Sammelaufgaben und Ladenfinanzierung werden separat geprüft. Build und Service-Worker-Cache wurden erneuert. Ein Sicht- und Spieltest auf einem echten iPhone steht weiterhin aus.

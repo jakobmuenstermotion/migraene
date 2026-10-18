@@ -9,7 +9,7 @@ import {TOOLS} from './mondgarten/core.mjs';
 import {BURIED_SHELLS,OUTDOOR_TOOLS,LAKE,buyOutdoorTool,equipOutdoorTool,advanceOutdoors,detectorTarget,sellOutdoorGoods,startCompost,sprayFertilizer,fertilized,fertilizerValue,startFishing,advanceFishing,setHarvestMode,collectFertilizer,COMPOST_WORKSHOP} from './mondgarten/outdoors.mjs';
 function ready(){const s=freshState();s.journey.round=25;s.village.boutiques.built=['style'];s.outdoors.owned=OUTDOOR_TOOLS.map(t=>t.id);s.outdoors.composterBuilt=true;return s;}
 test('tools are purchased only once in the built accessories store and persist separately from clothing',()=>{
- const s=freshState();s.coins=10000;assert.equal(buyOutdoorTool(s,'detector'),false);s.village.boutiques.built=['style'];assert.equal(buyOutdoorTool(s,'detector'),true);assert.equal(s.coins,8200);assert.equal(buyOutdoorTool(s,'detector'),false);assert.equal(equipOutdoorTool(s,'rod'),false);assert.equal(equipOutdoorTool(s,'detector'),true);
+ const s=freshState();s.coins=10000;assert.equal(buyOutdoorTool(s,'detector'),false);s.village.boutiques.built=['style'];assert.equal(buyOutdoorTool(s,'detector'),true);assert.equal(s.coins,0);assert.equal(buyOutdoorTool(s,'detector'),false);assert.equal(equipOutdoorTool(s,'rod'),false);assert.equal(equipOutdoorTool(s,'detector'),true);
  const loaded=normalize(JSON.parse(JSON.stringify(s)));assert.deepEqual(loaded.outdoors.owned,['detector']);assert.equal(loaded.outdoors.equipped,'detector');assert.deepEqual(loaded.village.boutiques.owned,[]);
  const old=structuredClone(s);delete old.outdoors;assert.deepEqual(normalize(old).outdoors.owned,[]);
 });

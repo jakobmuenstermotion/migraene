@@ -150,7 +150,7 @@ test('alternative and compound recipes consume real local supplies', () => {
   s.bagValue = 60;
   assert.equal(deliverWorkshop(s, w).count, 8);
   advanceProduction(s, 100);
-  near(s.village.finishedValues.elixir, 132);
+  near(s.village.finishedValues.elixir, 220);
   assert.equal(productCargoCount(s), 0);
 });
 

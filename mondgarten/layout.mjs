@@ -28,7 +28,9 @@ export const BUILDING_FOOTPRINTS=[
  {id:'kitchen',x:VILLAGE.farm.x+FARM_PLACES.kitchen[0],z:VILLAGE.farm.z+FARM_PLACES.kitchen[1],width:2.85,depth:2.4},
  {id:'sprinkler',x:VILLAGE.sprinkler.x,z:VILLAGE.sprinkler.z,width:1.5,depth:1.5},
  {id:'composter',x:COMPOST_WORKSHOP.x,z:COMPOST_WORKSHOP.z,width:3,depth:2.6},
- {id:'lake',x:LAKE.x,z:LAKE.z,width:5.2,depth:3.64},
+ {id:'bus-stop',x:VILLAGE.bus.x+.375,z:VILLAGE.bus.z,width:6.25,depth:3.7},
+ {id:'lake',x:LAKE.x,z:LAKE.z,width:LAKE.width,depth:LAKE.depth},
+ {id:'fishing-pier',...LAKE.dock},
 ];
 // Decorative objects reserve space for the final field size, even before upgrades.
 export function sceneryClear(rect,pads=[]){return ![...FULL_FIELDS,...BUILDING_FOOTPRINTS,...PATHS,...pads.map(p=>({x:p.x,z:p.z,width:2.5,depth:2.2}))].some(r=>rectOverlaps(rect,r,.3));}

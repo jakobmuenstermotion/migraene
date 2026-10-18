@@ -1,4 +1,4 @@
-import {HONEY_PRODUCTS} from './honey-content.mjs';
+import {HIVES,HONEY_PRODUCTS} from './honey-content.mjs';
 // Fixed building plots, crops, recipes and automation. Change content here.
 export const BEDS=[
   {id:'moon',name:'Mondblumenbeet',crop:'moonbloom',x:4,z:0,columns:19,rows:17,spacing:.78,cost:0,upgrade:1100,pad:{x:4,z:10.3}},
@@ -12,6 +12,7 @@ export const BEDS=[
 export const SEEDS=BEDS.map((b,i)=>({crop:b.crop,name:b.name.replace('beet','samen'),source:["start","shop","find","shop","find","shop","find"][i],cost:[0,260,0,750,0,1300,0][i],foundRound:[1,11,46,35,24,58,67][i],pad:i===1?{x:-7.7,z:-4.5}:i===5?{x:2,z:-16}:{x:b.pad.x+3.1,z:b.pad.z}}));
 export const PRODUCTS={
   ...HONEY_PRODUCTS,
+  giftbox:{name:'Mondgarten-Geschenkbox',plural:'Geschenkboxen',icon:'▣',color:'#bda1d3',value:100},
   honeyapple:{name:"Honigapfel",plural:"Honigäpfel",icon:"⬡",color:"#e8ba79",value:60},
   bouquet:{name:'Mondstrauß',plural:'Mondsträuße',icon:'❀',color:'#b79ad7',value:10},
   tea:{name:'Sternentee',plural:'Sternentees',icon:'♨',color:'#a4b982',value:24},
@@ -20,9 +21,10 @@ export const PRODUCTS={
 };
 export const WORKSHOPS=[
   {id:'bouquet',name:'Blumenbinderei',model:'bouquet',product:'bouquet',inputs:{moonbloom:6},seconds:15,valueMultiplier:2,cost:900,x:0,z:12,pad:{x:0,z:15},requires:null,description:'6 Mondblüten → 1 Mondstrauß. 15 Sekunden Grundzeit; der Strauß ist mindestens doppelt so viel wert wie die verwendeten Blumen. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
-  {id:'tea',name:'Sternenteeküche',model:'tea',product:'tea',inputs:{lavender:8},seconds:16,cost:1600,x:8,z:12,pad:{x:8,z:15},requires:'bouquet',description:'8 Lavendelbündel → 1 Sternentee. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
-  {id:'oil',name:'Duftöldestille',model:'oil',product:'oil',inputs:{coral:10},seconds:20,cost:2400,x:17,z:10,pad:{x:17,z:13},requires:'tea',description:'10 Korallenblüten → 1 Blütenduftöl.'},
-  {id:'elixir',name:'Mondalchemie',model:'elixir',product:'elixir',inputs:{tea:1,oil:1,mushroom:6},seconds:26,cost:4200,x:26,z:9,pad:{x:26,z:12},requires:'oil',description:'1 Sternentee + 1 Duftöl + 6 Glühpilze → 1 Mondelixier.'}
+  {id:'tea',name:'Sternenteeküche',model:'tea',product:'tea',inputs:{lavender:8},seconds:16,valueMultiplier:2,cost:1600,x:8,z:12,pad:{x:8,z:15},requires:'bouquet',description:'8 Lavendelbündel → 1 Sternentee. Links an der Werkstatt Zutaten ablegen, rechts Produkte abholen.'},
+  {id:'oil',name:'Duftöldestille',model:'oil',product:'oil',inputs:{coral:10},seconds:20,valueMultiplier:2,cost:2400,x:17,z:10,pad:{x:17,z:13},requires:'tea',description:'10 Korallenblüten → 1 Blütenduftöl.'},
+  {id:'elixir',name:'Mondalchemie',model:'elixir',product:'elixir',inputs:{tea:1,oil:1,mushroom:6},seconds:26,valueMultiplier:2,cost:4200,x:26,z:9,pad:{x:26,z:12},requires:'oil',description:'1 Sternentee + 1 Duftöl + 6 Glühpilze → 1 Mondelixier.'},
+  {id:'gifts',name:'Geschenkwerkstatt',model:'gifts',product:'giftbox',inputs:{lavender:8,bouquet:1,moonHoney:1},alternatives:HIVES.slice(1).map(h=>({lavender:8,bouquet:1,[h.honey]:1})),seconds:180,minimumSeconds:180,valueMultiplier:5,cost:2600,x:16,z:-1,pad:{x:17,z:3},requires:'tea',optional:true,description:'8 Lavendel + 1 Mondstrauß + 1 Honig beliebiger Sorte → 1 Geschenkbox. Mindestens 3 Minuten Herstellung, +400 % auf den tatsächlichen Zutatenwert.'}
 ];
 export const VILLAGE={
   farm:{cost:2400,x:-30,z:-7,pad:{x:-28,z:-3}},
@@ -50,3 +52,9 @@ WORKSHOPS[3].alternatives=[{tea:1,oil:1,crystal:4}];
 WORKSHOPS[3].description+=' Alternativ mit 4 Sternenkristallen statt Glühpilzen.';
 
 WORKSHOPS[1].description+=' Ab Level 52 auch: 2 Honig + 4 Sternenfrüchte → 1 Honigapfel.';
+
+WORKSHOPS[0].specialty='Kurze Bindearbeit: Blumen werden sichtbare Sträuße.';
+WORKSHOPS[1].specialty='Teeküche: Lavendel oder Obst aufgießen; später Honigäpfel.';
+WORKSHOPS[2].specialty='Destille: Blüten und Obst zu wertvollem Duftöl veredeln.';
+WORKSHOPS[3].specialty='Alchemie: fertige Waren zu einem größeren Schatz verbinden.';
+WORKSHOPS[4].specialty='Geschenke: Lavendel, Strauß und Honig gemeinsam verpacken.';

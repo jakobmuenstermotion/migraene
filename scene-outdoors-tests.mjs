@@ -4,7 +4,7 @@ import * as T from './mondgarten/vendor/three.module.js';
 import {freshState} from './mondgarten/core.mjs';
 import {createVillageField} from './mondgarten/harvest.mjs';
 import {COLLECTIBLES} from './mondgarten/content.mjs';
-import {sprayFertilizer,equipOutdoorTool,BURIED_SHELLS,advanceOutdoors,setHarvestMode} from './mondgarten/outdoors.mjs';
+import {sprayFertilizer,equipOutdoorTool,BURIED_SHELLS,LAKE,advanceOutdoors,setHarvestMode} from './mondgarten/outdoors.mjs';
 // Exercise the real geometry and instance transforms without a WebGL context.
 const documentBefore=globalThis.document;
 globalThis.document={createElement:()=>({getContext:()=>({fillText(){},fillRect(){},createRadialGradient:()=>({addColorStop(){}})})})};
@@ -27,4 +27,14 @@ test('fertilizer workshop has its own building, production bar and floating outp
  s.outdoors.composterBuilt=false;scene.construction.clear();scene.makeOutdoorModels(s);assert.equal(scene.composterVisual,null);assert.equal(scene.construction.getObjectByName('garden-composter'),undefined);
 });
 
+test('larger lake has a connected wooden pier with its fishing destination on the boards',()=>{
+ const scene=ready();scene.makeOutdoorModels(scene.villageState);const pier=scene.construction.getObjectByName('fishing-shore');assert.ok(pier);
+ assert.ok(LAKE.width>5.2&&LAKE.depth>3.64);assert.ok(LAKE.dock.z-LAKE.dock.depth/2<LAKE.z-LAKE.depth/2);assert.ok(LAKE.dock.z+LAKE.dock.depth/2>LAKE.z-LAKE.depth/2);
+ assert.ok(Math.abs(LAKE.shore.x-LAKE.dock.x)<LAKE.dock.width/2);assert.ok(Math.abs(LAKE.shore.z-LAKE.dock.z)<LAKE.dock.depth/2);
+ const bounds=new T.Box3();pier.updateMatrixWorld(true);pier.traverse(o=>{if(o.isMesh)bounds.union(new T.Box3().setFromObject(o));});assert.ok(bounds.min.z<=7.96&&bounds.max.z>=10.84);assert.ok(bounds.max.x-bounds.min.x<=LAKE.dock.width+.01);
+});
+test('shop construction and clear shop labels appear at their actual unlock rounds',()=>{
+ const scene=ready(),s=scene.villageState;for(const round of [11,12,19,20]){s.journey.round=round;scene.construction.clear();scene.makeBoutiques(s);assert.equal(!!scene.construction.getObjectByName('boutique:style'),round>=12);assert.equal(!!scene.construction.getObjectByName('boutique:decor'),round>=20);}
+ const shop=scene.construction.getObjectByName('boutique:style');assert.equal(shop.children.filter(o=>o.isSprite).length,2);assert.ok(shop.children.filter(o=>o.isSprite).every(o=>o.position.y>=2.2));
+});
 test.after(()=>{globalThis.document=documentBefore;});

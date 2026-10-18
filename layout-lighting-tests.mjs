@@ -14,6 +14,7 @@ test('fully expanded beds keep clearance from every other bed, road and building
   assert.ok(Math.abs(f.x)+f.width/2<35&&Math.abs(f.z)+f.depth/2<35,f.id+' outside farm');
  }
  for(const [i,a]of BUILDING_FOOTPRINTS.entries())for(const b of BUILDING_FOOTPRINTS.slice(i+1)){
+  if(a.id==='lake'&&b.id==='fishing-pier')continue; // pier intentionally extends over the water
   if(a.id==='nursery'&&b.id==='cottage')continue; // cottage is part of its own enclosure
   assert.equal(rectOverlaps(a,b,.15),false,a.id+' overlaps '+b.id);
  }

@@ -159,6 +159,6 @@ test('bouquets take 15 base seconds and sell for double their real input value, 
   assert.equal(productionSeconds(s,w),15);assert.ok(Math.abs(productValue(s,w)-rawValue*2)<1e-8);
   deliverWorkshop(s,w);advanceProduction(s,14.99);assert.equal(s.village.finished.bouquet??0,0);
   const loaded=normalize(JSON.parse(JSON.stringify(s)));advanceProduction(loaded,.01);assert.equal(loaded.village.finished.bouquet,1);takeWorkshopGoods(loaded,'bouquet',1);assert.ok(Math.abs(sellCarriedProducts(loaded).value-rawValue*2)<1e-8);
-  for(const other of WORKSHOPS.filter(x=>x!==w)){s.village.workshops[other.id].level=1;assert.equal(processingMultiplier(s,other),1.2);}
+  for(const other of WORKSHOPS.filter(x=>x!==w)){s.village.workshops[other.id].level=1;assert.equal(processingMultiplier(s,other),other.valueMultiplier??2);}
   s.village.workshops.bouquet.level=7;assert.ok(processingMultiplier(s,w)>2);assert.ok(productionSeconds(s,w)<15);
 });

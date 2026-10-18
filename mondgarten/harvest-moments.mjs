@@ -11,9 +11,10 @@ export const GLOW_VALUE_MULTIPLIER=20;
 export const GLOW_SECONDS=6,BUTTERFLY_MIN_SECONDS=600;
 const finite=(v,fallback,max)=>Number.isFinite(v)&&v>=0?Math.min(v,max):fallback;
 const delay=(min,span,random)=>min+Math.max(0,Math.min(.999999,random()))*span;
-export function freshHarvestMoments(){return{glowWait:40,glow:null,butterflyWait:BUTTERFLY_MIN_SECONDS,flowerPicks:0,found:[],wingsUnlocked:false,wearer:null};}
+export function freshHarvestMoments(){return{glowWait:40,glow:null,butterflyWait:BUTTERFLY_MIN_SECONDS,flowerPicks:0,found:[],wingsUnlocked:false,wearer:null,duplicateStreak:0,flow:null};}
 export function normalizeHarvestMoments(raw,snails){
  const m=freshHarvestMoments();
+ m.duplicateStreak=Math.floor(finite(raw?.duplicateStreak,0,2));
  m.glowWait=finite(raw?.glowWait,40,65);
  m.butterflyWait=finite(raw?.butterflyWait,BUTTERFLY_MIN_SECONDS,1000);
  m.flowerPicks=Math.floor(finite(raw?.flowerPicks,0,120));
@@ -38,7 +39,7 @@ export function recordManualHarvest(s,picks,random=Math.random){
   m.flowerPicks=Math.min(120,m.flowerPicks+pick.units);
   if(m.glow?.key===pick.cell.key&&m.glow.remaining>0){const bonus=pick.value*(GLOW_VALUE_MULTIPLIER-1);credit(s,bonus);events.push({kind:'glow',cell:pick.cell,value:bonus});m.glow=null;}
   if(m.butterflyWait<=0&&m.flowerPicks>=120){
-   const butterfly=BUTTERFLIES[Math.min(4,Math.floor(random()*BUTTERFLIES.length))],isNew=!m.found.includes(butterfly.id);
+   let butterfly=BUTTERFLIES[Math.min(4,Math.floor(random()*BUTTERFLIES.length))];const missing=BUTTERFLIES.filter(b=>!m.found.includes(b.id));if(m.found.includes(butterfly.id)&&m.duplicateStreak>=2&&missing.length)butterfly=missing[Math.min(missing.length-1,Math.floor(random()*missing.length))];const isNew=!m.found.includes(butterfly.id);m.duplicateStreak=isNew?0:Math.min(2,m.duplicateStreak+1);
    if(isNew)m.found.push(butterfly.id);
    const reward=!m.wingsUnlocked&&m.found.length===BUTTERFLIES.length;
    if(reward)m.wingsUnlocked=true;
@@ -53,3 +54,12 @@ export function equipButterflyWings(s,index){
  s.harvestMoments.wearer=index;return true;
 }
 export function wearsButterflyWings(s,index){return s.harvestMoments?.wingsUnlocked===true&&s.harvestMoments.wearer===index;}
+
+export function recordHarvestFlow(s,picks,time){
+ const flowers=picks.filter(p=>p.units>0&&FLOWER_CROPS.includes(p.cell.crop));if(!flowers.length)return null;
+ const c=flowers.at(-1).cell,old=s.harvestMoments.flow;
+ const connected=old&&old.crop===c.crop&&time-old.time<1.3&&Math.hypot(old.x-c.x,old.z-c.z)<3;
+ const count=(connected?old.count:0)+flowers.length,tier=Math.min(3,Math.floor(count/10));
+ const milestone=tier>(connected?old.tier:0);s.harvestMoments.flow={x:c.x,z:c.z,crop:c.crop,time,count:Math.min(30,count),tier};
+ return milestone?{cell:c,tier}:null;
+}

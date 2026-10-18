@@ -223,7 +223,7 @@ test("Schnecki carries finished ingredients between workshops and enables compou
   }
   advanceProduction(s, 26);
   assert.equal(s.village.finished.elixir, 1);
-  near(s.village.finishedValues.elixir, 132);
+  near(s.village.finishedValues.elixir, 220);
   assert.deepEqual(s.village.raw, {});
   assert.equal(s.coins, 0);
 });

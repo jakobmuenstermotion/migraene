@@ -11,6 +11,7 @@ import {
   harvestMultiplier,
   productCargoCount,
   productionSeconds,
+  processingMultiplier,
 } from "./village.mjs";
 import { capacity } from "./core.mjs";
 import { WORKSHOPS } from "./village-content.mjs";
@@ -207,7 +208,7 @@ export function startHoneyApples(s) {
   }
   c.running = true;
   c.progress = 0;
-  c.value = value * 1.2;
+  c.value = value * processingMultiplier(s,WORKSHOPS.find(w=>w.id==='tea'));
   return true;
 }
 export function advanceHoneyApples(s, dt) {

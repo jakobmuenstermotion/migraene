@@ -65,9 +65,9 @@ export function planSupply(s, limit = 24, { productsOnly = false } = {}) {
         for (const [id, needed] of Object.entries(recipe)) {
           if (!!PRODUCTS[id] !== products) continue;
           const source = products
-            ? WORKSHOPS.find((source) => source.product === id)?.id
+            ? WORKSHOPS.find((source) => source.product === id)?.id ?? (id.endsWith('Honey')?'honey':undefined)
             : "warehouse";
-          if (!source || (products && !v.workshops[source].level)) continue;
+          if (!source || (products && source!=='honey'&&!v.workshops[source].level)) continue;
           const stock = products ? v.finished : v.raw,
             values = products ? v.finishedValues : v.rawValues;
           const home = products
@@ -95,7 +95,7 @@ export function planSupply(s, limit = 24, { productsOnly = false } = {}) {
   return null;
 }
 export function supplySourceSpot(job) {
-  return job.source === "warehouse"
+  return ["warehouse","honey"].includes(job.source)
     ? VILLAGE.warehouse
     : workshopSpot(
         WORKSHOPS.find((w) => w.id === job.source),
