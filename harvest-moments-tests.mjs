@@ -11,7 +11,7 @@ test('glow lasts six active seconds, pays once without changing crop cargo and p
  advanceHarvestMoments(s,cells,{x:4,z:0},0,0);assert.equal(m.glow.remaining,6);
  const picks=harvestAt(s,cells,c.x,c.z,0);const bag=s.bag,value=s.bagValue;
  assert.equal(recordManualHarvest(s,picks).filter(e=>e.kind==='glow').length,1);
- assert.equal(s.coins,picks.find(p=>p.cell===c).value*.5);assert.equal(s.bag,bag);assert.equal(s.bagValue,value);
+ assert.equal(s.coins,picks.find(p=>p.cell===c).value*19);assert.equal(s.bag,bag);assert.equal(s.bagValue,value);
  assert.equal(recordManualHarvest(s,picks).length,0);
  m.glow={key:c.key,remaining:1};advanceHarvestMoments(s,cells,{x:4,z:0},1.1,0);assert.equal(m.glow,null);
  const coins=s.coins;recordManualHarvest(s,[pick(c)]);assert.equal(s.coins,coins);

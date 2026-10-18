@@ -1,19 +1,23 @@
 export class GardenControls {
   constructor(canvas,joystick,scene,{blocked=()=>false,onBank=()=>{},onTap=()=>{}}={}){
-    this.scene=scene;this.keys=new Set();this.stick={x:0,z:0};this.target=null;this.blocked=blocked;this.joystick=joystick;this.pointer=null;
+    this.canvas=canvas;this.scene=scene;this.keys=new Set();this.stick={x:0,z:0};this.target=null;this.blocked=blocked;this.joystick=joystick;this.pointer=null;
     const clear=()=>this.stop();
     window.addEventListener('blur',clear);document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
+    for(const type of ['focus','pagehide','pageshow'])window.addEventListener(type,clear);
+    window.addEventListener('touchcancel',clear);
+    window.addEventListener('touchend',e=>{if(!e.touches.length)clear();});
     window.addEventListener('keydown',e=>{if(blocked()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const key=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' '].includes(key)){e.preventDefault();if(key===' '){onBank();return;}this.keys.add(key);this.target=null;}});
     window.addEventListener('keyup',e=>this.keys.delete(e.key.toLowerCase()));
     canvas.addEventListener('pointerdown',e=>{
-      if(e.button!==0||blocked()||this.pointer!==null)return;
+      if(e.button!==0||blocked())return;
+      if(this.pointer!==null){if(canvas.hasPointerCapture(this.pointer))return;this.stop();}
       e.preventDefault();this.pointer=e.pointerId;this.origin={x:e.clientX,y:e.clientY};this.tapStarted=performance.now();this.target=null;
       canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});
       const r=joystick.parentElement.getBoundingClientRect();
       joystick.style.left=(e.clientX-r.left)+'px';joystick.style.top=(e.clientY-r.top)+'px';joystick.classList.add('active');
     });
     canvas.addEventListener('pointermove',e=>{
-      if(e.pointerId!==this.pointer)return;if(blocked()){this.stop();return;}
+      if(e.pointerId!==this.pointer)return;if(blocked()||e.pointerType==='mouse'&&e.buttons===0){this.stop();return;}
       const dx=e.clientX-this.origin.x,dz=e.clientY-this.origin.y,len=Math.hypot(dx,dz),limit=28;
       const strength=len<5?0:Math.min(1,(len-5)/(limit-5));
       this.stick={x:len?dx/len*strength:0,z:len?dz/len*strength:0};
@@ -21,8 +25,9 @@ export class GardenControls {
     });
     const end=e=>{if(e.pointerId!==this.pointer)return;const tap=e.type==='pointerup'&&!blocked()&&performance.now()-this.tapStarted<500&&Math.hypot(e.clientX-this.origin.x,e.clientY-this.origin.y)<6;this.stop();if(tap){const r=canvas.getBoundingClientRect();onTap(e.clientX-r.left,e.clientY-r.top);}};
     canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',end);
+    window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
   }
-  stop(){this.keys.clear();this.target=null;this.stick={x:0,z:0};this.pointer=null;this.joystick.classList.remove('active');this.joystick.firstElementChild.style.transform='';}
+  stop(){const pointer=this.pointer;this.pointer=null;this.keys.clear();this.target=null;this.stick={x:0,z:0};this.joystick.classList.remove('active');this.joystick.firstElementChild.style.transform='';if(pointer!==null&&this.canvas.hasPointerCapture(pointer))this.canvas.releasePointerCapture(pointer);}
   direction(player){
     if(this.blocked())return{x:0,z:0};
     let x=(this.keys.has('d')||this.keys.has('arrowright')?1:0)-(this.keys.has('a')||this.keys.has('arrowleft')?1:0)+this.stick.x;

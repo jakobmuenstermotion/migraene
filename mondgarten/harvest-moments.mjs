@@ -7,6 +7,7 @@ export const BUTTERFLIES=[
  {id:'blue',name:'Sternenbläuling',color:'#88bfe8'},
 ];
 export const FLOWER_CROPS=['moonbloom','lavender','coral','sunbloom'];
+export const GLOW_VALUE_MULTIPLIER=20;
 export const GLOW_SECONDS=6,BUTTERFLY_MIN_SECONDS=600;
 const finite=(v,fallback,max)=>Number.isFinite(v)&&v>=0?Math.min(v,max):fallback;
 const delay=(min,span,random)=>min+Math.max(0,Math.min(.999999,random()))*span;
@@ -35,7 +36,7 @@ export function recordManualHarvest(s,picks,random=Math.random){
  const m=s.harvestMoments,events=[];
  for(const pick of picks){if(pick.units<=0||!FLOWER_CROPS.includes(pick.cell.crop))continue;
   m.flowerPicks=Math.min(120,m.flowerPicks+pick.units);
-  if(m.glow?.key===pick.cell.key&&m.glow.remaining>0){const bonus=pick.value*.5;credit(s,bonus);events.push({kind:'glow',cell:pick.cell,value:bonus});m.glow=null;}
+  if(m.glow?.key===pick.cell.key&&m.glow.remaining>0){const bonus=pick.value*(GLOW_VALUE_MULTIPLIER-1);credit(s,bonus);events.push({kind:'glow',cell:pick.cell,value:bonus});m.glow=null;}
   if(m.butterflyWait<=0&&m.flowerPicks>=120){
    const butterfly=BUTTERFLIES[Math.min(4,Math.floor(random()*BUTTERFLIES.length))],isNew=!m.found.includes(butterfly.id);
    if(isNew)m.found.push(butterfly.id);

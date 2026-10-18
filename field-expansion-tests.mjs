@@ -65,3 +65,9 @@ test('actual expansion mesh uses a transparent strip and dashed closed boundary'
  assert.ok(v.edge.material.isLineDashedMaterial);assert.equal(v.edge.geometry.attributes.position.count,5);assert.ok(v.edge.geometry.attributes.lineDistance);
  assert.equal(v.root.children[0].geometry.parameters.width,p.area.width);assert.equal(v.root.children[0].geometry.parameters.depth,p.area.depth);
 });
+
+test('unchanged expansion previews reuse immutable geometry bounds instead of regenerating plants',async()=>{
+ const {fieldExpansionPreview}=await import('./mondgarten/field-expansion.mjs');
+ const first=fieldExpansionPreview(BEDS[0],0);assert.equal(fieldExpansionPreview(BEDS[0],0),first);
+ assert.ok(Object.isFrozen(first)&&Object.isFrozen(first.area));assert.notEqual(fieldExpansionPreview(BEDS[0],1),first);
+});

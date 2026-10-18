@@ -1,21 +1,23 @@
 import {credit} from './money.mjs';
 export const OUTDOOR_TOOLS=[
- {id:'detector',name:'Metalldetektor',cost:1800,description:'Entdeckt vergrabene Kleinfunde und zwei einmalige Schneckenhäuser. Ausrüsten und auf das Signal achten.'},
+ {id:'detector',name:'Metalldetektor',cost:1800,description:'Entdeckt Kleinfunde, gelegentlich Schrottteile für Schneckis Haus und zwei einmalige Schneckenhäuser. Ausrüsten und auf das Signal achten.'},
  {id:'rod',name:'Angel',cost:2400,description:'Am Gartensee angeln. Den Marker mit dem Angelknopf im grünen Bereich halten.'},
 ];
 export const COMPOST_WORKSHOP={name:'Düngerwerkstatt',round:12,cost:2000,x:14,z:-19,pad:{x:14,z:-22},output:{x:15.8,z:-17.5}};
 export const LAKE={x:-30,z:25,shore:{x:-30,z:22.5}};
 export const BURIED_SHELLS=[{id:'shell-garden',species:'garden',name:'Gartenschneckenhaus',x:-30,z:-10},{id:'shell-dew',species:'dew',name:'Tauschneckenhaus',x:-25,z:-11}];
 export const FISH=[{id:'silver',name:'Silberflosse',color:'#c5dce2',value:12},{id:'perch',name:'Sonnenbarsch',color:'#e7bf70',value:16},{id:'carp',name:'Mondkarpfen',color:'#baa3d6',value:22},{id:'blue',name:'Sternenforelle',color:'#85becb',value:30}];
+export const SCRAP_CHANCE=.25,SCRAP_PITY=4;
 export const FERTILIZER_SECONDS=180,FERTILIZER_RADIUS=2.2;
 const flowers=['moonbloom','lavender','coral','sunbloom'];
 const num=(v,f=0,max=1e100)=>Number.isFinite(v)&&v>=0?Math.min(v,max):f;
 const active=s=>!s.journey.asleep&&s.journey.round>0;
-export function freshOutdoors(){return{owned:[],equipped:null,harvestMode:'scythe',composterBuilt:false,clock:0,treasures:0,treasureValue:0,findWait:90,site:null,dug:[],dig:0,fish:{},fishValues:{},compost:{remaining:0,portions:0,ready:0},fertilizer:0,patches:[],fishing:null};}
+export function freshOutdoors(){return{owned:[],equipped:null,harvestMode:'scythe',composterBuilt:false,clock:0,treasures:0,treasureValue:0,scrap:0,scrapMisses:0,findWait:90,site:null,dug:[],dig:0,fish:{},fishValues:{},compost:{remaining:0,portions:0,ready:0},fertilizer:0,patches:[],fishing:null};}
 export function normalizeOutdoors(raw){
  const o=freshOutdoors();o.owned=OUTDOOR_TOOLS.filter(t=>Array.isArray(raw?.owned)&&raw.owned.includes(t.id)).map(t=>t.id);o.equipped=o.owned.includes(raw?.equipped)?raw.equipped:null;
  o.composterBuilt=raw?.composterBuilt===true||raw?.owned?.includes?.('sprayer')===true;
  o.treasures=Math.floor(num(raw?.treasures,0,1000));o.treasureValue=o.treasures?num(raw?.treasureValue):0;
+ o.scrap=Math.floor(num(raw?.scrap,0,1000));o.scrapMisses=Math.floor(num(raw?.scrapMisses,0,SCRAP_PITY-1));
  o.clock=num(raw?.clock);o.findWait=num(raw?.findWait,90,180);o.dug=BURIED_SHELLS.filter(p=>raw?.dug?.includes?.(p.id)).map(p=>p.id);
  if(raw?.site&&Number.isFinite(raw.site.x)&&Number.isFinite(raw.site.z)&&Math.abs(raw.site.x)<=34&&Math.abs(raw.site.z)<=34)o.site={id:'treasure',x:raw.site.x,z:raw.site.z,value:num(raw.site.value)};
  for(const f of FISH){o.fish[f.id]=Math.floor(num(raw?.fish?.[f.id],0,1000));o.fishValues[f.id]=o.fish[f.id]?num(raw?.fishValues?.[f.id]):0;}
@@ -59,7 +61,7 @@ export function advanceOutdoors(s,cells,player,dt,growthDelta=0,time=0,valueForB
  if(target.species&&Object.values(s.village.farm.shells).reduce((a,b)=>a+b,0)>=30){o.dig=0;return events;}
  o.dig+=dt;if(o.dig<2)return events;o.dig=0;
  if(target.species){o.dug.push(target.id);const f=s.village.farm;f.shells[target.species]=(f.shells[target.species]??0)+1;if(!f.discovered.includes(target.species))f.discovered.push(target.species);events.push({kind:'buriedShell',...target});}
- else{events.push({kind:'treasure',...target});o.site=null;o.findWait=90+random()*90;o.treasureValue=(o.treasureValue??0)+target.value;o.treasures=(o.treasures??0)+1;}
+ else{const scrap=o.scrapMisses>=SCRAP_PITY-1||random()<SCRAP_CHANCE?1:0;o.scrap=Math.min(1000,o.scrap+scrap);o.scrapMisses=scrap?0:o.scrapMisses+1;events.push({kind:'treasure',...target,scrap});o.site=null;o.findWait=90+random()*90;o.treasureValue=(o.treasureValue??0)+target.value;o.treasures=(o.treasures??0)+1;}
  return events;
 }
 export function sellOutdoorGoods(s){const o=s.outdoors;let count=o.treasures??0,value=o.treasureValue??0;o.treasures=0;o.treasureValue=0;for(const f of FISH){count+=o.fish[f.id]??0;value+=o.fishValues[f.id]??0;o.fish[f.id]=0;o.fishValues[f.id]=0;}credit(s,value);return{count,value};}

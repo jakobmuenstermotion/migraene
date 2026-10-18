@@ -36,6 +36,9 @@ export function prepareDay(s, tools) {
   activateFeedback(s);
   const existing = s.journey.plan;
   if (existing?.round === s.journey.round) {
+    // Home construction is now a separate collecting goal. Preserve existing
+    // day budgets and deposits, but remove the old mandatory home-material quote.
+    existing.materials = [];
     if (existing.balanceVersion !== ECONOMY.version) {
       // Keep the original day's budget, purchases and instalments. Only future
       // harvest changes; saved coins and the values of actual supplies stay intact.

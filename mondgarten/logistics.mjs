@@ -71,11 +71,8 @@ export function planSupply(s, limit = 24, { productsOnly = false } = {}) {
           const stock = products ? v.finished : v.raw,
             values = products ? v.finishedValues : v.rawValues;
           const home = products
-            ? s.journey.plan
-              ? (neededMaterials(s)[id] ?? 0)
-              : v.house < 3
-                ? (VILLAGE.partner.materials[v.house]?.[id] ?? 0)
-                : 0
+            ? Math.max(neededMaterials(s)[id] ?? 0,
+                v.house < 3 ? (VILLAGE.partner.materials[v.house]?.[id] ?? 0) : 0)
             : 0;
           const count = Math.min(
             room,

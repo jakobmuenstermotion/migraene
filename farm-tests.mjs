@@ -1,3 +1,4 @@
+import {VILLAGE} from './mondgarten/village-content.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import { freshState, normalize } from "./mondgarten/core.mjs";
@@ -176,26 +177,27 @@ test("a raised helper keeps its own species after previously purchased helpers a
 test("feed cannot be made from flowers alone; hungry babies reserve crafted feed ingredients without consuming house materials", () => {
   const s = state();
   s.village.house = 0;
+  const reserve=VILLAGE.partner.materials[0].bouquet;
   raw(s);
   s.village.farm.shells.garden = 1;
   moveShellToFarm(s, "garden");
-  s.village.finished.bouquet = 4;
-  s.village.finishedValues.bouquet = 120;
+  s.village.finished.bouquet = reserve;
+  s.village.finishedValues.bouquet = reserve*30;
   const before = structuredClone(s);
   assert.equal(cookFood(s), false);
   assert.deepEqual(s, before);
   assert.equal(farmFoodReserve(s, "bouquet"), 3);
   assert.equal(availableProducts(s, "bouquet", true), 0);
-  s.village.finished.bouquet = 7;
-  s.village.finishedValues.bouquet = 210;
+  s.village.finished.bouquet = reserve+3;
+  s.village.finishedValues.bouquet = (reserve+3)*30;
   assert.equal(
     availableProducts(s, "bouquet", true),
     0,
     "automatic sellers must leave food and home ingredients",
   );
   assert.equal(cookFood(s), true);
-  assert.equal(s.village.finished.bouquet, 4);
-  assert.equal(s.village.finishedValues.bouquet, 120);
+  assert.equal(s.village.finished.bouquet, reserve);
+  assert.equal(s.village.finishedValues.bouquet, reserve*30);
   assert.equal(farmFoodReserve(s, "bouquet"), 0);
 });
 
@@ -297,24 +299,25 @@ test("walking past kitchen deposits only carried ingredients, supports several t
 test("explicit storage fill preserves carried goods and house reservations, and only accepts missing ingredients", () => {
   const s = state();
   s.village.house = 0;
+  const reserve=VILLAGE.partner.materials[0].bouquet;
   raw(s);
-  s.village.finished.bouquet = 5;
-  s.village.finishedValues.bouquet = 150;
+  s.village.finished.bouquet = reserve+1;
+  s.village.finishedValues.bouquet = (reserve+1)*30;
   s.bag = 10;
   s.bagValue = 20;
   s.cargo = { moonbloom: { count: 10, value: 20 } };
   supplyFoodKitchen(s, "storage");
   assert.equal(s.village.farm.kitchen.inputs.moonbloom, 60);
   assert.equal(s.village.farm.kitchen.inputs.bouquet, 1);
-  assert.equal(s.village.finished.bouquet, 4);
+  assert.equal(s.village.finished.bouquet, reserve);
   assert.equal(s.village.farm.kitchen.running, false);
   assert.equal(s.bag, 10);
-  s.village.finished.bouquet = 6;
-  s.village.finishedValues.bouquet = 180;
+  s.village.finished.bouquet = reserve+2;
+  s.village.finishedValues.bouquet = (reserve+2)*30;
   supplyFoodKitchen(s, "storage");
   assert.equal(s.village.farm.kitchen.running, true);
   assert.equal(s.village.raw.moonbloom, 60);
-  assert.equal(s.village.finished.bouquet, 4);
+  assert.equal(s.village.finished.bouquet, reserve);
   assert.equal(supplyFoodKitchen(s, "storage"), 0);
 });
 test("food remains at its physical location, storage cannot feed remotely and transfers preserve value exactly", () => {

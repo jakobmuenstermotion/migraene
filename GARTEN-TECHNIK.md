@@ -319,3 +319,29 @@ Am Tagesende erscheint ab der ersten gebauten Werkstatt zusätzlich zur Wartezei
 ### Abgestimmte Rezeptidee: Mondgarten-Geschenkbox
 
 Für die vorgeschlagene, noch nicht eingebaute Geschenkwerkstatt gilt jetzt ein Aufschlag von **100 Prozent** statt 50 Prozent: Verkaufswert = 2 × Summe der tatsächlichen Werte aller eingesetzten Zutaten (Lavendel, Mondstrauß und Honig). Die vorgeschlagene Grundzeit bleibt 30 Sekunden. Bestehende Werkstattrezepte ändern sich dadurch nicht.
+
+### Morgenreife, Leuchtblüten und Eingabeunterbrechungen
+
+Ein erfolgreicher Wechsel in den nächsten Gartentag leert die gespeicherten Schnittzeiten und baut die sichtbaren Pflanzen aus frischen, reifen Zellen neu auf. Das gilt für alle offenen Beete und Erweiterungsstreifen. Nachladen am selben Tag setzt das Wachstum nicht zurück. Vorräte, Erntemengen und laufende Werkstätten bleiben erhalten.
+
+Eine rechtzeitig selbst geerntete Leuchtblüte bringt insgesamt den 20-fachen Wert ihrer gewöhnlichen Ernte: der normale Wert bleibt im Rucksack, der zusätzliche 19-fache Bonus wird einmalig gutgeschrieben. Die sechs aktiven Leuchtsekunden und die Seltenheit bleiben unverändert.
+
+Die Erntepartikel sind größer und je Sorte verschieden: Mondblütenblätter, aufsteigende Lavendelspiralen, breite Korallenblätter, radiale Sonnenstrahlen, Pilzsporen, kleine Sternenfrüchte und Kristallsplitter. Effekte entstehen direkt an geernteten Pflanzen und berücksichtigen bei einem Ernteschwung mehrere Sorten. Maximal 48 Erntepartikel sind gleichzeitig aktiv; reduzierte Bewegung bleibt berücksichtigt.
+
+Der Joystick wird bei Fokuswechsel, Aus-/Einblenden, Seitenwechsel und Touch-Abbruch zurückgesetzt. Globale Pointer-Endereignisse und Touch-Enden ohne verbleibende Finger lösen ebenfalls den Joystick. Verwaiste Pointer können durch eine neue Berührung ersetzt werden. Beim Rücksetzen wird die Pointer-Capture freigegeben; ein unterbrochener Renderloop setzt die Steuerung nach einer Pause über 500 ms zurück.
+
+### Weniger wiederholte Renderarbeit
+
+Pflanzentransformationen werden pro Zelle einmal berechnet und von ihren Modellteilen gemeinsam verwendet. Unveränderte Matrizen werden nicht erneut zur GPU hochgeladen; Baumstämme und Kronen bleiben statisch. Erweiterungsvorschauen werden je Beet und Stufe als unveränderliche Bounds zwischengespeichert. Die Abfrage für reduzierte Bewegung wird wiederverwendet. Auf Geräten mit primärer Touchbedienung ist die Pixeldichte auf 1,35 und die Schattenkarte auf 1024² begrenzt (sonst weiterhin 1,65 und 1536²).
+
+Lokaler Node/Three.js-CPU-Vergleich mit 1.510 Pflanzen: 100 Pflanzenaktualisierungen vorher etwa 113 ms, danach 43 ms; 1.000 Kaufbereichsabfragen vorher 291 ms, danach 69 ms. Das misst CPU-Arbeit ohne WebGL und ist keine iPhone-FPS-Messung. `controls-tests.mjs`, `morning-tests.mjs` und `harvest-effects-tests.mjs` prüfen Unterbrechungen, Morgenreife, tatsächliche Effektgeometrien und unveränderte GPU-Matrizen. Eine Prüfung auf einem echten iPhone steht noch aus.
+
+### Schneckis früheres Zuhause und Detektor-Baumaterial
+
+Die Hausabschnitte öffnen genau in Runde 20, 25 und 30. Das Fundament benötigt 24 Mondsträuße, die Wände 20 Sternentees, das Dach 15 Duftöle und sechs Schrottteile. Sternenstaubpreise verwenden weiterhin dieselbe Grundpreisformel; ihr Rundenfaktor folgt den früheren Freischaltungen. Schnecki hilft nach Fertigstellung des dritten Abschnitts.
+
+Die größeren Abschnitte sind separate, freiwillige Sammelziele außerhalb der täglichen Pflichtquote. Tagesbelohnungen bleiben ohne diese Bauabschnitte oder Metalldetektorfunde erreichbar. Alte Tagesbudgets und Anzahlungen bleiben erhalten; ihre bisherigen Haus-Materialvorgaben entfallen. Fertige Hausstufen werden beim Laden nicht zurückgesetzt. Automatische Verkäufer, Futterherstellung und Weiterverarbeitung lassen benötigte Hausbauprodukte liegen, auch wenn der Hausbau nicht mehr in der Tagesquote steht. Bewusste manuelle Abholung bleibt möglich.
+
+Bei einem normalen, vollständig ausgegrabenen Metalldetektor-Fund gibt es mit 25 Prozent Grundchance zusätzlich ein Schrottteil; spätestens jeder vierte normale Fund liefert eines. Die Fehlversuche bleiben über Speichern/Laden erhalten. Bestehende verkäufliche Kleinfunde und ihre Werte sowie einmalige Schneckenhäuser bleiben bestehen. Schrott erscheint im Fundbeutel und in der Vorratsübersicht, wird nicht automatisch verkauft und erst bei vollständiger Bezahlung des Dachs verbraucht.
+
+`schnecki-house-tests.mjs` prüft Freischaltzeitpunkte, Materialverbrauch, Anzahlungen, fehlenden Schrott, alten Hausfortschritt, Fundgarantie, Verkaufs- und Vorratsschutz sowie alte Tagesquoten. Angepasste Farm- und Transporttests prüfen die höheren Reserven. Ein manueller Langzeitdurchlauf aller 77 Runden erreichte sämtliche Tagesbelohnungen; Median 187,5 Sekunden, längster Tag 268,5 Sekunden. Der separate Hausbau mit Detektor wurde in den gezielten Tests geprüft; dieser manuelle Durchlauf absolviert nicht die Detektor-Sammelaufgabe.

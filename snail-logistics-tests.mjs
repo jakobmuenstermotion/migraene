@@ -232,10 +232,11 @@ test("woodcock also carries intermediate ingredients, preserves house reserves a
   const s = freshState();
   s.village.woodcock.unlocked = true;
   for (const id of ["tea", "elixir"]) s.village.workshops[id].level = 1;
-  // Four teas are needed for the second home section.
+  // Leave the current second-section tea requirement untouched.
+  const reserve=VILLAGE.partner.materials[1].tea;
   s.village.house = 1;
-  s.village.finished.tea = 5;
-  s.village.finishedValues.tea = 100;
+  s.village.finished.tea = reserve+1;
+  s.village.finishedValues.tea = (reserve+1)*20;
   Object.assign(
     s.village.woodcock,
     workshopSpot(
@@ -244,7 +245,7 @@ test("woodcock also carries intermediate ingredients, preserves house reserves a
     ),
   );
   advanceWoodcock(s, 0.1);
-  assert.equal(s.village.finished.tea, 4);
+  assert.equal(s.village.finished.tea, reserve);
   assert.equal(s.village.woodcock.cargo.items.tea, 1);
   s.village.woodcock.task = "search";
   Object.assign(

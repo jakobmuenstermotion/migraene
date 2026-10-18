@@ -30,7 +30,7 @@ export const VILLAGE={
   bus:{cost:600000000,x:-29,z:10,pad:{x:-28,z:15}},
   warehouse:{x:-11,z:0,radius:1.8,pad:{x:-7,z:3},baseCapacity:600,cost:400},
   snail:{cost:1400,growth:1.55,max:12,upgrade:950,speed:1.05,capacity:24,capacityPerLevel:4,harvestSeconds:.8,playerSpace:8,pad:{x:-16,z:5},upgradePad:{x:-16,z:9}},
-  partner:{cost:1800,requires:'tea',x:-18,z:0,pad:{x:-19,z:3},capacity:64,speed:4.1,stages:['Fundament für Schnecki','Schneckis Haus: Wände','Schneckis Haus: Dach & Einzug'],materials:[{bouquet:4},{tea:4},{oil:3}]},
+  partner:{cost:1800,requires:'tea',x:-18,z:0,pad:{x:-19,z:3},capacity:64,speed:4.1,stages:['Fundament für Schnecki','Schneckis Haus: Wände','Schneckis Haus: Dach & Einzug'],materials:[{bouquet:24},{tea:20},{oil:15}],scrap:[0,0,6]},
   sprinkler:{cost:4200,pad:{x:12,z:-9},x:12,z:-12},
   tools:{reach:{x:-13,z:20},bag:{x:-6,z:20},speed:{x:-13,z:26},value:{x:-6,z:26}},
   buying:{dwellSeconds:.8,paymentSeconds:3.8,radius:1.15},

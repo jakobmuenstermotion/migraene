@@ -13,7 +13,7 @@ export function normalizeJourney(raw){const j=freshJourney();if(!raw||raw.schema
  const catchups=new Set();j.seedCatchups=Array.isArray(raw.seedCatchups)?raw.seedCatchups.filter(r=>{const match=typeof r?.id==='string'&&/^garden-seed:([1-7])$/.exec(r.id);return match&&r.kind==='seed'&&Number.isInteger(r.round)&&r.round<=j.round&&r.round>=SEED_ROUNDS[Number(match[1])-1]&&!catchups.has(r.id)&&catchups.add(r.id);}).slice(0,Math.max(0,7-j.rewards.filter(r=>r.kind==='seed').length)).map(r=>({id:r.id,round:r.round,kind:'seed'})):[];
  return j;}
 export function grantRound(s,receipt){const j=s.journey;if(typeof receipt!=='string'||!/^[A-Za-z0-9:_-]{1,120}$/.test(receipt)||j.receipts.includes(receipt)||j.round+j.pending>=10000)return false;j.receipts.push(receipt);j.pending++;return true;}
-export function startRound(s){const j=s.journey;if(!j.closed||!j.pending||j.round>=10000)return false;skipFeedback(s);j.round++;activateFeedback(s);j.pending--;j.elapsed=0;j.light=0;j.asleep=false;j.sleepMissed=false;j.sleepWarning=0;j.closed=false;j.plan=null;j.goalCost=null;j.goalCost=dayPrice(s);j.rewardKind=nextRewardKind(s);return true;}
+export function startRound(s){const j=s.journey;if(!j.closed||!j.pending||j.round>=10000)return false;skipFeedback(s);s.village.fieldCuts={};j.round++;activateFeedback(s);j.pending--;j.elapsed=0;j.light=0;j.asleep=false;j.sleepMissed=false;j.sleepWarning=0;j.closed=false;j.plan=null;j.goalCost=null;j.goalCost=dayPrice(s);j.rewardKind=nextRewardKind(s);return true;}
 export function rewardCount(s,kind){return(s.journey.rewards??[]).filter(r=>r.kind===kind).length+(kind==='seed'?(s.journey.seedCatchups??[]).length:0);}
 export function seedsDue(round){return SEED_ROUNDS.filter(day=>day<=round).length;}
 export function nextRewardKind(s){return rewardCount(s,'seed')<seedsDue(s.journey.round)?'seed':rewardCount(s,'water')<70?'water':'rest';}
@@ -58,7 +58,7 @@ export function buildRule(id){
   if(id.startsWith('bed:'))return{start:[1,12,47,36,25,59,68][Number(id.slice(4))],stride:Number(id.slice(4))===6?2:3,max:5};
   if(id.startsWith('seed:'))return{start:[1,11,46,35,24,58,67][Number(id.slice(5))],stride:1,max:1};
   if(id.startsWith('workshop:'))return{start:({bouquet:3,tea:15,oil:29,elixir:43})[id.slice(9)],stride:5,max:7};
-  return({farm:{start:18,stride:1,max:1},woodcock:{start:32,stride:1,max:1},snail:{start:7,stride:6,max:12},snailLevel:{start:10,stride:7,max:10},partner:{start:21,stride:9,max:3},warehouse:{start:4,stride:6,max:12},sprinkler:{start:18,stride:7,max:9}})[id];
+  return({farm:{start:18,stride:1,max:1},woodcock:{start:32,stride:1,max:1},snail:{start:7,stride:6,max:12},snailLevel:{start:10,stride:7,max:10},partner:{start:20,stride:5,max:3},warehouse:{start:4,stride:6,max:12},sprinkler:{start:18,stride:7,max:9}})[id];
 }
 export function pacePad(s,p){const r=buildRule(p.id),round=s.journey?.round??1,next=r.start+Math.max(0,p.level-(p.id==='warehouse'||p.id==='bed:0'?1:0))*r.stride;
   const firstLevel=p.id==='warehouse'||p.id==='bed:0'?1:0,canAdvance=p.level>firstLevel&&(['tool','workshop','snail','warehouse','sprinkler','bed'].includes(p.kind)),lookahead=canAdvance?Math.min(3,r.stride-1):0,available=Math.max(r.start,next-lookahead);
