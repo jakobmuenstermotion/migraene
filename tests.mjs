@@ -1,3 +1,4 @@
+import {WORLD} from './mondgarten/content.mjs';
 import { GardenAutomation } from './mondgarten/automation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -214,22 +215,12 @@ test('unearned initial companion day cannot yield harvest', () => {
   assert.equal(harvestAt(s, [cell], cell.x, cell.z, 0).length, 0);
 });
 
-test('sunset depends on active time and fades slowly; income cannot make noon dark', () => {
-  const s = freshState();
-  prepareDay(s, TOOLS);
-  s.coins = 1e20;
-  s.journey.elapsed = 100;
-  assert.equal(nightTarget(s), 0);
-  s.journey.elapsed = 240;
-  near(nightTarget(s), 0.29);
-  advanceLighting(s, 1);
-  assert.ok(s.journey.light <= 1 / 90);
-  s.journey.closed = true;
-  s.journey.light = 0;
-  for (let i = 0; i < 45; i++) advanceLighting(s, 1);
-  near(s.journey.light, 0.5);
-  for (let i = 0; i < 45; i++) advanceLighting(s, 1);
-  near(s.journey.light, 1);
+test('sunset starts after four active minutes and reaches full night at sleep independently of buying a reward', () => {
+ const s=freshState();s.coins=1e20;
+ s.journey.elapsed=240;assert.equal(nightTarget(s),0);
+ s.journey.elapsed=420;near(nightTarget(s),.5);advanceLighting(s,1);near(s.journey.light,.5);
+ s.journey.closed=true;advanceLighting(s,90);near(s.journey.light,.5);
+ s.journey.elapsed=600;advanceLighting(s,0);near(s.journey.light,1);
 });
 
 test('orchard requires a short stationary pick and gives a fruit bundle', () => {
@@ -296,8 +287,8 @@ test('woodcock sells by carrying goods to the stand, never by duplicating them',
   advanceWoodcock(s, 0.1);
   assert.equal(s.coins, 0);
   assert.equal(s.village.finished.bouquet, 0);
-  s.village.woodcock.x = -9;
-  s.village.woodcock.z = 8;
+  s.village.woodcock.x = WORLD.bank.x;
+  s.village.woodcock.z = WORLD.bank.z;
   advanceWoodcock(s, 0.1);
   assert.equal(s.coins, 45);
   advanceWoodcock(s, 0.1);

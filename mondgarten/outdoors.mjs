@@ -4,7 +4,7 @@ export const OUTDOOR_TOOLS=[
  {id:'rod',name:'Angel',cost:2400,description:'Am Gartensee angeln. Den Marker mit dem Angelknopf im grünen Bereich halten.'},
 ];
 export const COMPOST_WORKSHOP={name:'Düngerwerkstatt',round:12,cost:2000,x:14,z:-19,pad:{x:14,z:-22},output:{x:15.8,z:-17.5}};
-export const LAKE={x:-30,z:25,shore:{x:-30,z:22.5}};
+export const LAKE={x:-23,z:11,shore:{x:-23,z:8.5}};
 export const BURIED_SHELLS=[{id:'shell-garden',species:'garden',name:'Gartenschneckenhaus',x:-30,z:-10},{id:'shell-dew',species:'dew',name:'Tauschneckenhaus',x:-25,z:-11}];
 export const FISH=[{id:'silver',name:'Silberflosse',color:'#c5dce2',value:12},{id:'perch',name:'Sonnenbarsch',color:'#e7bf70',value:16},{id:'carp',name:'Mondkarpfen',color:'#baa3d6',value:22},{id:'blue',name:'Sternenforelle',color:'#85becb',value:30}];
 export const SCRAP_CHANCE=.25,SCRAP_PITY=4;

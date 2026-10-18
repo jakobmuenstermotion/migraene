@@ -1,3 +1,4 @@
+import {PATHS,sceneryClear,COSMETIC_PLACES} from './layout.mjs';
 import {HARVEST_EFFECTS} from './harvest-effects.mjs';
 import {carriedStackEntries,cargoStackLayout} from './cargo-stack.mjs';
 import {fertilized,detectorTarget,FERTILIZER_RADIUS,LAKE,COMPOST_WORKSHOP} from './outdoors.mjs';
@@ -259,7 +260,7 @@ export class GardenScene {
     // Soft flecks make the grass feel warm without a heavy texture dependency.
     const specks=new T.InstancedMesh(geo('speck',()=>new T.CircleGeometry(1,5)),material('#d2dda5',{transparent:true,opacity:.28,depthWrite:false}),700),dummy=new T.Object3D();
     for(let i=0;i<700;i++){const x=Math.sin(i*367.1)*44,z=Math.cos(i*217.7)*44;dummy.position.set(x,.002,z);dummy.rotation.set(-Math.PI/2,0,i);dummy.scale.setScalar(.035+(i%7)*.018);dummy.updateMatrix();specks.setMatrixAt(i,dummy.matrix);}this.world.add(specks);
-    mesh(roundedSlab(3.2,.06,65,.6),p.path,this.world,-9,.005,-1,{shadow:false});mesh(roundedSlab(65,.055,3.6,.7),p.path,this.world,0,.007,16,{shadow:false});
+    for(const path of PATHS){const m=mesh(roundedSlab(path.width,.055,path.depth,.6),p.path,this.world,path.x,.005,path.z,{shadow:false});m.name='path:'+path.id;}
     for(const [i,f]of (state?BEDS:WORLD.fields).entries()){const fieldCells=state?this.cells.filter(c=>c.bed===i):[],w=fieldCells.length?Math.max(...fieldCells.map(c=>c.x))-Math.min(...fieldCells.map(c=>c.x))+f.spacing+.45:f.columns*f.spacing+.45,d=fieldCells.length?Math.max(...fieldCells.map(c=>c.z))-Math.min(...fieldCells.map(c=>c.z))+f.spacing+.4:f.rows*f.spacing+.4,unlocked=!state||state.village.beds[i]>0;mesh(roundedSlab(w,.055,d,.45),unlocked?(i===5?'#a8b3ad':p.soil):'#c3cea3',this.world,fieldCells.length?(Math.max(...fieldCells.map(c=>c.x))+Math.min(...fieldCells.map(c=>c.x)))/2:f.x,.003,fieldCells.length?(Math.max(...fieldCells.map(c=>c.z))+Math.min(...fieldCells.map(c=>c.z)))/2:f.z,{shadow:false});if(!unlocked){const border=mesh(roundedSlab(w+.15,.03,d+.15,.45),'#dce2c5',this.world,f.x,-.005,f.z,{shadow:false});}}
     this.makePlants(cells,this.crop);this.makeBank();this.makeDecor();if(state?.village.beds[5])this.makeCave();
     this.bundleTemplate=this.makeBundle(this.crop);this.actors[0].stack.clear();this.actors[0].layers=[];this.actors[1].stack.clear();this.actors[1].layers=[];this.lastStack=0;
@@ -378,9 +379,9 @@ export class GardenScene {
       if(built){mesh(roundedSlab(3.1,1.2,1.5,.12),'#b99268',root,0,.7,0);for(const side of [-1,1])mesh(cylinder(.065,.065,2.7,7),'#b99268',root,side*1.5,1.4,-.6);const awning=mesh(box(3.9,.14,2.6),shop.color,root,0,2.6,0);awning.rotation.x=.1;for(let i=0;i<6;i++)mesh(box(.32,.15,2.6),'#f0dfbb',root,-1.6+i*.64,2.69,0);for(let i=0;i<3;i++)mesh(sphere(.19),shop.color,root,-.7+i*.7,1.5,.2);}
       const map=labelTexture(built?shop.name:'HIER ENTSTEHT '+shop.name),sign=new T.Sprite(new T.SpriteMaterial({map,depthTest:true}));sign.position.set(0,built?3.1:1.1,.5);sign.scale.set(3.5,.8,1);sign.userData.temporaryTexture=true;root.add(sign);
     }
-    if(b.owned.includes('bench')){const g=new T.Group();g.position.set(-5,0,-23);this.construction.add(g);mesh(box(2.7,.16,.85),'#bc9c70',g,0,.62,0);mesh(box(2.7,.65,.13),'#bc9c70',g,0,1.02,-.4);for(const x of [-1,1])mesh(box(.16,.65,.7),'#7b8666',g,x,.30,0);}
-    if(b.owned.includes('arch')){const g=new T.Group();g.position.set(-9,0,15);this.construction.add(g);for(const side of [-1,1]){mesh(cylinder(.1,.13,2.9,7),'#c1a276',g,side*1.5,1.45,0);for(let i=0;i<5;i++){mesh(sphere(.18),i%2?'#b6c38a':'#d6afd0',g,side*(1.5-i*.1),1+i*.46,0);}}mesh(box(3.2,.12,.13),'#c1a276',g,0,2.9,0);for(let i=0;i<7;i++)mesh(sphere(.17),i%2?'#f1d3aa':'#d6afd0',g,-1.2+i*.4,2.9,0);}
-    if(b.owned.includes('lanterns'))for(const x of [-9,9]){const g=new T.Group();g.position.set(x,0,-21);this.construction.add(g);mesh(cylinder(.06,.10,1.4,7),'#96795b',g,0,.7,0);mesh(sphere(.27),this.lampBulb??material('#ffe3a2'),g,0,1.5,0);mesh(geo('boutiqueLanternRoof',()=>new T.ConeGeometry(.38,.3,6)),'#96795b',g,0,1.87,0);}
+    if(b.owned.includes('bench')){const g=new T.Group();g.name='cosmetic:bench';g.position.set(COSMETIC_PLACES.bench.x,0,COSMETIC_PLACES.bench.z);this.construction.add(g);mesh(box(2.7,.16,.85),'#bc9c70',g,0,.62,0);mesh(box(2.7,.65,.13),'#bc9c70',g,0,1.02,-.4);for(const x of [-1,1])mesh(box(.16,.65,.7),'#7b8666',g,x,.30,0);}
+    if(b.owned.includes('arch')){const g=new T.Group();g.name='cosmetic:arch';g.position.set(COSMETIC_PLACES.arch.x,0,COSMETIC_PLACES.arch.z);this.construction.add(g);for(const side of [-1,1]){mesh(cylinder(.1,.13,2.9,7),'#c1a276',g,side*1.5,1.45,0);for(let i=0;i<5;i++){mesh(sphere(.18),i%2?'#b6c38a':'#d6afd0',g,side*(1.5-i*.1),1+i*.46,0);}}mesh(box(3.2,.12,.13),'#c1a276',g,0,2.9,0);for(let i=0;i<7;i++)mesh(sphere(.17),i%2?'#f1d3aa':'#d6afd0',g,-1.2+i*.4,2.9,0);}
+    if(b.owned.includes('lanterns'))for(const p of COSMETIC_PLACES.lanterns){const g=new T.Group();g.name='cosmetic:lantern';g.position.set(p.x,0,p.z);this.construction.add(g);mesh(cylinder(.06,.10,1.4,7),'#96795b',g,0,.7,0);mesh(sphere(.27),this.lampBulb??material('#ffe3a2'),g,0,1.5,0);mesh(geo('boutiqueLanternRoof',()=>new T.ConeGeometry(.38,.3,6)),'#96795b',g,0,1.87,0);}
   }
   makeStructure(kind,x,z,level){
     const root=new T.Group();root.position.set(x,0,z);this.construction.add(root);
@@ -408,10 +409,10 @@ export class GardenScene {
    }
   }
   makeCave(){const b=BEDS[5],root=new T.Group();root.name='crystal-cave';root.position.set(b.x,0,b.z);this.world.add(root);
-   for(const x of [-8.1,8.1])for(const z of [-3.9,-1.7,.7]){const rock=mesh(new T.DodecahedronGeometry(1,0),'#87968e',root,x,1.1,z);rock.scale.set(1.05,1.4,1.3);}
-   for(let i=0;i<8;i++){const rock=mesh(new T.DodecahedronGeometry(1,0),'#82928b',root,(i-3.5)*2.1,2.5,-4.25);rock.scale.set(1.5,1.15,1.2);}
-   const mouth=mesh(sphere(1),'#4d6461',root,0,1.25,-3.0);mouth.scale.set(1.3,1.1,.1);mesh(new T.TorusGeometry(1.4,.2,7,20,Math.PI),'#91a198',root,0,1.2,-2.95);
-   for(let i=0;i<6;i++){const gem=mesh(new T.OctahedronGeometry(.3),material(i%2?'#a8d6e5':'#b8a9df',{emissive:'#8ab8cd',emissiveIntensity:.25}),root,(i-2.5)*1.9,.35,-3.9);gem.scale.y=1.7;}
+   for(const x of [-10.6,10.6])for(const z of [-3.9,-1.7,.7]){const rock=mesh(new T.DodecahedronGeometry(1,0),'#87968e',root,x,1.1,z);rock.scale.set(1.05,1.4,1.3);}
+   for(let i=0;i<8;i++){const rock=mesh(new T.DodecahedronGeometry(1,0),'#82928b',root,(i-3.5)*2.6,2.5,-7.2);rock.scale.set(1.5,1.15,1.2);}
+   const mouth=mesh(sphere(1),'#4d6461',root,0,1.25,-6.1);mouth.scale.set(1.3,1.1,.1);mesh(new T.TorusGeometry(1.4,.2,7,20,Math.PI),'#91a198',root,0,1.2,-6.15);
+   for(let i=0;i<6;i++){const gem=mesh(new T.OctahedronGeometry(.3),material(i%2?'#a8d6e5':'#b8a9df',{emissive:'#8ab8cd',emissiveIntensity:.25}),root,(i-2.5)*1.9,.35,-6.3);gem.scale.y=1.7;}
   }
   pickHelper(x,y){this.raycaster.setFromCamera(new T.Vector2(x/this.width*2-1,-y/this.height*2+1),this.camera);const roots=[...this.helpers.map(h=>h.root),this.actors[1].root,this.woodcock.root].filter(r=>r.visible);for(const hit of this.raycaster.intersectObjects(roots,true)){let o=hit.object,visible=true;while(o){if(!o.visible)visible=false;if(o.userData.helperTarget&&visible)return o.userData.helperTarget;o=o.parent;}}return null;}
   makeMiningHit(cell){if(this.reducedMotion())return;for(let i=0;i<4;i++){const m=mesh(geo('crystalChip',()=>new T.OctahedronGeometry(.075)),i%2?'#a7dbd4':'#d8c4ed',this.scene,cell.x,.45,cell.z);this.dust.push({mesh:m,age:0,life:.4,vx:(Math.random()-.5)*2,vz:(Math.random()-.5)*2});}}
@@ -466,19 +467,20 @@ export class GardenScene {
   feedNursery(source,target){this.makeFoodFlight(source,target);const v=this.farmVisuals.find(v=>v.nurseryID===target.id);if(v)v.snackTime=2.5;}
   makeDecor(){
     const trees=[[-18,9,1.0],[-19,13,1.1],[-19,17,.8],[-22,15,.9],[-5,-13,1.2],[-3,-16,.9],[19,-15,1.0],[22,-13,1.15],[25,7,.9],[24,11,1.15],[4,21,.8],[-2,23,1.1],[-24,-13,1.2],[-31,-14,.9],[29,29,1.1],[-15,31,.9],[12,-29,1.3]];
-    for(const [x,z,s]of trees){if(this.villageState&&getBuildPads(this.villageState,this.toolDefs).some(p=>Math.hypot(p.x-x,p.z-z)<3))continue;const root=new T.Group();root.position.set(x,0,z);root.scale.setScalar(s);this.world.add(root);blob(root,0,0,4,.55);mesh(cylinder(.18,.26,2.3,7),'#a98d61',root,0,1.15,0);for(const [a,b,c,r]of [[0,3,0,1.35],[-.8,2.6,.1,1],[.7,2.7,.3,1.1],[.1,3.6,-.15,.9]]){const leaf=mesh(geo('treeLeaves',()=>new T.IcosahedronGeometry(1,1)),(x+z)%3?'#88ab6c':'#a2bb7b',root,a,b,c);leaf.scale.set(r,r*.78,r);}}
-    const stones=[[-4,11,.7],[20,12,.6],[22,15,.8],[-13,-4,.6],[-5,-11,.7],[21,-13,.8],[-21,5,.6],[8,27,.7],[-1,21,.4],[-25,22,.7]];for(const [x,z,s]of stones){const stone=mesh(geo('rock',()=>new T.DodecahedronGeometry(1,0)),'#c6c8ad',this.world,x,s*.3,z);stone.scale.set(s,s*.55,s*.8);stone.rotation.y=x;}
-    const fence=new T.Group();this.world.add(fence);for(let i=0;i<8;i++){const x=-3+i*2.6;mesh(box(.16,1.3,.16),'#bc9b73',fence,x,.65,-11.3);if(i<7){mesh(box(2.6,.13,.12),'#d0b28a',fence,x+1.3,.46,-11.3);mesh(box(2.6,.13,.12),'#d0b28a',fence,x+1.3,.99,-11.3);}}
+    const pads=this.villageState?getBuildPads(this.villageState,this.toolDefs):[];
+    for(const [x,z,s]of trees){if(!sceneryClear({x,z,width:3.6*s,depth:3.6*s},pads))continue;const root=new T.Group();root.position.set(x,0,z);root.scale.setScalar(s);this.world.add(root);blob(root,0,0,4,.55);mesh(cylinder(.18,.26,2.3,7),'#a98d61',root,0,1.15,0);for(const [a,b,c,r]of [[0,3,0,1.35],[-.8,2.6,.1,1],[.7,2.7,.3,1.1],[.1,3.6,-.15,.9]]){const leaf=mesh(geo('treeLeaves',()=>new T.IcosahedronGeometry(1,1)),(x+z)%3?'#88ab6c':'#a2bb7b',root,a,b,c);leaf.scale.set(r,r*.78,r);}}
+    const stones=[[-4,11,.7],[20,12,.6],[22,15,.8],[-13,-4,.6],[-5,-11,.7],[21,-13,.8],[-21,5,.6],[8,27,.7],[-1,21,.4],[-25,22,.7]];for(const [x,z,s]of stones){if(!sceneryClear({x,z,width:s*2,depth:s*1.6},pads))continue;const stone=mesh(geo('rock',()=>new T.DodecahedronGeometry(1,0)),'#c6c8ad',this.world,x,s*.3,z);stone.scale.set(s,s*.55,s*.8);stone.rotation.y=x;}
+    const fence=new T.Group();this.world.add(fence);for(let i=0;i<8;i++){const x=-3+i*2.6;if(!sceneryClear({x:x+1.3,z:-11.3,width:2.9,depth:.2},pads))continue;mesh(box(.16,1.3,.16),'#bc9b73',fence,x,.65,-11.3);if(i<7){mesh(box(2.6,.13,.12),'#d0b28a',fence,x+1.3,.46,-11.3);mesh(box(2.6,.13,.12),'#d0b28a',fence,x+1.3,.99,-11.3);}}
     // A little pond, tucked away from the harvesting lanes.
-    const pond=mesh(cylinder(2.5,2.6,.08,30),'#d5d1ad',this.world,-30,.045,25);pond.scale.z=.7;const water=mesh(cylinder(2.30,2.30,.03,30),'#91c8c5',this.world,-30,.10,25);water.scale.z=.7;
-    for(let i=0;i<60;i++){const x=Math.sin(i*19.7)*29,z=Math.cos(i*13.1)*30;if(this.cells.some(p=>Math.abs(p.x-x)<1&&Math.abs(p.z-z)<1)||Math.abs(x+9)<2||Math.abs(z-16)<2)continue;const flower=mesh(sphere(.095),i%3?'#f5eed4':'#e8cb8d',this.world,x,.16,z,{shadow:false});flower.scale.y=.4;}
+    const pond=mesh(cylinder(2.5,2.6,.08,30),'#d5d1ad',this.world,LAKE.x,.045,LAKE.z);pond.scale.z=.7;const water=mesh(cylinder(2.30,2.30,.03,30),'#91c8c5',this.world,LAKE.x,.10,LAKE.z);water.scale.z=.7;
+    for(let i=0;i<60;i++){const x=Math.sin(i*19.7)*29,z=Math.cos(i*13.1)*30;if(!sceneryClear({x,z,width:.3,depth:.3},pads))continue;const flower=mesh(sphere(.095),i%3?'#f5eed4':'#e8cb8d',this.world,x,.16,z,{shadow:false});flower.scale.y=.4;}
   }
   makePickup(p,rare=false){if(this.reducedMotion()||this.flights.length>28)return;const template=p.crop?(this.harvestBundles[p.crop]??=this.makeBundle(COLLECTIBLES[p.crop])):this.bundleTemplate;const m=template.clone(true);m.scale.setScalar(rare?.60:.43);m.position.set(p.x,.75,p.z);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.48+Math.random()*.12,type:'pickup'});}
   makeTransfer(source,target,productID=null){if(this.reducedMotion()||this.flights.length>28)return;const m=(productID?this.productBundle(productID):this.bundleTemplate).clone(true);m.scale.setScalar(productID?1.15:.65);m.position.set(source.x,source.y??1.5,source.z);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.6,type:target?'transfer':'pickup',target:target?new T.Vector3(target.x,.9,target.z):null});}
   makeLanterns(){
     this.lampBulb?.dispose();this.lampGlow?.dispose();this.lampBulb=new T.MeshBasicMaterial({color:'#bfa87d'});this.lampGlow=new T.MeshBasicMaterial({color:'#ffd27d',transparent:true,opacity:0,depthWrite:false});
-    const spots=[{x:WORLD.bank.x+2.4,z:WORLD.bank.z},{x:VILLAGE.warehouse.x+2,z:VILLAGE.warehouse.z},...WORKSHOPS.map(w=>({x:w.x+2.5,z:w.z-1.3})),{x:-9,z:-16},{x:-9,z:22}];
-    for(const p of spots){const lamp=new T.Group();lamp.position.set(p.x,0,p.z);this.world.add(lamp);mesh(cylinder(.055,.09,2.2,6),'#977e62',lamp,0,1.1,0);mesh(box(.42,.5,.42),'#755e52',lamp,0,2.3,0);mesh(sphere(.21),this.lampBulb,lamp,0,2.32,.17,{shadow:false});mesh(new T.ConeGeometry(.4,.25,4),'#796450',lamp,0,2.65,0);const halo=mesh(new T.CircleGeometry(2,24),this.lampGlow,lamp,0,.07,0,{shadow:false});halo.rotation.x=-Math.PI/2;}
+    const spots=[{x:-5.3,z:9.3},{x:VILLAGE.warehouse.x-2.2,z:VILLAGE.warehouse.z-1},...WORKSHOPS.map(w=>({x:w.x+2.9,z:w.z-1.3})),{x:-9.3,z:-16},{x:-9.3,z:22}];
+    for(const p of spots){if(!sceneryClear({x:p.x,z:p.z,width:.5,depth:.5}))continue;const lamp=new T.Group();lamp.position.set(p.x,0,p.z);this.world.add(lamp);mesh(cylinder(.055,.09,2.2,6),'#977e62',lamp,0,1.1,0);mesh(box(.42,.5,.42),'#755e52',lamp,0,2.3,0);mesh(sphere(.21),this.lampBulb,lamp,0,2.32,.17,{shadow:false});mesh(new T.ConeGeometry(.4,.25,4),'#796450',lamp,0,2.65,0);const halo=mesh(new T.CircleGeometry(2,24),this.lampGlow,lamp,0,.07,0,{shadow:false});halo.rotation.x=-Math.PI/2;}
   }
   makeSale(player){if(this.reducedMotion()||this.flights.length>28)return;const m=this.bundleTemplate.clone(true);m.scale.setScalar(.7);m.position.set(player.x,1.1+this.lastStack*WORLD.stack.layerHeight,player.z-.35);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.52,type:'sale'});}
   releaseButterfly(cell,species){const visual=makeButterfly(species.color);visual.root.name='found-butterfly:'+species.id;visual.root.position.set(cell.x,1.2,cell.z);this.scene.add(visual.root);if(this.butterflies.length>=3)this.scene.remove(this.butterflies.shift().root);this.butterflies.push({...visual,x:cell.x,z:cell.z,age:0});}
@@ -551,9 +553,9 @@ export class GardenScene {
     this.moneyGlow=Math.max(0,this.moneyGlow-dt*.25);this.moneyRing.position.set(player.x,0,player.z);const coinCount=coins>0?Math.min(42,Math.max(1,Math.ceil(Math.log10(1+coins)*5))):0;this.moneyCoins.forEach((coin,i)=>{coin.visible=i<coinCount;const column=i%3,layer=Math.floor(i/3);coin.position.set(.95+column*.21,.14+layer*.064+this.moneyGlow*.035,-.25+(column%2)*.16);coin.rotation.y=column*.7+layer*.13;});
     this.night=this.villageState?.journey?.light??0;
     const night=Math.max(0,(this.night-.6)/.4),sunset=Math.sin(Math.min(1,this.night/.8)*Math.PI);
-    this.hemi.intensity=1.55-night*.72;this.hemi.color.set('#fffcf0').lerp(new T.Color('#ffd1a0'),sunset*.45).lerp(new T.Color('#9fa8de'),night);
-    this.sun.intensity=2.1-sunset*.35-night*1.6;this.sun.color.set('#fff5e5').lerp(new T.Color('#ffa35d'),sunset*.85).lerp(new T.Color('#b5bce9'),night);
-    const ground=new T.Color(GARDENS[this.gardenIndex].palette.ground).lerp(new T.Color('#d6b07b'),sunset*.3).lerp(new T.Color('#424e72'),night*.8);this.scene.background.copy(ground);this.scene.fog.color.copy(ground);
+    this.hemi.intensity=1.55-night*1.33;this.hemi.color.set('#fffcf0').lerp(new T.Color('#ffd1a0'),sunset*.45).lerp(new T.Color('#9fa8de'),night);
+    this.sun.intensity=Math.max(.06,2.1-sunset*.35-night*2.04);this.sun.color.set('#fff5e5').lerp(new T.Color('#ffa35d'),sunset*.85).lerp(new T.Color('#b5bce9'),night);
+    const ground=new T.Color(GARDENS[this.gardenIndex].palette.ground).lerp(new T.Color('#d6b07b'),sunset*.3).lerp(new T.Color('#18243b'),night*.8);this.scene.background.copy(ground);this.scene.fog.color.copy(ground);
     if(this.lampBulb){const glow=Math.max(0,Math.min(1,(this.night-.48)/.32));this.lampBulb.color.set('#bfa87d').lerp(new T.Color('#ffe9a6'),glow);this.lampGlow.opacity=glow*.24;}
     this.renderer.render(this.scene,this.camera);
   }

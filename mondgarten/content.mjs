@@ -75,7 +75,7 @@ export const GARDENS = [
 
 export const WORLD = {
   halfSize:35,
-  bank:{x:-9,z:8,radius:3.3},
+  bank:{x:-11.5,z:8,radius:3.3},
   spawn:{x:0,z:8},
   // Blocks are dense crop beds. Add/remove rectangles or change spacing here.
   fields:[

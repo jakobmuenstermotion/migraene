@@ -18,6 +18,7 @@ export function advanceDayRhythm(s) {
     }
     j.closed = true;
     j.asleep = true;
+    j.light = 1;
     j.sleepMissed = missed;
     return { kind: "sleep", missed, refund };
   }

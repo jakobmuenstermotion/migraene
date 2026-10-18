@@ -152,9 +152,11 @@ test("darkness blocks harvesting, movement, selling and deposits for every assig
 test("night starts from actual lighting and a new earned morning wakes helpers with their existing cargo", () => {
   const s = loaded("sell");
   s.journey.closed = true;
-  s.journey.light = 0.67;
+  s.journey.elapsed=460;
+  advanceLighting(s,0);
   assert.equal(snailsResting(s), false);
-  advanceLighting(s, 2);
+  s.journey.elapsed+=5;
+  advanceLighting(s,5);
   assert.equal(snailsResting(s), true);
   const a = new GardenAutomation(s);
   a.update(s, [], null, 0.1, 0);
