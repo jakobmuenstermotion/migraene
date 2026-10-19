@@ -70,7 +70,9 @@ export function advanceOutdoors(s,cells,player,dt,growthDelta=0,time=0,valueForB
  return events;
 }
 export function sellOutdoorGoods(s){const o=s.outdoors;let count=o.treasures??0,value=o.treasureValue??0;o.treasures=0;o.treasureValue=0;for(const f of FISH){count+=o.fish[f.id]??0;value+=o.fishValues[f.id]??0;o.fish[f.id]=0;o.fishValues[f.id]=0;}credit(s,value);return{count,value};}
-export function startFishing(s,player,valueMultiplier=1,random=Math.random){const o=s.outdoors;if(!active(s)||o.equipped!=='rod'||Math.hypot(player.x-LAKE.shore.x,player.z-LAKE.shore.z)>3||o.fishing||Object.values(o.fish).reduce((a,b)=>a+b,0)>=100)return false;o.fishing={phase:'waiting',wait:2+random()*3,elapsed:0,marker:.35,target:.5,progress:.25,fishId:FISH[Math.min(3,Math.floor(random()*4))].id,valueMultiplier:num(valueMultiplier,1)};return true;}
+// Include every bank of the elliptical lake and the fishing pier.
+export function nearLake(player){return ((player.x-LAKE.x)/(LAKE.width/2+1.5))**2+((player.z-LAKE.z)/(LAKE.depth/2+1.5))**2<=1;}
+export function startFishing(s,player,valueMultiplier=1,random=Math.random){const o=s.outdoors;if(!active(s)||o.equipped!=='rod'||!nearLake(player)||o.fishing||Object.values(o.fish).reduce((a,b)=>a+b,0)>=100)return false;o.fishing={phase:'waiting',wait:2+random()*3,elapsed:0,marker:.35,target:.5,progress:.25,fishId:FISH[Math.min(3,Math.floor(random()*4))].id,valueMultiplier:num(valueMultiplier,1)};return true;}
 export function advanceFishing(s,dt,holding=false,random=Math.random){const f=s.outdoors.fishing;if(!f||!active(s)||dt<=0)return null;
  if(f.phase==='waiting'){f.wait-=dt;if(f.wait<=0)f.phase='catch';return null;}
  const fish=FISH.find(p=>p.id===f.fishId)??FISH[0],motion=FISH_MOTIONS[fish.id];f.elapsed+=dt;f.marker=Math.max(0,Math.min(1,f.marker+(holding?.65:-.4)*dt));f.target=.5+Math.sin(f.elapsed*motion.speed)*motion.amplitude+(fish.id==='blue'?Math.sin(f.elapsed*5)*.05:0);
