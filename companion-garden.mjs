@@ -47,7 +47,7 @@ function mountPlant(place,p){
  if(place.querySelector('[data-seed]'))place.replaceChildren();renderer.mount(place,p);
 }
 function closeGame(){const closing=frame;closing?.contentWindow?.postMessage({type:'mondgarten:save'},location.origin);if(playDialog?.open)playDialog.close();collectRewards();mount();setTimeout(()=>{if(frame===closing&&!playDialog?.open){closing?.remove();frame=null;}},250);}
-function openGame(start){
+function openGame(start){window.dispatchEvent(new Event('app:check-update'));
  if(!playDialog){playDialog=node('dialog','garden-play-dialog');const head=node('header','garden-play-header');head.append(button('← Zur Begleitseite',closeGame),node('span','','Mondgarten'));playDialog.append(head);document.body.append(playDialog);playDialog.addEventListener('cancel',e=>{e.preventDefault();closeGame();});}
  frame?.remove();frame=node('iframe','garden-game-frame');frame.title='Euer Mondgarten';frame.dataset.mondgarten='1';frame.src=C.gameURL;frame.onload=()=>{if(start)frame?.contentWindow?.postMessage({type:'mondgarten:start'},location.origin);};playDialog.append(frame);playDialog.showModal();
 }

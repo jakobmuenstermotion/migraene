@@ -425,3 +425,13 @@ Am Seeufer und auf dem Steg erscheint ein schwebender, mit SVG gezeichneter Ange
 Beim Hineingehen in den gebauten Accessoiresladen öffnet sich das eigene Sortiment auch während des Laufens. Der Tür- und Innenbereich wird erfasst; andere geöffnete Menüs und der Schlaf werden nicht unterbrochen. Nach dem Schließen bleibt das Menü geschlossen, bis die Figur den Eingangsbereich verlassen hat. Werkzeugkäufe stehen vor den Accessoires, und nach einem Kauf bleibt die gewählte Ladenansicht erhalten. Der Preis der Angel bleibt bei 2.400 Sternenstaub.
 
 `lake-shop-entry-tests.mjs` prüft die echten Interaktionsfunktionen in einer simulierten Oberfläche: Uferreichweite, Sichtbarkeit, automatisches Ausrüsten, Minispielstart bis zum Fischfang, Fehlermeldungen, Ladeneintritt beim Laufen, Wiedereintritt und das ladenspezifische Sortiment. Diese Prüfungen ersetzen keinen Sicht- und Touchtest auf dem iPhone.
+
+### Aktualisieren beim Öffnen und Zurückkehren
+
+`app-update.js` registriert den gemeinsamen Service Worker ohne HTTP-Zwischenspeicherung der Update-Prüfung. Beim Start, Zurückkehren, Wiederherstellen der Seite, erneuter Netzverbindung und Öffnen des Spiels wird nach einer neuen Version gesucht. Nur das oberste Fenster steuert die Aktualisierung; eingebettete Spielfenster registrieren keinen zweiten Worker. Ein tatsächlich geänderter Controller löst einmaliges Neuladen aus, im Hintergrund erst nach Rückkehr. Die Erstinstallation lädt nicht erneut.
+
+Vor dem Neuladen speichert ein eigenständig geöffnetes Spiel synchron. Ein eingebettetes Spiel bestätigt dem übergeordneten Fenster über eine eindeutig zugeordnete Nachricht den erfolgreichen Speichervorgang. Herkunft und Fensterquelle werden geprüft. Bei Speicherfehlern oder fehlender Bestätigung bleibt die laufende Seite erhalten; die nächste Rückkehr versucht es erneut. Offline und ohne neue Version bleibt die App geöffnet.
+
+Der Service Worker aktiviert eine neue Version erst nach erfolgreichem vollständigem Herunterladen aller vorgesehenen Dateien mit `cache: no-store`. Dateien einer gespeicherten Version werden nicht mehr während der Nutzung mit Dateien einer neueren Veröffentlichung überschrieben. So bleiben HTML, JavaScript und Gestaltung einer Veröffentlichung zusammen. Vorhandene lokale Spielstände und Begleitdaten werden nicht gelöscht. Bereits dauerhaft offene alte Seiten benötigen einmalig ein manuelles Neuladen, um diese neue Aktualisierungsfunktion erstmals zu laden.
+
+`app-update-tests.mjs` prüft die Update-Ereignisse, Erstinstallation, Speichern vor Neuladen, Herkunftsprüfung und Bestätigung eingebetteter Spiele, Speicherfehler, Zeitüberschreitung, Rückkehr aus dem Hintergrund, vollständiges Caching vor Aktivierung und unveränderte zwischengespeicherte Dateiversionen.

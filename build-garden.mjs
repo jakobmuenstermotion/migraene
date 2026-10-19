@@ -5,7 +5,7 @@ const root=path.dirname(fileURLToPath(import.meta.url)),read=f=>fs.readFileSync(
 const chunks=['garden-config.mjs','garden-ledger.mjs','companion-garden.mjs'].map(f=>read(f).replace(/^import[^\n]+\r?\n/gm,'').replace(/^export /gm,''));
 chunks[2]='const C=GARDEN;\n'+chunks[2];
 fs.writeFileSync(path.join(root,'companion-garden.js'),"(function(){'use strict';\n"+chunks.join('\n')+'\n})();\n');
-const files=['./begleiter.html','./icon-180.png','./companion-garden.js','./companion-garden.css'];
+const files=['./app-update.js','./begleiter.html','./icon-180.png','./companion-garden.js','./companion-garden.css'];
 function walk(d){for(const e of fs.readdirSync(path.join(root,d),{withFileTypes:true})){const p=path.join(d,e.name);if(e.isDirectory())walk(p);else files.push('./'+p.replaceAll('\\','/'));}}
 for(const d of ['garden-modules','garden-assets-webp','mondgarten'])walk(d);
 files.sort();const hash=crypto.createHash('sha256');for(const f of files){hash.update(f);hash.update(fs.readFileSync(path.join(root,f)));}

@@ -636,7 +636,7 @@ window.addEventListener('online', sync);
 setInterval(function(){ if(document.visibilityState==='visible' && !flash && !ask){ render(); sync(); } }, 60000);
 render(); sync();
 /* v236: offline öffnen (sw.js im selben Ordner) */
-if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(function(){}); }catch(_){} }
+/* Registrierung und Aktualisierung: app-update.js */
 })();
 (function(){
   var SEL = 'button, summary, label.chk', pressedEl = null;
@@ -650,5 +650,6 @@ if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator
 })();
 </script>
 <script src="garden-modules/plants.js"></script><script src="garden-modules/plant-renderer.js"></script><script defer src="companion-garden.js"></script>
+<script defer src="app-update.js"></script>
 </body>
 </html>
