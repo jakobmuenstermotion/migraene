@@ -13,7 +13,7 @@ function fixture(){
  const modal={open:false,showModal(){this.open=true;},querySelectorAll(){return[];}};
  const c={state,player:{...LAKE.shore,moving:false},modal,modalView:'',warehouseShelf:{visible:false},controls:{stop(){}},cells:[],harvestClock:0,fishingHolding:false,nearLake,LAKE,OUTDOOR_TOOLS,outdoorToolPrice,equipOutdoorTool,startFishing,format,TOOLS,BOUTIQUES,COSMETICS,SNAIL_HATS,cosmeticPrice,cosmeticAvailable,scene:{worldToScreen(){return{x:195,y:300,visible:true};}},bedYield:()=>2,refreshWorld(){},save(){},toast:m=>messages.push(m),title:(_e,h)=>`<h2>${h}</h2>`,esc:String,dismissFeedback(){},openOutdoors(){},place(el,p){el.hidden=!p.visible;},$};
  vm.createContext(c);vm.runInContext(extract('function openModal(', 'function walkTo('),c);vm.runInContext(extract('function openFishing()', 'function updateFishingUI('),c);vm.runInContext(extract('function updateLakeAction()', 'function updateLabels('),c);
- vm.runInContext(extract('let boutiqueVisit=null', 'function updateOutdoorPlay('),c);c.openBoutiques=id=>{opens.push(id);modal.open=true;};return{c,state,$,messages,opens};
+ vm.runInContext('let boutiqueVisit=null,boutiqueDwell=0;'+extract('function updateBoutiqueEntry(', 'function updateOutdoorPlay('),c);c.openBoutiques=id=>{opens.push(id);modal.open=true;};return{c,state,$,messages,opens};
 }
 test('the lake interaction covers every bank and the pier, but excludes distant flower fields',()=>{
  for(const p of [LAKE.shore,LAKE.dock,{x:LAKE.x+4.4,z:LAKE.z},{x:LAKE.x-4.4,z:LAKE.z},{x:LAKE.x,z:LAKE.z+3.5},{x:LAKE.x,z:LAKE.z-3.5}])assert.ok(nearLake(p));

@@ -30,6 +30,7 @@ import {discoverSeeds,productCargoCount,takeWorkshopGoods,sellCarriedProducts,de
 const embedded=new URL(location.href).searchParams.get('embedded')==='1'||window.frameElement?.dataset.mondgarten==='1',storageKey=embedded?COMPANION.saveKey:SAVE_KEY;
 const $=id=>document.getElementById(id),modal=$('modal');
 let fishingHolding=false,detectorBeep=0;
+let boutiqueVisit=null,boutiqueDwell=0;
 let state=freshState(),storageOK=true;try{const raw=localStorage.getItem(storageKey);if(raw)state=normalize(JSON.parse(raw));else if(embedded)prepareHostedState(state);}catch{storageOK=false;}
 if(embedded){try{syncCompanionActions(state,JSON.parse(localStorage.getItem(COMPANION.journalKey)||'null'));}catch{}}
 state.journey.goalCost??=dayPrice(state);prepareDay(state,TOOLS);
@@ -299,7 +300,6 @@ function openSleep(){
  if($('sleepReturn'))$('sleepReturn').onclick=finishHostedDay;$('sleepRounds').onclick=openRounds;$('sleepSeeds').onclick=openCompanionSeeds;$('sleepSettings').onclick=openSettings;
 }
 
-let boutiqueVisit=null,boutiqueDwell=0;
 function updateBoutiqueEntry(dt){
  const shop=BOUTIQUES.find(d=>(d.id!=='style'||state.village.boutiques.built.includes('style'))&&state.journey.round>=d.round&&Math.abs(player.x-d.x)<2&&player.z>d.z-1&&player.z<d.z+3.2);
  if(!shop){boutiqueVisit=null;boutiqueDwell=0;return;}

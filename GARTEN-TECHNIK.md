@@ -435,3 +435,7 @@ Vor dem Neuladen speichert ein eigenständig geöffnetes Spiel synchron. Ein ein
 Der Service Worker aktiviert eine neue Version erst nach erfolgreichem vollständigem Herunterladen aller vorgesehenen Dateien mit `cache: no-store`. Dateien einer gespeicherten Version werden nicht mehr während der Nutzung mit Dateien einer neueren Veröffentlichung überschrieben. So bleiben HTML, JavaScript und Gestaltung einer Veröffentlichung zusammen. Vorhandene lokale Spielstände und Begleitdaten werden nicht gelöscht. Bereits dauerhaft offene alte Seiten benötigen einmalig ein manuelles Neuladen, um diese neue Aktualisierungsfunktion erstmals zu laden.
 
 `app-update-tests.mjs` prüft die Update-Ereignisse, Erstinstallation, Speichern vor Neuladen, Herkunftsprüfung und Bestätigung eingebetteter Spiele, Speicherfehler, Zeitüberschreitung, Rückkehr aus dem Hintergrund, vollständiges Caching vor Aktivierung und unveränderte zwischengespeicherte Dateiversionen.
+
+### Startreihenfolge der Ladenverwaltung
+
+Die Besuchsmarkierung für Läden wird vor dem ersten `resetWorld()` initialisiert. Zuvor führte ihr Zurücksetzen beim Spielstart zu einem `ReferenceError`, der fälschlich die allgemeine 3D-Fehlerseite zeigte. `startup-tests.mjs` führt das vollständige Spielmodul sowohl eigenständig als auch eingebettet mit der echten Spiel- und Speicherlogik aus; nur Oberfläche, Grafik und Eingabegerät werden simuliert. Die Prüfung verlangt einen aufgebauten Garten, den Start der Render-Schleife, einen gespeicherten Spielstand und das Ausbleiben der Fehleranzeige.
