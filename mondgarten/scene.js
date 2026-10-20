@@ -1,7 +1,7 @@
 import {PATHS,sceneryClear,COSMETIC_PLACES} from './layout.mjs';
 import {HARVEST_EFFECTS} from './harvest-effects.mjs';
 import {carriedStackEntries,cargoStackLayout} from './cargo-stack.mjs';
-import {fertilized,detectorTarget,FERTILIZER_RADIUS,LAKE,COMPOST_WORKSHOP} from './outdoors.mjs';
+import {fertilized,detectorTarget,FERTILIZER_RADIUS,FISH,LAKE,COMPOST_WORKSHOP} from './outdoors.mjs';
 import {FLOWER_CROPS} from './harvest-moments.mjs';
 import {HIVES,HONEY_SECONDS,HIVE_CAPACITY} from './honey-content.mjs';
 import {SNAIL_LOOKS,nurseryPose,FARM_PLACES} from './snail-appearance.mjs';
@@ -302,7 +302,7 @@ export class GardenScene {
     this.permanentPlantsReady=true;
   }
 
-  cargoTemplate(entry){return entry.kind==='product'?this.productBundle(entry.id):(this.harvestBundles[entry.id]??=this.makeBundle(COLLECTIBLES[entry.id]));}
+  cargoTemplate(entry){if(entry.kind==='fish')return this.fishBundle(entry.id.slice(5));return entry.kind==='product'?this.productBundle(entry.id):(this.harvestBundles[entry.id]??=this.makeBundle(COLLECTIBLES[entry.id]));}
   makeBundle(c){const g=new T.Group();if(c.bundle==='crate'){
     mesh(roundedSlab(.9,.17,.64,.06),c.wrap,g,0,0,0);for(const x of [-.43,.43])mesh(box(.055,.34,.64),c.wrap,g,x,.11,0);for(const z of [-.30,.30])mesh(box(.9,.22,.045),c.tie,g,0,.12,z);
     for(let i=0;i<3;i++){const x=(i-1)*.25,z=(i%2)*.15-.07;if(c.model==='orchard'||c.model==='fruit'){mesh(sphere(.17),c.color,g,x,.25,z);const leaf=mesh(sphere(.065),c.stem,g,x+.06,.4,z);leaf.scale.set(1.2,.25,.6);}else if(c.model==='mushroom'){mesh(cylinder(.045,.06,.2,6),c.stem,g,x,.23,z);const cap=mesh(sphere(.15),c.color,g,x,.36,z);cap.scale.y=.55;mesh(sphere(.035),c.accent,g,x-.04,.44,z);}else{const gem=mesh(geo('crateGem',()=>new T.OctahedronGeometry(1)),i%2?c.accent:c.color,g,x,.20,z);gem.scale.set(.18,.28,.17);}}
@@ -352,7 +352,26 @@ export class GardenScene {
    mesh(roundedSlab(2.1,.06,.23,.06),'#e7dfc6',root,0,.26,0,{shadow:false});const fill=mesh(box(1,.075,.15),'#d7b75f',root,-1,.3,0,{shadow:false});fill.scale.x=.001;
    this.padVisuals.set(pad.id,{root,edge,edgeMat,areaMat,fill,sign,cost:pad.cost});
   }
+  fishBundle(id){
+   this.fishTemplates??={};if(this.fishTemplates[id])return this.fishTemplates[id];
+   const fish=FISH.find(f=>f.id===id)??FISH[0],root=new T.Group();root.name='fish:'+fish.id;
+   mesh(sphere(.38),fish.color,root,0,.2,0).scale.set(1.65,.65,.6);
+   const tail=mesh(new T.ConeGeometry(.26,.42,3),fish.color,root,-.68,.2,0);tail.rotation.z=-Math.PI/2;tail.scale.z=.4;
+   const fin=mesh(new T.ConeGeometry(.18,.24,3),fish.color,root,-.1,.47,0);fin.scale.z=.25;
+   for(const side of [-1,1]){mesh(sphere(.07),'#fff8e8',root,.4,.27,side*.16);mesh(sphere(.035),'#304c50',root,.43,.28,side*.215);}
+   this.fishTemplates[id]=root;return root;
+  }
+  updateFishingVisual(player){
+   const f=this.villageState?.outdoors?.fishing,visual=this.fishingVisual;if(!visual)return;visual.root.visible=!!f;if(!f)return;
+   if(visual.id!==f.fishId){visual.fish.clear();visual.fish.add(this.fishBundle(f.fishId).clone(true));visual.id=f.fishId;}
+   const t=this.reducedMotion()?0:this.time;
+   const x=LAKE.x+Math.sin(t*1.8)*.7,z=LAKE.z+Math.cos(t*1.3)*.45;
+   visual.fish.position.set(x,f.phase==='catch'?.22+Math.abs(Math.sin(t*4))*.2:.10,z);visual.fish.scale.setScalar(f.phase==='catch'?1.8:1.2);visual.fish.rotation.y=Math.cos(t*1.8)*.65;
+   visual.bobber.position.set(x,.32+Math.sin(t*5)*.06,z+.35);
+   const p=visual.line.geometry.attributes.position;p.setXYZ(0,player.x+.4,1.7,player.z);p.setXYZ(1,x,visual.bobber.position.y,z+.35);p.needsUpdate=true;visual.line.geometry.computeBoundingSphere();
+  }
   makeOutdoorModels(state){
+   const fishingRoot=new T.Group();fishingRoot.name='lake-fishing';fishingRoot.visible=false;this.construction.add(fishingRoot);const fish=new T.Group();fishingRoot.add(fish);const bobber=mesh(sphere(.14),'#df886c',fishingRoot);const line=new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3()]),new T.LineBasicMaterial({color:'#f6eed3',transparent:true,opacity:.8}));line.userData.ownedGeometry=true;line.userData.ownedMaterial=true;fishingRoot.add(line);this.fishingVisual={root:fishingRoot,fish,bobber,line,id:null};
    this.detectorMarker=new T.Group();this.detectorMarker.name='detector-signal';this.construction.add(this.detectorMarker);const ring=mesh(geo('digRing',()=>new T.TorusGeometry(.65,.055,6,32)),'#f0ce78',this.detectorMarker,0,.17,0);ring.rotation.x=Math.PI/2;mesh(box(.5,.06,.09),'#f0ce78',this.detectorMarker,0,.18,0);mesh(box(.09,.06,.5),'#f0ce78',this.detectorMarker,0,.18,0);this.detectorMarker.visible=false;
    this.fertilizerVisuals=[];for(let i=0;i<20;i++){const patch=mesh(cylinder(FERTILIZER_RADIUS,FERTILIZER_RADIUS,.025,40),material('#a8c76e',{transparent:true,opacity:.25,depthWrite:false}),this.construction,0,.10,0,{shadow:false});patch.name='fertilized-soil';patch.visible=false;this.fertilizerVisuals.push(patch);}
    const d=LAKE.dock,dock=new T.Group();dock.name='fishing-shore';dock.position.set(d.x,0,d.z);this.construction.add(dock);
@@ -375,7 +394,7 @@ export class GardenScene {
 
   }
   makeFertilizerPickup(source,count){if(this.reducedMotion()||!this.fertilizerTemplate)return;for(let i=0;i<Math.min(4,count);i++){if(this.flights.length>28)break;const mesh=this.fertilizerTemplate.clone(true);mesh.position.set(source.x,1.1+i*.45,source.z);this.scene.add(mesh);this.flights.push({mesh,start:mesh.position.clone(),age:0,duration:.6,type:'pickup'});}}
-  updateOutdoorVisuals(player){const outdoor=this.villageState?.outdoors;const fertilizing=outdoor?.harvestMode==='fertilizer';if(this.sprayerVisual){this.sprayerVisual.visible=fertilizing&&!this.villageState.journey.asleep;this.sprayerVisual.position.set(player.x+.55,0,player.z+.25);this.sprayerVisual.rotation.y=player.angle??0;}if(this.composterVisual){const {bar,output}=this.composterVisual,c=outdoor.compost,ratio=c.remaining?1-c.remaining/60:c.ready?1:0;bar.scale.x=Math.max(.001,ratio*2.4);bar.position.x=-1.2+ratio*1.2;output.children.forEach((m,i)=>m.visible=i<Math.min(4,c.ready));output.position.y=1.1+(this.reducedMotion()?0:Math.sin(this.time*2)*.12);}if(this.detectorMarker){const target=outdoor?detectorTarget(this.villageState,player):null;this.detectorMarker.visible=!!target;if(target)this.detectorMarker.position.set(target.x,0,target.z);}if(this.fertilizerVisuals)for(const [i,patch]of this.fertilizerVisuals.entries()){const p=outdoor?.patches[i];patch.visible=!!p;if(p)patch.position.set(p.x,.10,p.z);}if(this.outdoorTool){this.outdoorTool.visible=!!outdoor?.equipped&&!fertilizing&&!this.villageState.journey.asleep;this.outdoorTool.position.set(player.x+.55,0,player.z+.25);this.outdoorTool.rotation.y=player.angle??0;}}
+  updateOutdoorVisuals(player){this.updateFishingVisual(player);const outdoor=this.villageState?.outdoors;const fertilizing=outdoor?.harvestMode==='fertilizer';if(this.sprayerVisual){this.sprayerVisual.visible=fertilizing&&!this.villageState.journey.asleep;this.sprayerVisual.position.set(player.x+.55,0,player.z+.25);this.sprayerVisual.rotation.y=player.angle??0;}if(this.composterVisual){const {bar,output}=this.composterVisual,c=outdoor.compost,ratio=c.remaining?1-c.remaining/60:c.ready?1:0;bar.scale.x=Math.max(.001,ratio*2.4);bar.position.x=-1.2+ratio*1.2;output.children.forEach((m,i)=>m.visible=i<Math.min(4,c.ready));output.position.y=1.1+(this.reducedMotion()?0:Math.sin(this.time*2)*.12);}if(this.detectorMarker){const target=outdoor?detectorTarget(this.villageState,player):null;this.detectorMarker.visible=!!target;if(target)this.detectorMarker.position.set(target.x,0,target.z);}if(this.fertilizerVisuals)for(const [i,patch]of this.fertilizerVisuals.entries()){const p=outdoor?.patches[i];patch.visible=!!p;if(p)patch.position.set(p.x,.10,p.z);}if(this.outdoorTool){this.outdoorTool.visible=!!outdoor?.equipped&&!fertilizing&&!this.villageState.journey.asleep;this.outdoorTool.position.set(player.x+.55,0,player.z+.25);this.outdoorTool.rotation.y=player.angle??0;}}
   makeBoutiques(state){
     const b=state.village.boutiques;
     for(const shop of BOUTIQUES){if(state.journey.round<shop.round)continue;const root=new T.Group();root.name='boutique:'+shop.id;root.position.set(shop.x,0,shop.z);this.construction.add(root);const built=b.built.includes(shop.id);
@@ -520,7 +539,7 @@ export class GardenScene {
     for(let i=0;i<60;i++){const x=Math.sin(i*19.7)*29,z=Math.cos(i*13.1)*30;if(!sceneryClear({x,z,width:.3,depth:.3},pads))continue;const flower=mesh(sphere(.095),i%3?'#f5eed4':'#e8cb8d',this.world,x,.16,z,{shadow:false});flower.scale.y=.4;}
   }
   makePickup(p,rare=false){if(this.reducedMotion()||this.flights.length>28)return;const template=p.crop?(this.harvestBundles[p.crop]??=this.makeBundle(COLLECTIBLES[p.crop])):this.bundleTemplate;const m=template.clone(true);m.scale.setScalar(rare?.60:.43);m.position.set(p.x,.75,p.z);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.48+Math.random()*.12,type:'pickup'});}
-  makeTransfer(source,target,productID=null){if(this.reducedMotion()||this.flights.length>28)return;const template=productID?(PRODUCTS[productID]?this.productBundle(productID):((this.harvestBundles??={})[productID]??=this.makeBundle(COLLECTIBLES[productID]))):this.bundleTemplate,m=template.clone(true);m.scale.setScalar(PRODUCTS[productID]?1.15:.65);m.position.set(source.x,source.y??1.5,source.z);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.6,type:target?'transfer':'pickup',target:target?new T.Vector3(target.x,.9,target.z):null});}
+  makeTransfer(source,target,productID=null){if(this.reducedMotion()||this.flights.length>28)return;const template=productID?(productID.startsWith('fish:')?this.fishBundle(productID.slice(5)):PRODUCTS[productID]?this.productBundle(productID):((this.harvestBundles??={})[productID]??=this.makeBundle(COLLECTIBLES[productID]))):this.bundleTemplate,m=template.clone(true);m.scale.setScalar(PRODUCTS[productID]?1.15:.65);m.position.set(source.x,source.y??1.5,source.z);this.scene.add(m);this.flights.push({mesh:m,start:m.position.clone(),age:0,duration:.6,type:target?'transfer':'pickup',target:target?new T.Vector3(target.x,.9,target.z):null});}
   makeLanterns(){
     this.lampBulb?.dispose();this.lampGlow?.dispose();this.lampBulb=new T.MeshBasicMaterial({color:'#bfa87d'});this.lampGlow=new T.MeshBasicMaterial({color:'#ffd27d',transparent:true,opacity:0,depthWrite:false});
     const spots=[{x:-5.3,z:9.3},{x:VILLAGE.warehouse.x-2.2,z:VILLAGE.warehouse.z-1},...WORKSHOPS.map(w=>({x:w.x+2.9,z:w.z-1.3})),{x:-9.3,z:-16},{x:-9.3,z:22}];
@@ -578,14 +597,14 @@ export class GardenScene {
     this.foodPouch.visible=!!this.villageState&&(this.villageState.village.farm.food+this.villageState.village.farm.honeyFood+Object.values(this.villageState.village.farm.snacks).reduce((n,s)=>n+s.count,0))>0;this.foodPouch.position.set(player.x+Math.cos(actors[0].angle)*.43,.75,player.z-Math.sin(actors[0].angle)*.43);this.foodPouch.rotation.y=actors[0].angle;
     const actor=actors[0];actor.stack.position.set(-Math.sin(actor.angle)*.36,.84,-Math.cos(actor.angle)*.36);
     const rawCargo=cargo??this.villageState?.cargo,products=productCargo??this.villageState?.productCargo?.items;
-    const levels=rawCargo||products?updateCargoStack(actor,carriedStackEntries(rawCargo,products),bagCapacity,e=>this.cargoTemplate(e),{dt,time,moving,reducedMotion:this.reducedMotion()}):updateStack(actor,productID?this.productBundle(productID):this.bundleTemplate,bag,bagCapacity,{dt,time,moving,reducedMotion:this.reducedMotion()});this.lastStack=levels;
+    const levels=rawCargo||products?updateCargoStack(actor,carriedStackEntries(rawCargo,products,this.villageState?.outdoors?.fish),bagCapacity,e=>this.cargoTemplate(e),{dt,time,moving,reducedMotion:this.reducedMotion()}):updateStack(actor,productID?this.productBundle(productID):this.bundleTemplate,bag,bagCapacity,{dt,time,moving,reducedMotion:this.reducedMotion()});this.lastStack=levels;
     const second=actors[1];second.stack.position.set(0,.85,-.35);
     const haul=this.villageState?.village.hauler?.items;
     if(haul)updateCargoStack(second,carriedStackEntries(haul,haul),VILLAGE.partner.capacity,e=>this.cargoTemplate(e),{dt,time,moving:partner.moving,reducedMotion:this.reducedMotion(),config:{...WORLD.stack,maxVisible:9}});
     else updateStack(second,partner.productID?this.productBundle(partner.productID):this.bundleTemplate,partner.bag??0,VILLAGE.partner.capacity,{dt,time,moving:partner.moving,reducedMotion:this.reducedMotion(),config:{...WORLD.stack,maxVisible:9}});
     this.range.position.set(player.x,.08,player.z);this.range.scale.set(range,range,range);
     this.sweep.position.set(player.x,0,player.z);this.sweep.scale.setScalar(range);this.sweep.rotation.y+=dt*6;this.sweepStrength=Math.max(0,this.sweepStrength-dt*3.8);this.sweepMaterial.opacity=this.reducedMotion()?0:this.sweepStrength*.65;
-    this.tool.position.set(player.x,.02,player.z);this.tool.rotation.y=actor.angle+Math.sin(time*7)*.7;const mining=!!this.villageState?.village.beds[5]&&Math.abs(player.x-BEDS[5].x)<7&&Math.abs(player.z-BEDS[5].z)<5;const fertilizing=this.villageState?.outdoors?.harvestMode==='fertilizer';this.tool.visible=!fertilizing&&!mining&&!this.villageState?.journey?.asleep;this.pickaxe.visible=!fertilizing&&mining&&!this.villageState?.journey?.asleep;this.pickaxe.position.set(player.x,.1,player.z);this.pickaxe.rotation.set(0,actor.angle,this.reducedMotion()?0:Math.sin(time*8)*.45);
+    this.tool.position.set(player.x,.02,player.z);this.tool.rotation.y=actor.angle+Math.sin(time*7)*.7;const mining=!!this.villageState?.village.beds[5]&&Math.abs(player.x-BEDS[5].x)<7&&Math.abs(player.z-BEDS[5].z)<5;const fertilizing=this.villageState?.outdoors?.harvestMode==='fertilizer';this.tool.visible=!this.villageState?.outdoors?.equipped&&!fertilizing&&!mining&&!this.villageState?.journey?.asleep;this.pickaxe.visible=!fertilizing&&mining&&!this.villageState?.journey?.asleep;this.pickaxe.position.set(player.x,.1,player.z);this.pickaxe.rotation.set(0,actor.angle,this.reducedMotion()?0:Math.sin(time*8)*.45);
     if(this.bankGem){this.bankGem.rotation.y=time*.6;this.bankGem.position.y=1.48+(this.reducedMotion()?0:Math.sin(time*1.9)*.1);}
     for(let i=this.flights.length-1;i>=0;i--){const f=this.flights[i];f.age+=dt;const t=Math.min(1,f.age/f.duration),ease=t*t*(3-2*t);const target=f.target??(f.type==='money'?new T.Vector3(player.x+1.05,.45,player.z-.25):f.type==='pickup'?new T.Vector3(player.x,1.1+levels*WORLD.stack.layerHeight,player.z-.35):new T.Vector3(WORLD.bank.x,1.1,WORLD.bank.z-1.3));f.mesh.position.lerpVectors(f.start,target,ease);f.mesh.position.y+=Math.sin(t*Math.PI)*(f.type==='pickup'?1.5:2);f.mesh.rotation.y+=dt*4;if(t>=1){this.scene.remove(f.mesh);this.flights.splice(i,1);}}
     for(let i=this.dust.length-1;i>=0;i--){const d=this.dust[i];d.age+=dt;d.mesh.position.y+=dt*(d.rise??.8);d.mesh.position.x+=dt*(d.vx+(d.swirl?Math.cos(d.age*7+d.angle)*d.swirl:0));d.mesh.position.z+=dt*(d.vz+(d.swirl?Math.sin(d.age*7+d.angle)*d.swirl:0));d.mesh.rotation.y+=dt*5;if(d.baseScale)d.mesh.scale.copy(d.baseScale).multiplyScalar(Math.max(0,1-d.age/d.life));else d.mesh.scale.setScalar(Math.max(0,1-d.age/d.life));if(d.age>d.life){this.scene.remove(d.mesh);this.dust.splice(i,1);}}

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {freshState,format,TOOLS} from './mondgarten/core.mjs';
-import {nearLake,LAKE,OUTDOOR_TOOLS,outdoorToolPrice,equipOutdoorTool,startFishing,advanceFishing} from './mondgarten/outdoors.mjs';
+import {nearLake,FISH_MOTIONS,LAKE,OUTDOOR_TOOLS,outdoorToolPrice,equipOutdoorTool,startFishing,advanceFishing} from './mondgarten/outdoors.mjs';
 import {BOUTIQUES,COSMETICS,SNAIL_HATS,cosmeticPrice,cosmeticAvailable} from './mondgarten/boutiques.mjs';
 const src=readFileSync(new URL('./mondgarten/game.js',import.meta.url),'utf8');
 const extract=(from,to)=>src.slice(src.indexOf(from),src.indexOf(to,src.indexOf(from)));
@@ -11,8 +11,8 @@ function fixture(){
  const state=freshState();state.journey.round=12;state.village.boutiques.built=['style'];
  const nodes=new Map(),messages=[],opens=[];const $=id=>{if(!nodes.has(id))nodes.set(id,{style:{},hidden:false,clientWidth:390,clientHeight:700,focus(){},addEventListener(){},setAttribute(){}});return nodes.get(id);};
  const modal={open:false,showModal(){this.open=true;},querySelectorAll(){return[];}};
- const c={state,player:{...LAKE.shore,moving:false},modal,modalView:'',warehouseShelf:{visible:false},controls:{stop(){}},cells:[],harvestClock:0,fishingHolding:false,nearLake,LAKE,OUTDOOR_TOOLS,outdoorToolPrice,equipOutdoorTool,startFishing,format,TOOLS,BOUTIQUES,COSMETICS,SNAIL_HATS,cosmeticPrice,cosmeticAvailable,scene:{worldToScreen(){return{x:195,y:300,visible:true};}},bedYield:()=>2,refreshWorld(){},save(){},toast:m=>messages.push(m),title:(_e,h)=>`<h2>${h}</h2>`,esc:String,dismissFeedback(){},openOutdoors(){},place(el,p){el.hidden=!p.visible;},$};
- vm.createContext(c);vm.runInContext(extract('function openModal(', 'function walkTo('),c);vm.runInContext(extract('function openFishing()', 'function updateFishingUI('),c);vm.runInContext(extract('function updateLakeAction()', 'function updateLabels('),c);
+ const c={state,player:{...LAKE.shore,moving:false},modal,modalView:'',closeModal(){modal.open=false;},fishingHUD:{last:null,update(f){this.last=f;}},workshopDelivery:{hide(){}},warehouseShelf:{visible:false},controls:{stop(){}},cells:[],harvestClock:0,fishingHolding:false,nearLake,FISH_MOTIONS,LAKE,OUTDOOR_TOOLS,outdoorToolPrice,equipOutdoorTool,startFishing,format,TOOLS,BOUTIQUES,COSMETICS,SNAIL_HATS,cosmeticPrice,cosmeticAvailable,scene:{worldToScreen(){return{x:195,y:300,visible:true};}},bedYield:()=>2,refreshWorld(){},save(){},toast:m=>messages.push(m),title:(_e,h)=>`<h2>${h}</h2>`,esc:String,dismissFeedback(){},openOutdoors(){},place(el,p){el.hidden=!p.visible;},$};
+ vm.createContext(c);vm.runInContext(extract('function openModal(', 'function walkTo('),c);vm.runInContext(extract('function openFishing()', 'function updateWorkshopDelivery('),c);vm.runInContext(extract('function updateLakeAction()', 'function updateLabels('),c);
  vm.runInContext('let boutiqueVisit=null,boutiqueDwell=0;'+extract('function updateBoutiqueEntry(', 'function updateOutdoorPlay('),c);c.openBoutiques=id=>{opens.push(id);modal.open=true;};return{c,state,$,messages,opens};
 }
 test('the lake interaction covers every bank and the pier, but excludes distant flower fields',()=>{
@@ -25,7 +25,7 @@ test('the fishing icon appears nearby without manually equipping a tool and hide
  state.journey.asleep=true;c.updateLakeAction();assert.ok($('outdoorAction').hidden);state.journey.asleep=false;c.player.x=0;c.updateLakeAction();assert.ok($('outdoorAction').hidden);
 });
 test('one fishing action equips an owned rod, opens the actual minigame and catches a fish',()=>{
- const {c,state,$}=fixture();state.outdoors.owned=['rod','detector'];equipOutdoorTool(state,'detector');c.openFishing();assert.equal(state.outdoors.equipped,'rod');assert.equal(c.modalView,'fishing');assert.ok(c.modal.open);assert.equal(state.outdoors.fishing.phase,'waiting');assert.match($('modalBody').innerHTML,/fishingHold/);
+ const {c,state,$}=fixture();state.outdoors.owned=['rod','detector'];equipOutdoorTool(state,'detector');c.openFishing();assert.equal(state.outdoors.equipped,'rod');assert.equal(c.modal.open,false);assert.equal(c.fishingHUD.last,state.outdoors.fishing);assert.equal(state.outdoors.fishing.phase,'waiting');assert.equal($('modalBody').innerHTML,undefined);
  const cast=state.outdoors.fishing;c.openFishing();assert.equal(state.outdoors.fishing,cast);advanceFishing(state,6);let result;for(let i=0;i<400&&!result;i++){const f=state.outdoors.fishing;result=advanceFishing(state,.05,f.marker<f.target);}assert.equal(result.kind,'fish');assert.equal(Object.values(state.outdoors.fish).reduce((a,b)=>a+b,0),1);
 });
 test('missing rod, distant players, full fish bags and sleep do not start a cast or alter equipped tools',()=>{

@@ -48,11 +48,11 @@ export function workshopStock(machine){return Object.values(machine.inputs??{}).
 export function workshopSpot(w,side){return{x:w.x+(side==='input'?-1.8:1.8),z:w.z+1.8};}
 export const acceptsIngredient=(w,id)=>[w.inputs,...(w.alternatives??[])].some(recipe=>id in recipe);
 function storeIngredient(machine,id,count,value){machine.inputs??={};machine.inputValues??={};machine.inputs[id]=(machine.inputs[id]??0)+count;machine.inputValues[id]=(machine.inputValues[id]??0)+value;}
-export function deliverWorkshop(s,w,limit=Infinity){
+export function deliverWorkshop(s,w,limit=Infinity,ingredient=null){
  const machine=s.village.workshops[w.id],batch={count:0,value:0};if(!machine.level)return batch;
  ensureCargo(s);let room=Math.min(Math.max(0,limit),Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(machine)));
- for(const [id,entry]of Object.entries(s.cargo)){if(!acceptsIngredient(w,id))continue;const count=Math.min(room,entry.count);if(count<=0)continue;const value=entry.value*count/entry.count;storeIngredient(machine,id,count,value);entry.count-=count;entry.value-=value;s.bag-=count;s.bagValue-=value;room-=count;batch.count+=count;batch.value+=value;if(entry.count<1e-8)delete s.cargo[id];}
- for(const [id,total]of Object.entries(s.productCargo?.items??{})){if(!acceptsIngredient(w,id)||total<=0)continue;const count=Math.min(room,total);if(count<=0)continue;const value=s.productCargo.values[id]*count/total;storeIngredient(machine,id,count,value);s.productCargo.items[id]-=count;s.productCargo.values[id]-=value;room-=count;batch.count+=count;batch.value+=value;}
+ for(const [id,entry]of Object.entries(s.cargo)){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id))continue;const count=Math.min(room,entry.count);if(count<=0)continue;const value=entry.value*count/entry.count;storeIngredient(machine,id,count,value);entry.count-=count;entry.value-=value;s.bag-=count;s.bagValue-=value;room-=count;batch.count+=count;batch.value+=value;if(entry.count<1e-8)delete s.cargo[id];}
+ for(const [id,total]of Object.entries(s.productCargo?.items??{})){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id)||total<=0)continue;const count=Math.floor(Math.min(room,total)+1e-8);if(count<=0)continue;const value=s.productCargo.values[id]*count/total;storeIngredient(machine,id,count,value);s.productCargo.items[id]-=count;s.productCargo.values[id]-=value;room-=count;batch.count+=count;batch.value+=value;}
  if(s.bag<1e-8){s.bag=0;s.bagValue=0;s.cargo={};}return batch;
 }
 export function depositWorkshopSupplies(s,w,cargo){const m=s.village.workshops[w.id];if(!m?.level)return 0;let room=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),total=0;for(const [id,before]of Object.entries(cargo.items)){if(!acceptsIngredient(w,id)||before<=0)continue;const count=Math.min(room,before),value=(cargo.values[id]??0)*count/before;storeIngredient(m,id,count,value);cargo.items[id]-=count;cargo.values[id]-=value;room-=count;total+=count;}return total;}

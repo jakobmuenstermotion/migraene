@@ -1,12 +1,14 @@
 import {WORLD,COLLECTIBLES,stackLevels} from './content.mjs';
+import {FISH} from './outdoors.mjs';
 import {PRODUCTS} from './village-content.mjs';
 const positive=n=>Number.isFinite(n)&&n>1e-8?n:0;
 // Stable catalog order: raw harvest below every finished product. A tiny product
 // stack still gets one visible bundle instead of disappearing among the flowers.
-export function carriedStackEntries(raw={},products={}){
+export function carriedStackEntries(raw={},products={},fish={}){
  return [
   ...Object.keys(COLLECTIBLES).map(id=>({id,kind:'raw',count:positive(typeof raw?.[id]==='number'?raw[id]:raw?.[id]?.count)})),
   ...Object.keys(PRODUCTS).map(id=>({id,kind:'product',count:positive(products?.[id])})),
+  ...FISH.map(f=>({id:'fish:'+f.id,kind:'fish',count:positive(fish?.[f.id])})),
  ].filter(e=>e.count>0);
 }
 export function cargoStackLayout(entries,capacity,config=WORLD.stack){
