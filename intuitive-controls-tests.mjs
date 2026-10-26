@@ -23,7 +23,7 @@ test('manual deliveries transfer only the selected ingredient with exact origina
  const s=ready();assert.deepEqual(deliverWorkshop(s,gift,Infinity,'moonHoney'),{count:2,value:80});assert.equal(s.bag,16);assert.equal(s.productCargo.items.bouquet,2);assert.equal(s.village.workshops.gifts.inputs.moonHoney,2);
  assert.equal(deliverWorkshop(s,gift,.4,'bouquet').count,0);assert.equal(s.productCargo.items.bouquet,2);
  s.village.workshops.gifts.inputs.lavender=WORKSHOP_INPUT_CAPACITY-2;s.village.workshops.gifts.inputValues.lavender=118;
- const before=structuredClone(s.productCargo);assert.equal(deliverWorkshop(s,gift,Infinity,'bouquet').count,0);assert.deepEqual(s.productCargo,before);
+ assert.equal(deliverWorkshop(s,gift,Infinity,'bouquet').count,1);assert.equal(s.productCargo.items.bouquet,1);assert.equal(s.bag,17);assert.equal(s.village.workshops.gifts.inputs.lavender,117);
  assert.equal(deliverWorkshop(s,gift,Infinity,'crystal').count,0);
 });
 test('the ingredient view chooses carried honey alternatives and shows actual delivered quantities, never remote storage',()=>{

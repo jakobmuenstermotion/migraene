@@ -378,8 +378,8 @@ function updateWorkshopDelivery(){
 function deliverIngredient(w,id){
  if(!w||nearbyWorkshop(state,player)?.id!==w.id||state.journey.asleep||modal.open||warehouseShelf.visible||state.outdoors.fishing)return;
  const batch=deliverWorkshop(state,w,Infinity,id);
- if(batch.count){scene.makeTransfer(player,workshopSpot(w,'input'),id);floater(w.x,w.z,'+'+precise(batch.count)+' Zutaten');sound('harvest');save();syncUI();updateWorkshopDelivery();}
- else toast(workshopStock(state.village.workshops[w.id])>=120?'Der Eingang ist voll. Die Werkstatt arbeitet weiter.':'Diese Zutat ist nicht auf deinem Stapel.');
+ if(batch.count){if(batch.returned)toast(precise(batch.returned)+' überschüssige Zutaten zurück auf deinem Stapel · Platz für die fehlende Zutat.');scene.makeTransfer(player,workshopSpot(w,'input'),id);floater(w.x,w.z,'+'+precise(batch.count)+' Zutaten');sound('harvest');save();syncUI();updateWorkshopDelivery();}
+ else toast(workshopStock(state.village.workshops[w.id])>=120?'Der Eingang ist voll. Schaffe Platz auf deinem Rücken, damit überschüssige Zutaten zurückgenommen werden können.':'Diese Zutat ist nicht auf deinem Stapel.');
 }
 function announceMorning(){const news=morningDiscoveries(state,TOOLS);if(news===null)return;if(news.length)toast('Neu an Gartentag '+state.journey.round+': '+news.join(' · '),true);save();}
 $('outdoorOpen').onclick=openOutdoors;$('outdoorAction').onclick=openFishing;$('outdoorWorkshop').onclick=openCompostWorkshop;

@@ -1,3 +1,4 @@
+import {capacity} from './core.mjs';
 import {normalizeWarehouseGoods,extraWarehouseCount,takeStoredGood} from './warehouse-stock.mjs';
 import {COMPOST_WORKSHOP} from './outdoors.mjs';
 import {FIELD_EXPANSION_STEPS,fieldExpansionPreview} from './field-expansion.mjs';
@@ -48,14 +49,50 @@ export function workshopStock(machine){return Object.values(machine.inputs??{}).
 export function workshopSpot(w,side){return{x:w.x+(side==='input'?-1.8:1.8),z:w.z+1.8};}
 export const acceptsIngredient=(w,id)=>[w.inputs,...(w.alternatives??[])].some(recipe=>id in recipe);
 function storeIngredient(machine,id,count,value){machine.inputs??={};machine.inputValues??={};machine.inputs[id]=(machine.inputs[id]??0)+count;machine.inputValues[id]=(machine.inputValues[id]??0)+value;}
+// Keep enough input space for the other ingredients of at least one batch.
+export function workshopIngredientRoom(s,w,id){
+ const m=s.village.workshops[w.id],stock=m.inputs??{},recipes=[w.inputs,...(w.alternatives??[])].filter(r=>id in r);
+ if(!recipes.length)return 0;
+ const reserved=Math.min(...recipes.map(r=>Object.entries(r).reduce((n,[other,need])=>n+(other===id?0:Math.max(0,need-(stock[other]??0))),0)));
+ return Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)-reserved);
+}
+// Recover older full inputs by returning only surplus, never recipe essentials.
+function recoverIngredientSpace(s,w,id,limit){
+ if(!acceptsIngredient(w,id)||limit<=0)return 0;
+ const m=s.village.workshops[w.id],stock=m.inputs??{},carried=PRODUCTS[id]?(s.productCargo?.items[id]??0):(s.cargo?.[id]?.count??0);
+ const candidates=[w.inputs,...(w.alternatives??[])].filter(r=>id in r);
+ const deficit=r=>Object.entries(r).reduce((n,[key,need])=>n+Math.max(0,need-(stock[key]??0)),0);
+ const recipe=candidates.reduce((best,r)=>deficit(r)<deficit(best)?r:best,candidates[0]);
+ const free=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),carryRoom=Math.max(0,capacity(s)-s.bag-productCargoCount(s));
+ const reserved=Object.entries(recipe).reduce((n,[key,need])=>n+(key===id?0:Math.max(0,need-(stock[key]??0))),0);
+ let incoming=Math.max(0,Math.min(limit,carried,Math.max(0,recipe[id]-(stock[id]??0)),free+carryRoom-reserved));
+ if(PRODUCTS[id])incoming=Math.floor(incoming+1e-8);
+ if(incoming<1e-8)return 0;
+ let needed=Math.max(0,incoming+reserved-free);if(needed<1e-8)return 0;
+ const plan=[];let bagRoom=carryRoom;
+ for(const [key,before]of Object.entries(stock).sort((a,b)=>Math.max(0,b[1]-(recipe[b[0]]??0))-Math.max(0,a[1]-(recipe[a[0]]??0)))){
+  if(key===id)continue;
+  const surplus=Math.max(0,before-(recipe[key]??0));
+  let count=Math.min(surplus,needed,bagRoom);
+  if(PRODUCTS[key])count=Math.min(Math.floor(surplus+1e-8),Math.ceil(needed-1e-8),Math.floor(bagRoom+1e-8));
+  if(count<=1e-8)continue;
+  const value=(m.inputValues[key]??0)*count/before;plan.push({id:key,count,value});needed-=count;bagRoom-=count;if(needed<1e-8)break;
+ }
+ if(needed>1e-8)return 0;
+ for(const item of plan){const key=item.id;stock[key]-=item.count;m.inputValues[key]-=item.value;
+  if(PRODUCTS[key]){s.productCargo.items[key]=(s.productCargo.items[key]??0)+item.count;s.productCargo.values[key]=(s.productCargo.values[key]??0)+item.value;}
+  else{s.cargo[key]??={count:0,value:0};s.cargo[key].count+=item.count;s.cargo[key].value+=item.value;s.bag+=item.count;s.bagValue+=item.value;}
+ }
+ return plan.reduce((n,item)=>n+item.count,0);
+}
 export function deliverWorkshop(s,w,limit=Infinity,ingredient=null){
- const machine=s.village.workshops[w.id],batch={count:0,value:0};if(!machine.level)return batch;
- ensureCargo(s);let room=Math.min(Math.max(0,limit),Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(machine)));
- for(const [id,entry]of Object.entries(s.cargo)){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id))continue;const count=Math.min(room,entry.count);if(count<=0)continue;const value=entry.value*count/entry.count;storeIngredient(machine,id,count,value);entry.count-=count;entry.value-=value;s.bag-=count;s.bagValue-=value;room-=count;batch.count+=count;batch.value+=value;if(entry.count<1e-8)delete s.cargo[id];}
- for(const [id,total]of Object.entries(s.productCargo?.items??{})){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id)||total<=0)continue;const count=Math.floor(Math.min(room,total)+1e-8);if(count<=0)continue;const value=s.productCargo.values[id]*count/total;storeIngredient(machine,id,count,value);s.productCargo.items[id]-=count;s.productCargo.values[id]-=value;room-=count;batch.count+=count;batch.value+=value;}
+ const machine=s.village.workshops[w.id],batch={count:0,value:0};if(!machine.level||limit!==Infinity&&(!Number.isFinite(limit)||limit<=0))return batch;
+ ensureCargo(s);const returned=ingredient?recoverIngredientSpace(s,w,ingredient,limit):0;if(returned)batch.returned=returned;let room=Math.min(Math.max(0,limit),Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(machine)));
+ for(const [id,entry]of Object.entries(s.cargo)){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id))continue;const count=Math.min(room,entry.count,workshopIngredientRoom(s,w,id));if(count<=0)continue;const value=entry.value*count/entry.count;storeIngredient(machine,id,count,value);entry.count-=count;entry.value-=value;s.bag-=count;s.bagValue-=value;room-=count;batch.count+=count;batch.value+=value;if(entry.count<1e-8)delete s.cargo[id];}
+ for(const [id,total]of Object.entries(s.productCargo?.items??{})){if((ingredient&&ingredient!==id)||!acceptsIngredient(w,id)||total<=0)continue;const count=Math.floor(Math.min(room,total,workshopIngredientRoom(s,w,id))+1e-8);if(count<=0)continue;const value=s.productCargo.values[id]*count/total;storeIngredient(machine,id,count,value);s.productCargo.items[id]-=count;s.productCargo.values[id]-=value;room-=count;batch.count+=count;batch.value+=value;}
  if(s.bag<1e-8){s.bag=0;s.bagValue=0;s.cargo={};}return batch;
 }
-export function depositWorkshopSupplies(s,w,cargo){const m=s.village.workshops[w.id];if(!m?.level)return 0;let room=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),total=0;for(const [id,before]of Object.entries(cargo.items)){if(!acceptsIngredient(w,id)||before<=0)continue;const count=Math.min(room,before),value=(cargo.values[id]??0)*count/before;storeIngredient(m,id,count,value);cargo.items[id]-=count;cargo.values[id]-=value;room-=count;total+=count;}return total;}
+export function depositWorkshopSupplies(s,w,cargo){const m=s.village.workshops[w.id];if(!m?.level)return 0;let room=Math.max(0,WORKSHOP_INPUT_CAPACITY-workshopStock(m)),total=0;for(const [id,before]of Object.entries(cargo.items)){if(!acceptsIngredient(w,id)||before<=0)continue;const available=Math.min(room,before,workshopIngredientRoom(s,w,id)),count=PRODUCTS[id]?Math.floor(available+1e-8):available,value=(cargo.values[id]??0)*count/before;storeIngredient(m,id,count,value);cargo.items[id]-=count;cargo.values[id]-=value;room-=count;total+=count;}return total;}
 export function productionSeconds(s,w){const seconds=Math.max(4,w.seconds/Math.pow(1.12,s.village.workshops[w.id].level-1))*activeFeedback(s).workshop;return Math.max(w.minimumSeconds??0,seconds);}
 export function processingMultiplier(s,w){return Math.max(2,w.valueMultiplier??2)+ECONOMY.workshopMarginStep*Math.max(0,s.village.workshops[w.id].level-1);}
 export function ingredientUnitValue(s,id){
