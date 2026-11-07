@@ -602,9 +602,15 @@ export function advanceFarm(s, dt) {
       n.meal,
       (n.honeyMeal ? FARM.growSeconds : 1800) - n.growth,
     );
-    if (growth < 0) continue;
-    n.growth += growth;
-    n.meal -= growth;
+    if (growth >= 0) {
+      n.growth += growth;
+      n.meal -= growth;
+    }
+    // Rundungsreste: Eine fertige Mahlzeit darf nicht als winziger Rest „satt“ hängen bleiben,
+    // sonst lässt sich die Schnecke (z. B. für die letzte Honigmahlzeit) nie wieder füttern.
+    const cap = n.honeyMeal ? FARM.growSeconds : 1800;
+    if (n.growth >= cap - 1e-6) n.growth = Math.max(n.growth, cap);
+    if (n.meal < 1e-6 || n.growth >= cap) n.meal = 0;
   }
 }
 export function releaseSnail(s, id, mode) {

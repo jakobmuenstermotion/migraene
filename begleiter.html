@@ -477,7 +477,7 @@ function render(){
   var msg = (st.msg||'').trim();
   h += '<div class="top">'+(msg ? '<h1 class="msg'+(msg.length>60 ? ' long' : '')+'">'+esc(msg)+'</h1>' : '<h1>Schnell eintragen</h1>')+'<span class="clock">'+hm(now)+'</span></div>';
   var rk = st.risk, td = new Date(), tdIso = td.getFullYear()+'-'+pad(td.getMonth()+1)+'-'+pad(td.getDate());
-  if(rk && rk.d===tdIso && !op){
+  if(false && rk && rk.d===tdIso && !op){ // Risiko-Karte auf Wunsch ausgeblendet (7.11.2026)
     h += '<details class="card risk risk-'+(rk.l==='erhöht' ? 'hi' : (rk.l==='mittel' ? 'mid' : 'lo'))+'"'+(st.riskOpen ? ' open' : '')+'><summary><span class="rt"><b>Risiko heute: '+esc(rk.l)+'</b>'+(rk.p!=null ? ' <span>(ca. '+rk.p+'%)</span>' : '')+'</span>'+
       ((rk.a||[]).length ? '<span class="ra">'+rk.a.map(esc).join(' · ')+'</span>' : '')+'<span class="rmore">Mehr dazu</span></summary>'+
       (rk.m||[]).map(function(x){ return '<p>'+esc(x)+'</p>'; }).join('')+'</details>';

@@ -182,3 +182,18 @@ test("an explicit rest task pauses immediately in daylight and resumes the same 
   assert.equal(a.snails[0].sleeping, false);
   assert.equal(s.coins, 48);
 });
+
+import { FARM as FARM_ROUND, feedSnail as feedRound, advanceFarm as advanceRound } from "./mondgarten/snail-farm.mjs";
+test("rounding leftovers never block the last honey meal", () => {
+  for (let run = 0; run < 50; run++) {
+    const f = { built: true, kitchen: {}, nursery: [{ id: "a", growth: 0, meal: 0, honeyMeal: false, investment: 0 }], food: 10, foodValue: 10, honeyFood: 3, honeyFoodValue: 3 };
+    const s = { village: { farm: f } }, n = f.nursery[0];
+    for (let i = 0; i < 4; i++) {
+      assert.ok(feedRound(s, "a"), "meal " + i);
+      for (let k = 0; k < 1e6 && n.meal > 0; k++) advanceRound(s, 0.0137 + (run % 7) * 0.0031);
+      assert.equal(n.meal, 0);
+    }
+    assert.equal(n.growth, FARM_ROUND.growSeconds);
+    assert.ok(n.honeyMeal);
+  }
+});
