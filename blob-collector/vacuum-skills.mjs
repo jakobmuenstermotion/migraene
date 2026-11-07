@@ -1,0 +1,30 @@
+import {gearEffects} from './equipment.mjs';
+import {companionEffects} from './forest-blob-config.mjs';
+import {VACUUMS,getVacuum} from './vacuums.mjs';
+import {GROUND_NODES,GROUND_TEST_POINTS,BURIED_FINDS} from './ground-skills.mjs';
+import {ADVANCED_TREES} from './advanced-skills.mjs';
+import {SAUGER as C} from './sauger-config.mjs';
+export const TEST_POINTS=15,XP_PER_POINT=500;
+export const SKILL_TREES=Object.fromEntries(VACUUMS.map(m=>[m.id,{role:m.description.split(' · ')[0],nodes:m.id==='ground'?GROUND_NODES:ADVANCED_TREES[m.id]}]));
+export function createProgression(){return Object.fromEntries(VACUUMS.map(m=>[m.id,{toolId:m.id,xp:0,earned:0,energyUsed:0,bonus:m.id==='ground'?GROUND_TEST_POINTS-TEST_POINTS:Math.max(0,SKILL_TREES[m.id].nodes.length-TEST_POINTS),unlocked:[]}]));}
+export function pointsLeft(p){return TEST_POINTS+p.earned+p.bonus-p.unlocked.reduce((sum,id)=>sum+(SKILL_TREES[p.toolId]?.nodes.find(n=>n.id===id)?.cost??0),0);}
+export function skillStatus(state,id,nodeId){const p=state.progression[id],n=SKILL_TREES[id]?.nodes.find(n=>n.id===nodeId);if(!p||!n)return 'missing';if(p.unlocked.includes(nodeId))return 'owned';if(n.requires.some(r=>!p.unlocked.includes(r)))return 'locked';return pointsLeft(p)>=n.cost?'available':'expensive';}
+export function buySkill(state,id,nodeId){if(skillStatus(state,id,nodeId)!=='available')return false;state.progression[id].unlocked.push(nodeId);state.skillRevision++;return true;}
+export function resetSkills(state,id){state.progression[id].unlocked=[];state.skillRevision++;}
+export function maximizeSkills(state,id){const p=state.progression[id];p.bonus=Math.max(p.bonus,SKILL_TREES[id].nodes.reduce((a,n)=>a+n.cost,0)-TEST_POINTS-p.earned);p.unlocked=SKILL_TREES[id].nodes.map(n=>n.id);state.skillRevision++;}
+export function setUpgradeRank(state,id,prefix,rank){const tree=SKILL_TREES[id],p=state.progression[id];p.unlocked=p.unlocked.filter(key=>!key.startsWith(prefix));const learn=key=>{if(p.unlocked.includes(key))return;const node=tree.nodes.find(n=>n.id===key);if(!node)return;node.requires.forEach(learn);p.unlocked.push(key);};for(const node of tree.nodes)if(node.id.startsWith(prefix)&&node.rank<=rank)learn(node.id);let changed=true;while(changed){changed=false;p.unlocked=p.unlocked.filter(key=>{const valid=tree.nodes.find(n=>n.id===key).requires.every(r=>p.unlocked.includes(r));if(!valid)changed=true;return valid;});}p.bonus=Math.max(p.bonus,30);state.skillRevision++;}
+export function awardToolXP(state,id,amount=1){const p=state.progression[id];p.xp+=amount;const earned=Math.floor(p.xp/XP_PER_POINT);if(earned>p.earned){p.earned=earned;state.events.push('skill-point');}}
+export function skillModifiers(state,id){const mods={radius:1,width:1,rate:1,speed:1,angle:0,traitRadius:1,capture:1,work:1,widthBonus:0,moveBonus:0,energySaving:0,digDepth:0,doubleChance:0,rareChance:0,detector:0};for(const n of SKILL_TREES[id].nodes)if(state.progression[id].unlocked.includes(n.id))for(const [key,value]of Object.entries(n.mods)){if(key.includes('_')||['angle','widthBonus','moveBonus','energySaving','digDepth','doubleChance','rareChance','detector'].includes(key))mods[key]=(mods[key]??0)+value;else mods[key]*=value;}return mods;}
+const profiles=new WeakMap();
+export function effectiveVacuum(state,id=state.vacuumId){
+ const companion=companionEffects(state),flying=id==='vortex'&&state.flight?.active,key=`${id}:${state.skillRevision}:${Boolean(flying)}:${state.backpackCapacity}:${companion.key}`;let cache=profiles.get(state);if(!cache)profiles.set(state,cache=new Map());if(cache.get(id)?.key===key)return cache.get(id).mode;
+ const base=getVacuum(id),m=skillModifiers(state,id),rank=name=>m[id+'_'+name]??0,area=m.radius*(id==='ground'?m.traitRadius:1);
+ const mode={...base,baseCapacity:((state.backpackCapacity??1000)*({ground:1,focus:.5,fan:1.5,power:2,vortex:2.5}[id]??1)+250*rank('tank'))*gearEffects(state).bag,radius:base.radius*area,near:base.near*area,width:base.width*m.width*(1+m.widthBonus),angle:base.angle+m.angle,rate:base.rate*m.rate,speed:base.speed*m.speed,work:m.work,captureSpeed:m.capture,movementMultiplier:1+m.moveBonus,energyRate:1-m.energySaving,digDepth:m.digDepth,doubleChance:m.doubleChance,rareChance:m.rareChance,detector:Boolean(m.detector),capacityMultiplier:1,surfaceBonus:0,transport:0,regrowth:0,maxHeight:.5,super:Boolean(rank('super')),profileKey:key,drain:C.battery.drain[id]};
+ if(id==='fan')Object.assign(mode,{angle:C.fan.angle[rank('angle')],radius:C.fan.radius[rank('range')],surfaceBonus:C.fan.bonus[rank('bonus')],capacityMultiplier:C.fan.capacity[rank('pack')],filter:mode.super});
+ if(id==='focus')Object.assign(mode,{heightRank:rank('height'),radius:C.focus.radius[rank('range')],width:C.focus.width[rank('beam')],maxHeight:C.focus.height[rank('height')],anchorRank:rank('anchor'),anchorDistance:C.focus.anchor[rank('anchor')],slow:mode.super});
+ if(id==='power')Object.assign(mode,{heatSeconds:mode.super?1e9:C.power.heatSeconds[rank('heat')],coolSeconds:C.power.coolSeconds[rank('cool')],mining:C.power.mining[rank('mine')]*(mode.super?2:1),miningDrain:C.power.miningDrain[Math.min(2,rank('eco'))],obstacleSize:C.power.size[rank('size')],overheatFree:mode.super});
+ if(id==='vortex')Object.assign(mode,{radius:flying?C.vortex.flightDiameter/2:C.vortex.diameter[rank('diameter')]/2,transport:C.vortex.transport[rank('transport')],directSale:rank('transport')===3,energyRate:1-C.vortex.efficiency[rank('energy')],regrowth:C.vortex.regrowth[rank('regrowth')],flightUnlocked:mode.super,movementMultiplier:flying?C.vortex.flightSpeed:1});
+ mode.regrowth+=companion.regrowth;mode.capacityMultiplier*=1+companion.capacity;mode.surfaceBonus=1-(1-mode.surfaceBonus)*(1-companion.bonus);
+ cache.set(id,{key,mode});return mode;
+}
+export const TEST_OBSTACLES=[...BURIED_FINDS,{id:'fruit',tool:'focus',name:'Goldene Baumfrucht',x:-5,z:-3.3,y:2.05,solid:false,seconds:1},{id:'leaves',tool:'fan',name:'Verfilztes Laub',x:0,z:-3.8,solid:true,seconds:1},{id:'rock',tool:'power',name:'Schwerer Fels',x:5.6,z:1.8,solid:true,seconds:1.2,size:1}];

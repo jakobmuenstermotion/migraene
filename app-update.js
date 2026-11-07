@@ -8,9 +8,9 @@
   var target=frame.contentWindow;if(!target){resolve(true);return;}
   var id='update-'+Date.now()+'-'+Math.random(),timer;
   function done(ok){clearTimeout(timer);window.removeEventListener('message',ack);resolve(ok);}
-  function ack(e){if(e.origin===location.origin&&e.source===target&&e.data?.type==='mondgarten:saved'&&e.data.id===id)done(e.data.ok===true);}
+  function ack(e){if(e.origin===location.origin&&e.source===target&&e.data?.type==='blob:saved'&&e.data.id===id)done(e.data.ok===true);}
   window.addEventListener('message',ack);timer=setTimeout(function(){done(false);},2500);
-  target.postMessage({type:'mondgarten:save',id:id},location.origin);
+  target.postMessage({type:'blob:save',id:id},location.origin);
  });}
  async function reload(){
   if(!pending||reloading||document.hidden)return;
@@ -18,7 +18,7 @@
   try{
    var event=new CustomEvent('app:before-update',{cancelable:true});window.dispatchEvent(event);
    if(event.defaultPrevented){reloading=false;return;}
-   var frames=Array.from(document.querySelectorAll('iframe[data-mondgarten="1"]'));
+   var frames=Array.from(document.querySelectorAll('iframe[data-blob-game="1"]'));
    var saved=await Promise.all(frames.map(requestSave));
    if(saved.some(function(ok){return !ok;})){reloading=false;return;}
    if(document.hidden){reloading=false;return;}

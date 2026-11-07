@@ -1,0 +1,7 @@
+import * as T from './vendor/three.module.js';
+// Static coloured scenery shares one mesh, irrespective of decorative count.
+export class ScenicBatch{
+ constructor({smooth=false}={}){this.smooth=smooth;this.normals=[];this.positions=[];this.colors=[];this.object=new T.Object3D();this.color=new T.Color();}
+ add(geometry,color,x=0,y=0,z=0,sx=1,sy=1,sz=1,rx=0,ry=0,rz=0){this.object.position.set(x,y,z);this.object.scale.set(sx,sy,sz);this.object.rotation.set(rx,ry,rz);this.object.updateMatrix();const g=geometry.index?geometry.toNonIndexed():geometry.clone();g.applyMatrix4(this.object.matrix);this.color.set(color??'#ffffff');this.positions.push(...g.attributes.position.array);if(this.smooth){if(!g.attributes.normal)g.computeVertexNormals();this.normals.push(...g.attributes.normal.array);}const source=color===null?g.getAttribute('color'):null;for(let i=0;i<g.attributes.position.count;i++)this.colors.push(source?source.getX(i):this.color.r,source?source.getY(i):this.color.g,source?source.getZ(i):this.color.b);g.dispose();}
+ finish(root){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(this.positions,3));g.setAttribute('color',new T.Float32BufferAttribute(this.colors,3));if(this.smooth)g.setAttribute('normal',new T.Float32BufferAttribute(this.normals,3));else g.computeVertexNormals();g.computeBoundingSphere();const mesh=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:!this.smooth,side:T.DoubleSide}));mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);return mesh;}
+}

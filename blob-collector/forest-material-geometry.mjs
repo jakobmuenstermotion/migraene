@@ -1,0 +1,15 @@
+import {FLOWERS} from './flower-config.mjs';
+import * as T from './vendor/three.module.js';
+import {ScenicBatch} from './scenic-geometry.mjs';
+export function mushroomGeometry(){const batch=new ScenicBatch(),stem=new T.CylinderGeometry(.035,.055,.19,6),cap=new T.SphereGeometry(.18,9,5,0,Math.PI*2,0,Math.PI/2);batch.add(stem,'#dbcbaa',0,.07,0);batch.add(cap,'#b58699',0,.16,0,1,.6,1);const root=new T.Group(),mesh=batch.finish(root);stem.dispose();cap.dispose();mesh.material.dispose();return mesh.geometry;}
+export function mossGeometry(){const batch=new ScenicBatch(),g=new T.DodecahedronGeometry(1,0);for(let i=0;i<4;i++)batch.add(g,i%2?'#779b59':'#9bac6b',Math.sin(i*2.4)*.12,.045,Math.cos(i*2.4)*.1,.14,.065,.13);const root=new T.Group(),mesh=batch.finish(root);g.dispose();mesh.material.dispose();return mesh.geometry;}
+export function fruitGeometry(){const b=new ScenicBatch(),body=new T.SphereGeometry(1,10,6),stem=new T.CylinderGeometry(.018,.02,.13,5);b.add(body,'#d89058',0,0,0,.19,.18,.18);b.add(body,'#efba72',.05,.035,.12,.1,.11,.055);b.add(stem,'#8c7350',0,.2,0);b.add(body,'#719961',.08,.25,0,.12,.025,.055,0,0,.45);const root=new T.Group(),mesh=b.finish(root);body.dispose();stem.dispose();mesh.material.dispose();return mesh.geometry;}
+
+export function flowerGeometry(kind){const f=FLOWERS[kind],b=new ScenicBatch(),stem=new T.CylinderGeometry(.012,.02,1,5),petal=new T.SphereGeometry(1,6,4),bell=new T.ConeGeometry(.075,.13,6,1,true),h=f.height; b.add(stem,'#668a53',0,h/2,0,1,h,1);for(const side of [-1,1])b.add(petal,'#739553',side*.06,h*.35,0,.1,.025,.045,0,0,side*.3);
+if(kind==='bluebell'){for(let j=0;j<3;j++){const x=j%2?.08:-.07,y=h-j*.12;b.add(bell,f.color,x,y,0,1,1,1,0,0,j%2?-.35:.35);b.add(petal,'#d8d7ed',x,y-.05,0,.04,.025,.04);}}
+else if(kind==='clover'){for(let k=0;k<3;k++){const a=k*Math.PI*2/3;b.add(petal,'#79a561',Math.sin(a)*.09,.12,Math.cos(a)*.09,.075,.018,.075);}for(let j=0;j<12;j++){const a=j*2.399;b.add(petal,j%3?f.color:'#e9c0ce',Math.sin(a)*.065,h+Math.cos(j)*.035,Math.cos(a)*.065,.045,.065,.045);}}
+else{for(let j=0;j<f.petals;j++){const a=j*Math.PI*2/f.petals,r=kind==='orchid'?.08:.09;b.add(petal,f.color,Math.sin(a)*r,h+(kind==='orchid'?Math.cos(a)*.06:0),Math.cos(a)*r,kind==='orchid'?.07:.045,.026,kind==='dandelion'?.09:.08,0,-a,0);}b.add(petal,f.center,0,h+.025,0,.055,.035,.055);if(kind==='orchid')b.add(petal,'#b76594',0,h-.05,.09,.055,.06,.05);}
+const root=new T.Group(),mesh=b.finish(root);for(const g of [stem,petal,bell])g.dispose();mesh.material.dispose();return mesh.geometry;}
+
+// Pressed flower heads lie flat in the carried stack: no upright stems.
+export function flowerStackGeometry(kind){const b=new ScenicBatch(),petal=new T.SphereGeometry(1,7,4),rare=kind==='rareflower',count=rare?5:9;for(let j=0;j<count;j++){const a=j*Math.PI*2/count;b.add(petal,rare?'#c5acd9':'#f4e4b6',Math.sin(a)*.12,.014,Math.cos(a)*.12,.09,.018,.13,0,-a,0);}b.add(petal,'#edc46a',0,.025,0,.07,.025,.07);const root=new T.Group(),mesh=b.finish(root);petal.dispose();mesh.material.dispose();return mesh.geometry;}

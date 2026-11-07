@@ -1,0 +1,12 @@
+import {buildingBuilt} from './homebase-build.mjs';
+import {SUNNY,sunnyHeight,stationBounds,stationDoor} from './sunny-area.mjs';
+export const NURSERY_ROOM={x:-180,z:-120,w:20,d:15,floor:1,zoom:1.12};
+export function wardrobeNear(s){const b=nurseryBounds(s);return Math.hypot(s.player.x-(b.x+.6*b.scale),s.player.z-(b.z-6.9*b.scale))<2.3;}
+export function inNursery(s){return s.area==='sunny'&&!s.testWorld.enabled&&s.nursery?.interior===true;}
+export function nurseryBounds(s){const scale=1+.075*(Math.max(1,Math.min(5,s.forestBlobs?.stationLevel??1))-1);return {...NURSERY_ROOM,w:NURSERY_ROOM.w*scale,d:NURSERY_ROOM.d*scale,scale};}
+export function nurseryRegion(x,z,margin=0){return Math.abs(x-NURSERY_ROOM.x)<NURSERY_ROOM.w*1.3/2+margin&&Math.abs(z-NURSERY_ROOM.z)<NURSERY_ROOM.d*1.3/2+margin;}
+export function nurseryFloorAt(s,x,z){const b=nurseryBounds(s),dx=x-b.x,dz=z-b.z;return Math.abs(dx)<b.w/2+.05&&dz>-b.d/2-.05&&(dz<b.d/2+.05||Math.abs(dx)<1.3&&dz<b.d/2+1)?b.floor:null;}
+export function nurseryCollision(s,x,z,r=.35){const b=nurseryBounds(s),dx=x-b.x,dz=z-b.z;return Math.abs(dx)>b.w/2-r||dz<-b.d/2+r||dz>b.d/2-r&&Math.abs(dx)>1.6*b.scale-r;}
+export function enterNursery(s){if(!buildingBuilt(s,'nursery')||s.area!=='sunny'||s.testWorld.enabled||inNursery(s))return false;s.nursery??={};s.nursery.interior=true;s.nursery.visits=(s.nursery.visits??0)+1;s.home.interior=false;const b=nurseryBounds(s);Object.assign(s.player,{x:b.x,z:b.z+b.d/2-1,y:b.floor,angle:Math.PI});s.flight.active=false;s.anchorPull=null;s.flight.safe={x:s.player.x,z:s.player.z,y:s.player.y};s.forestBlobs.greetingUntil=s.time+4;return true;}
+export function leaveNursery(s){if(!inNursery(s))return false;s.nursery.interior=false;const b=stationBounds(s),door=stationDoor(s),x=door.x,z=door.z;Object.assign(s.player,{x,z,y:sunnyHeight(x,z),angle:0});s.flight.active=false;s.flight.safe={x,z,y:s.player.y};return true;}
+export function updateNurseryTraversal(s){if(s.area!=='sunny'||s.testWorld.enabled)return false;const p=s.player;if(inNursery(s)){const b=nurseryBounds(s);if(!nurseryRegion(p.x,p.z,2)){s.nursery.interior=false;return true;}if(p.z>b.z+b.d/2+.25&&Math.abs(p.x-b.x)<1.3)return leaveNursery(s);return false;}if(s.home.interior||s.flight.active)return false;const b=stationBounds(s),r=b.rotation??0,dx=Math.cos(r)*(p.x-b.x)-Math.sin(r)*(p.z-b.z),dz=Math.sin(r)*(p.x-b.x)+Math.cos(r)*(p.z-b.z);if(Math.abs(dx)<b.w/2-.35&&Math.abs(dz)<b.d/2-.1)return enterNursery(s);return false;}

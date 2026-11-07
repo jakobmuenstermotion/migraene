@@ -1,12 +1,12 @@
 (function(){'use strict';
-const GARDEN={journalKey:'mt-garden-actions-v1',plantKey:'mt-garden-plants-v1',gameKey:'mondgarten.companion.save.v1',cooldownMs:10*60*1000,gameURL:'mondgarten/index.html?embedded=1',buttons:[['pain','Kopfschmerz beginnt'],['meal','Gegessen'],['drink','Getrunken'],['move','Sport'],['med','Medikament'],['stomach','Bauch'],['nausea','Übelkeit']]};
+const GARDEN={journalKey:'mt-garden-actions-v1',plantKey:'mt-garden-plants-v1',gameKey:'mondgarten.companion.save.v1',blobKey:'mt-blob-days-v1',cooldownMs:10*60*1000,gameURL:'blob-collector/index.html?hud=cozy&embedded=1',archiveURL:'mondgarten/index.html?archiv=1',buttons:[['pain','Kopfschmerz beginnt'],['meal','Gegessen'],['drink','Getrunken'],['move','Sport'],['med','Medikament'],['stomach','Bauch'],['nausea','Übelkeit']]};
 
 const copy=x=>structuredClone(x),valid=id=>typeof id==='string'&&/^[A-Za-z0-9:_-]{1,120}$/.test(id);
 function emptyJournal(now){return{version:1,installedAt:now,lastRewardAt:0,handled:[],actions:[],gifts:{}};}
 function acceptEntries(previous,entries,now,cooldownMs){const s=copy(previous);for(const e of [...entries].sort((a,b)=>a.ts-b.ts)){if(!valid(e.id)||!Number.isFinite(e.ts)||s.handled.includes(e.id))continue;s.handled.push(e.id);if(e.deleted||e.ts<s.installedAt||e.ts>now+120000||now<s.lastRewardAt+cooldownMs||e.ts<s.lastRewardAt+cooldownMs)continue;s.actions.push('entry:'+e.id);s.lastRewardAt=now;}return s;}
 function acceptGiftCounter(previous,gift){const s=copy(previous);if(!gift||!Number.isSafeInteger(gift.epoch)||gift.epoch<=0||!Number.isSafeInteger(gift.count)||gift.count<0||gift.count>10000)return s;const key=String(gift.epoch),before=s.gifts[key]??0;for(let n=before+1;n<=gift.count;n++)s.actions.push('gift:'+key+':'+n);s.gifts[key]=Math.max(before,gift.count);return s;}
 function emptyPlants(){return{version:1,beds:{},tokens:[],receipts:[]};}
-function receiveRewards(previous,rewards){const s=copy(previous);for(const r of rewards??[]){if(!r||!(/^garden-day:\d+$/.test(r.id)||(/^garden-seed:[1-7]$/.test(r.id)&&r.kind==='seed'))||!['seed','water'].includes(r.kind)||s.receipts.includes(r.id))continue;s.receipts.push(r.id);s.tokens.push({id:r.id,kind:r.kind});}return s;}
+function receiveRewards(previous,rewards){const s=copy(previous);for(const r of rewards??[]){if(!r||!(/^(garden|blob)-day:\d+$/.test(r.id)||(/^(garden-seed:[1-7]|blob-seed:coast)$/.test(r.id)&&r.kind==='seed'))||!['seed','water'].includes(r.kind)||s.receipts.includes(r.id))continue;s.receipts.push(r.id);s.tokens.push({id:r.id,kind:r.kind});}return s;}
 function usePlantReward(previous,{kind,bed,plant},catalog,buttons){if(!buttons.some(b=>b[0]===bed))return null;const s=copy(previous),i=s.tokens.findIndex(t=>t.kind===kind);if(i<0)return null;if(kind==='seed'){if(s.beds[bed]||!catalog.some(p=>p.id===plant))return null;s.beds[bed]={id:plant,stage:0};}else{const existing=s.beds[bed],p=catalog.find(p=>p.id===existing?.id);if(!p||existing.stage>=p.stages.length)return null;existing.stage++;}s.tokens.splice(i,1);return s;}
 
 const C=GARDEN;
@@ -16,7 +16,12 @@ let journal,ledger,issue='',mode=null,selection=null,notice='',busy=false,toolba
 try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);localStorage.setItem(C.journalKey,JSON.stringify(journal));}catch{issue='Der gespeicherte Garten konnte nicht geladen werden. Er bleibt erhalten.';}
 function write(key,s){try{localStorage.setItem(key,JSON.stringify(s));issue='';return true;}catch{issue='Der Garten konnte nicht gespeichert werden. Bitte schaffe Speicherplatz.';return false;}}
 function gameState(){try{return JSON.parse(localStorage.getItem(C.gameKey)||'null');}catch{return null;}}
-function collectRewards(){if(issue)return;try{const j=gameState()?.journey;const next=receiveRewards(read(C.plantKey,emptyPlants),[...(j?.rewards??[]),...(j?.seedCatchups??[])]);if(write(C.plantKey,next))ledger=next;}catch{issue='Der Gartenstand konnte nicht gelesen werden.';}}
+// Blob-Collector-Tage (siehe BLOB-COLLECTOR.md). Beim ersten Start werden die im Mondgarten schon verdienten
+// Belohnungen einmal übernommen; danach zählt nur noch Blob Collector. Der Mondgarten-Spielstand bleibt unberührt.
+function blobDays(){try{const s=JSON.parse(localStorage.getItem(C.blobKey)||'null');if(s?.version===1&&Number.isInteger(s.base)&&Number.isInteger(s.started)&&Array.isArray(s.rewards))return s;}catch{}return null;}
+function collectRewards(){if(issue)return;try{let b=blobDays();if(!b){const j=gameState()?.journey,used=Math.min(journal.actions.length,Math.max(0,Math.floor(j?.round??0)));const plantsNow=receiveRewards(read(C.plantKey,emptyPlants),[...(j?.rewards??[]),...(j?.seedCatchups??[])]);if(!write(C.plantKey,plantsNow))return;b={version:1,base:used,started:0,active:null,rewards:[],areas:{}};if(!write(C.blobKey,b))return;}const next=receiveRewards(read(C.plantKey,emptyPlants),b.rewards);if(write(C.plantKey,next))ledger=next;}catch{issue='Der Gartenstand konnte nicht gelesen werden.';}}
+function blobPending(b){return b?Math.max(0,journal.actions.length-b.base-b.started):0;}
+function updateBlob(fn){const b=blobDays();if(!b)return null;fn(b);write(C.blobKey,b);collectRewards();return b;}
 function receive(kind,data){if(issue)return;try{const current=read(C.journalKey,()=>emptyJournal(events.startedAt)),next=kind==='entries'?acceptEntries(current,data,Date.now(),C.cooldownMs):acceptGiftCounter(current,data);if(write(C.journalKey,next))journal=next;}catch{issue='Die Gartenaktion konnte nicht gespeichert werden.';}mount();}
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function button(text,fn){const b=node('button','garden-control',text);b.type='button';b.onclick=fn;return b;}
@@ -24,12 +29,12 @@ function eligible(id){const p=ledger?.beds[id],type=plants.find(x=>x.id===p?.id)
 function mount(){
  const app=document.getElementById('app'),first=app?.querySelector('.big[data-act]');if(!first)return;collectRewards();
  if(!toolbar?.isConnected){toolbar=node('section','garden-inline');toolbar.setAttribute('aria-label','Samen und Gießkanne');const entryButtons=[...app.querySelectorAll('.big[data-act]')];const last=entryButtons.at(-1);(last.closest('.grid')||last).after(toolbar);signature='';}
- if(!footer?.isConnected){footer=node('section','garden-footer');footer.setAttribute('aria-label','Gartentage');const row=node('div','garden-controls');row.append(button('Gartentag starten',()=>openGame(true)),button('☾ Nachtbesuch',()=>openGame(false)));status=node('p','garden-status');status.setAttribute('role','status');footer.append(row,status);app.append(footer);}
+ if(!footer?.isConnected){footer=node('section','garden-footer');footer.setAttribute('aria-label','Gartentage');const row=node('div','garden-controls');const archive=node('a','garden-archive-link','Mondgarten (altes Spiel) weiterspielen');archive.href=C.archiveURL;row.append(button('Blob-Collector-Tag starten',()=>openGame()));status=node('p','garden-status');status.setAttribute('role','status');footer.append(row,status,archive);app.append(footer);}
  if(!journal||!ledger){status.textContent=issue;return;}
  if(mode&&!ledger.tokens.some(t=>t.kind===mode)){mode=null;selection=null;}
  const next=JSON.stringify([mode,selection,notice,ledger.tokens,ledger.beds]);if(next!==signature){signature=next;renderToolbar();}
- const game=gameState(),active=!!game?.journey?.round&&!game.journey.closed,pending=Math.max(0,journal.actions.length-(game?.journey?.round??0));
- const [start,night]=footer.querySelectorAll('button');start.textContent=active?'☀ Gartentag fortsetzen':'☀ Nächsten Gartentag starten'+(pending>1?' · '+pending:'');start.disabled=!!issue||!active&&!pending;night.disabled=!!issue||!game?.journey?.round||!game.journey.closed;
+ const blob=blobDays(),active=!!blob?.active,pending=blobPending(blob);
+ const [start]=footer.querySelectorAll('button');start.textContent=active?'☀ Blob-Collector-Tag fortsetzen':'☀ Blob-Collector-Tag starten'+(pending>1?' · '+pending:'');start.disabled=!!issue||!active&&!pending;
  const wait=Math.max(0,journal.lastRewardAt+C.cooldownMs-Date.now());status.textContent=issue||((pending?pending+' Gartentag'+(pending===1?'':'e')+' bereit. ':'')+(wait?'Neue Eintragsbelohnung in '+Math.ceil(wait/60000)+' Min. Eintragen geht weiterhin.':'Ein auf diesem Gerät gespeicherter Eintrag schenkt sofort einen Gartentag.'));
  for(const [id]of C.buttons){const b=app.querySelector('.big[data-act="'+id+'"]');if(!b)continue;let place=b.querySelector('.garden-plants');if(!place){place=node('span','garden-plants');place.setAttribute('aria-hidden','true');b.append(place);}mountPlant(place,ledger.beds[id]);b.classList.toggle('with-garden-plant',!!ledger.beds[id]);b.classList.toggle('garden-eligible',!!mode&&eligible(id));b.classList.toggle('garden-target-muted',!!mode&&!eligible(id));}
 }
@@ -56,18 +61,25 @@ function mountPlant(place,p){
  if(p?.stage===0){if(place.querySelector('[data-seed]'))return;const id='soil-cut-'+(++seedSerial);place.innerHTML='<svg data-seed="true" viewBox="0 0 100 70" aria-hidden="true"><defs><clipPath id="'+id+'"><rect width="100" height="57"/></clipPath></defs><ellipse cx="68" cy="58" rx="25" ry="5" fill="#6f513c" opacity=".22"/><ellipse cx="68" cy="55" rx="7" ry="12" transform="rotate(20 68 55)" fill="#a57d50" clip-path="url(#'+id+')"/><path d="M47 58 Q66 54 88 58" fill="none" stroke="#76573f" stroke-width="3" stroke-linecap="round"/></svg>';return;}
  if(place.querySelector('[data-seed]'))place.replaceChildren();renderer.mount(place,p);
 }
-function closeGame(){const closing=frame;closing?.contentWindow?.postMessage({type:'mondgarten:save'},location.origin);if(playDialog?.open)playDialog.close();collectRewards();mount();setTimeout(()=>{if(frame===closing&&!playDialog?.open){closing?.remove();frame=null;}},250);}
-function openGame(start){window.dispatchEvent(new Event('app:check-update'));
- if(!playDialog){playDialog=node('dialog','garden-play-dialog');const head=node('header','garden-play-header');head.append(button('← Zur Begleitseite',closeGame),node('span','','Mondgarten'));playDialog.append(head);document.body.append(playDialog);playDialog.addEventListener('cancel',e=>{e.preventDefault();closeGame();});}
- frame?.remove();frame=node('iframe','garden-game-frame');frame.title='Euer Mondgarten';frame.dataset.mondgarten='1';frame.src=C.gameURL;frame.onload=()=>{if(start)frame?.contentWindow?.postMessage({type:'mondgarten:start'},location.origin);};playDialog.append(frame);playDialog.showModal();
+function closeGame(){const closing=frame;closing?.contentWindow?.postMessage({type:'blob:save'},location.origin);if(playDialog?.open)playDialog.close();collectRewards();mount();setTimeout(()=>{if(frame===closing&&!playDialog?.open){closing?.remove();frame=null;}},400);}
+// Startet einen Tag nur mit verdienter Gartenaktion (oder setzt einen laufenden fort).
+function openGame(){window.dispatchEvent(new Event('app:check-update'));
+ let b=blobDays();if(!b)return;if(!b.active){if(!blobPending(b))return;b=updateBlob(x=>{x.started++;x.active={n:x.started,gameDay:null};});}
+ if(!playDialog){playDialog=node('dialog','garden-play-dialog');const head=node('header','garden-play-header');head.append(button('← Zur Begleitseite',closeGame),node('span','','Blob Collector'));playDialog.append(head);document.body.append(playDialog);playDialog.addEventListener('cancel',e=>{e.preventDefault();closeGame();});}
+ frame?.remove();frame=node('iframe','garden-game-frame');frame.title='Blob Collector';frame.dataset.blobGame='1';frame.src=C.gameURL;playDialog.append(frame);playDialog.showModal();mount();
 }
+function endBlobDay(){const b=updateBlob(x=>{if(!x.active)return;x.rewards.push({id:'blob-day:'+x.active.n,kind:'water'});x.active=null;});if(!b)return;
+ mode=ledger?.tokens.some(t=>t.kind==='water')?'water':null;selection=null;notice=mode?'Tippe auf die Pflanze, die du gießen möchtest.':'Ein schöner Tag geht zu Ende.';closeGame();toolbar?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});}
 window.addEventListener('message',e=>{
- if(e.origin!==location.origin||e.source!==frame?.contentWindow||e.data?.type!=='mondgarten:day-ended')return;
- const game=gameState();if(!game?.journey?.closed||game.journey.round!==e.data.round)return;
- collectRewards();mode=ledger?.tokens.some(t=>t.kind===e.data.kind)&&e.data.kind==='water'?'water':null;selection=null;notice=e.data.kind==='water'?'Tippe auf die Pflanze, die du gießen möchtest.':e.data.kind==='seed'?'Dein neuer Samen ist da. Wähle eine Sorte und einen freien Knopf.':'Ein schöner Gartentag geht zu Ende.';closeGame();toolbar?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});
+ if(e.origin!==location.origin||e.source!==frame?.contentWindow)return;const d=e.data,b=blobDays();if(!b||!d?.type)return;
+ const send=m=>frame?.contentWindow?.postMessage(m,location.origin);
+ if(d.type==='blob:ready'&&b.active){if(b.active.gameDay==null)send({type:'blob:start-day'});else if(d.day>b.active.gameDay)endBlobDay();else send({type:'blob:continue-day',day:b.active.gameDay});}
+ if(d.type==='blob:day-started'&&b.active&&b.active.gameDay==null)updateBlob(x=>{x.active.gameDay=d.day;});
+ if(d.type==='blob:day-ended'&&b.active&&d.day===b.active.gameDay)endBlobDay();
+ if(d.type==='blob:areas'){const add=[];if(d.coast)add.push('coast');updateBlob(x=>{for(const a of add){const id='blob-seed:'+a;if(!x.rewards.some(r=>r.id===id)){x.rewards.push({id,kind:'seed'});notice='Ein neuer Samen wartet auf dich!';}}});}
 });
 events.mount=()=>{try{mount();}catch{issue='Die Gartenansicht konnte nicht geladen werden. Eintragen bleibt möglich.';}};
-window.addEventListener('storage',e=>{if([C.gameKey,C.plantKey,C.journalKey].includes(e.key)){try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);}catch{}events.mount();}});
+window.addEventListener('storage',e=>{if([C.blobKey,C.plantKey,C.journalKey].includes(e.key)){try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);}catch{}events.mount();}});
 events.attach(receive);if(events.snapshot)events.entries(events.snapshot());events.mount();setInterval(()=>{if(!document.hidden)events.mount();},15000);
 
 })();

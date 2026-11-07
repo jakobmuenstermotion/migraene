@@ -1,0 +1,10 @@
+﻿import {batterySnapshot,batteryBank} from './battery-bank.mjs';
+import {homeCharger,inHome} from './home-space.mjs';
+import {chargerPos,chargerOwned} from './charger-building.mjs';
+import {SUNNY,insideBuilding} from './sunny-area.mjs';
+export const CHARGING={emptyToFullSeconds:5,dayOnly:true}; // Jakob 7.11.: Akkus laden nur noch über Nacht (Schlafen), die Station ist nur Ablage. // Temporary test value, not the future round rule.
+// Drinnen zählt die aufgestellte Ladestation (Jakob 7.11.: frei im Haus); das alte Außenmodell am Häuschen bleibt für alte Stände.
+export function chargerNearby(s){if(insideBuilding(s)!=='home')return false;if(!inHome(s))return chargerOwned(s)&&Math.hypot(s.player.x-SUNNY.charger.x,s.player.z-SUNNY.charger.z)<1.4;const p=chargerPos(s);if(!p)return false;const f={x:p.x+Math.sin(p.rotation??0)*.6,z:p.z+Math.cos(p.rotation??0)*.6};return Math.hypot(s.player.x-f.x,s.player.z-f.z)<1.5;}
+export function dockVacuum(s,now=Date.now(),force=false){if(s.charging||(!force&&!chargerNearby(s)))return false;const bank=batterySnapshot(s),missing=bank.cells.reduce((n,v)=>n+s.battery.max-v,0);s.charging={from:s.battery.charge,bankCells:[...bank.cells],startedAt:now,endsAt:CHARGING.dayOnly?now:now+missing/s.battery.max*CHARGING.emptyToFullSeconds*1000,ready:CHARGING.dayOnly&&missing>0?null:false};updateCharging(s,now);return true;}
+export function updateCharging(s,now=Date.now()){const c=s.charging;if(!c)return false;const b=batteryBank(s),initial=c.bankCells??b.cells.map((v,i)=>i===b.active?c.from:v);if(c.ready===null){s.battery.charge=b.cells[b.active];return false;}let energy=Math.max(0,now-c.startedAt)/1000*s.battery.max/CHARGING.emptyToFullSeconds;for(let i=0;i<b.cells.length;i++){const start=initial[i]??0,used=Math.min(s.battery.max-start,energy);b.cells[i]=start+used;energy-=used;}s.battery.charge=b.cells[b.active];if(now>=c.endsAt&&!c.ready){c.ready=true;return true;}return false;}
+export function takeVacuum(s,now=Date.now()){if(!s.charging||!chargerNearby(s))return false;updateCharging(s,now);s.charging=null;return true;}

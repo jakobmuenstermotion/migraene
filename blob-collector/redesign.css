@@ -1,0 +1,1083 @@
+/* Neugestaltung: weiche Randabdunkelung wie in den Referenzbildern, rein optisch. */
+#redesign-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 58%, rgba(28, 34, 12, .34) 100%);
+}
+
+/* ------------------------------------------------------------------
+   Neugestaltung der Menüs nach Jakobs Vorlage (28.10.2026)
+   Holzrahmen, warmes Creme, Blattverzierungen, Pillen-Reiter,
+   Creme-Karten und große grüne Knöpfe. Nur Aussehen, keine Bedienung.
+   Diese Datei wird zuletzt geladen und überschreibt ältere Regeln.
+   ------------------------------------------------------------------ */
+:root {
+  --rd-cream: #fff7e4;
+  --rd-cream-2: #f5e5c3;
+  --rd-card: #fffaf0;
+  --rd-card-2: #f3e3c1;
+  --rd-card-line: #e0c99c;
+  --rd-ink: #5a3f22;
+  --rd-ink-soft: #8a6a44;
+  --rd-wood-1: #a9733f;
+  --rd-wood-2: #94602f;
+  --rd-wood-3: #b9844c;
+  --rd-wood-dark: #6b4421;
+  --rd-green-1: #a8cf78;
+  --rd-green-2: #73a04b;
+  --rd-green-line: #5b8a3a;
+  --rd-green-shadow: #4f7a32;
+  --rd-wood: repeating-linear-gradient(97deg, var(--rd-wood-1) 0 15px, var(--rd-wood-2) 15px 19px, var(--rd-wood-3) 19px 31px, var(--rd-wood-1) 31px 40px);
+}
+
+/* Panel: Holzrahmen als Rand, Creme-Fläche innen. */
+body #craft-panel.craft-panel,
+body #area-panel.area-panel {
+  color: var(--rd-ink);
+  border: 8px solid transparent;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, var(--rd-cream), var(--rd-cream-2)) padding-box,
+    var(--rd-wood) border-box;
+  box-shadow:
+    inset 0 0 0 2px #fffaf0,
+    inset 0 0 0 4px #e5c995,
+    0 0 0 2px var(--rd-wood-dark),
+    0 10px 0 rgba(78, 50, 22, .32),
+    0 18px 36px rgba(34, 24, 8, .38);
+}
+
+/* Blattzweig an der Kopfzeile (das Panel selbst scrollt und schneidet ab). */
+body #craft-panel.craft-panel > header::before,
+body #area-panel.area-panel .area-heading::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -12px;
+  width: 64px;
+  height: 38px;
+  pointer-events: none;
+  z-index: 3;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 78 46'%3E%3Cpath d='M6 40C22 30 38 24 60 20' stroke='%236b4a22' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M18 34C12 22 18 12 30 10C32 22 27 30 18 34Z' fill='%2378a640'/%3E%3Cpath d='M18 34C22 24 26 17 30 10' stroke='%23a8cf6a' stroke-width='1.3' fill='none'/%3E%3Cpath d='M34 27C33 14 42 6 55 6C53 18 45 25 34 27Z' fill='%238fbc4a'/%3E%3Cpath d='M34 27C40 19 47 12 55 6' stroke='%23c6e07e' stroke-width='1.3' fill='none'/%3E%3Cpath d='M50 21C56 13 66 11 75 15C69 23 60 25 50 21Z' fill='%236a9a36'/%3E%3Cpath d='M28 30C22 38 12 42 3 40C8 32 18 29 28 30Z' fill='%23649434'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* Kopfzeile: Holzschild mit heller Schrift. */
+body #craft-panel.craft-panel > header,
+body #area-panel.area-panel .area-heading {
+  position: relative;
+  border: 2px solid var(--rd-wood-dark) !important;
+  border-radius: 18px !important;
+  background: var(--rd-wood) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 226, 170, .45), inset 0 -3px 0 rgba(60, 34, 12, .3), 0 3px 0 rgba(78, 50, 22, .3) !important;
+}
+body #craft-panel.craft-panel > header h2,
+body #area-panel.area-panel .area-heading h2 {
+  color: #fff4dc;
+  font-weight: 900;
+  letter-spacing: .01em;
+  text-shadow: 0 2px 0 rgba(70, 40, 14, .55);
+}
+
+/* Marktstand: Markise mit Bogenkante statt Holzschild. */
+body #craft-panel.craft-panel[data-page="market"] > header {
+  border-color: #a0543e !important;
+  border-radius: 18px 18px 8px 8px !important;
+  background: repeating-linear-gradient(90deg, #d4684c 0 34px, #fbeccd 34px 68px) !important;
+  margin-bottom: 14px;
+}
+body #craft-panel.craft-panel[data-page="market"] > header::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -12px;
+  height: 12px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 17px 0, #d4684c 0 15px, transparent 16px) 0 0 / 68px 12px repeat-x,
+    radial-gradient(circle at 51px 0, #fbeccd 0 15px, transparent 16px) 0 0 / 68px 12px repeat-x;
+  filter: drop-shadow(0 2px 0 rgba(120, 60, 40, .35));
+}
+body #craft-panel.craft-panel[data-page="market"] > header h2 {
+  color: var(--rd-ink);
+  font-style: italic;
+  text-shadow: 0 2px 0 rgba(255, 250, 235, .9);
+  background: rgba(255, 248, 230, .86);
+  border-radius: 12px;
+  padding: 2px 12px;
+}
+
+/* Schließen-Knopf: runder Creme-Knopf mit Holzrand. */
+body #craft-panel.craft-panel > header > button,
+body #area-panel.area-panel .area-heading > button {
+  background: radial-gradient(circle at 40% 30%, #fffef6, #f2e1b8);
+  border: 2.5px solid #b08550;
+  color: var(--rd-wood-dark);
+  font-weight: 900;
+  box-shadow: 0 3px 0 rgba(90, 60, 26, .4), inset 0 2px 0 #fff;
+}
+
+/* Reiter: Pillen, aktiv grün. */
+body #craft-panel .craft-tabs button {
+  background: linear-gradient(180deg, var(--rd-card), var(--rd-card-2));
+  border: 2px solid var(--rd-card-line);
+  color: var(--rd-ink);
+  border-radius: 999px;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 rgba(150, 118, 70, .3);
+}
+body #craft-panel .craft-tabs button[aria-pressed="true"],
+body #craft-panel .craft-tabs button.active,
+body #craft-panel .craft-tabs button[aria-selected="true"] {
+  background: linear-gradient(180deg, var(--rd-green-1), var(--rd-green-2));
+  border-color: var(--rd-green-line);
+  color: #fffdf0;
+  text-shadow: 0 1px 0 rgba(50, 80, 26, .6);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 3px 0 var(--rd-green-shadow);
+}
+
+/* Karten: Creme mit feinem Rand, ausgewählt grün. */
+body #craft-panel #craft-body button[aria-pressed]:not(.craft-primary):not(.area-secondary):not(.skill-node) {
+  background: linear-gradient(170deg, var(--rd-card), var(--rd-card-2));
+  border: 2px solid var(--rd-card-line);
+  color: var(--rd-ink);
+  border-radius: 16px;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 rgba(150, 118, 70, .28);
+}
+body #craft-panel #craft-body button[aria-pressed="true"]:not(.craft-primary):not(.area-secondary):not(.skill-node) {
+  background: linear-gradient(170deg, #c9e39c, #8fbb5e);
+  border-color: var(--rd-green-line);
+  color: #2f4a1c;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 3px 0 var(--rd-green-shadow);
+}
+body #craft-panel #craft-body .stock-name {
+  color: var(--rd-ink-soft);
+  font-weight: 800;
+}
+
+/* Große grüne Hauptknöpfe. */
+body #craft-panel .craft-primary,
+body #area-panel .craft-primary {
+  background: linear-gradient(180deg, var(--rd-green-1), var(--rd-green-2));
+  border: 2px solid var(--rd-green-line);
+  color: #fffdf0;
+  border-radius: 20px;
+  text-shadow: 0 1px 0 rgba(50, 80, 26, .65);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(60, 100, 30, .25), 0 4px 0 var(--rd-green-shadow), 0 7px 12px rgba(60, 90, 30, .25);
+}
+body #craft-panel .craft-primary:disabled,
+body #area-panel .craft-primary:disabled {
+  background: linear-gradient(180deg, #d7e2c2, #b7c79e);
+  border-color: #9fb084;
+  color: #f6f8ee;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .4), 0 3px 0 #93a57a;
+}
+body #craft-panel .area-secondary,
+body #area-panel .area-secondary {
+  background: linear-gradient(180deg, var(--rd-card), var(--rd-card-2));
+  border: 2px solid var(--rd-card-line);
+  color: var(--rd-ink);
+  border-radius: 18px;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 rgba(150, 118, 70, .3);
+}
+
+/* Infokästen wie der Verkaufskorb. */
+body #craft-panel .market-shipping {
+  background: linear-gradient(180deg, #fbefd2, #f1dcae);
+  border: 2px solid #e2c48d;
+  border-radius: 18px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7);
+}
+
+/* Schieberegler: Creme-Spur, grüne Füllung, Holzknopf. */
+body #craft-panel input[type="range"],
+body #area-panel input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ecdcb8, #f8eed6);
+  border: 2px solid var(--rd-card-line);
+  box-shadow: inset 0 2px 3px rgba(120, 90, 50, .25);
+}
+body #craft-panel input[type="range"]::-webkit-slider-thumb,
+body #area-panel input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #d9a86a, #9a6536);
+  border: 2.5px solid var(--rd-wood-dark);
+  box-shadow: 0 3px 0 rgba(70, 44, 18, .4), inset 0 2px 0 rgba(255, 230, 180, .6);
+}
+body #craft-panel input[type="range"]::-moz-range-thumb,
+body #area-panel input[type="range"]::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #d9a86a, #9a6536);
+  border: 2.5px solid var(--rd-wood-dark);
+}
+
+/* Marktstand: Menge und "Alle" direkt unter den Gegenständen, Verkaufskorb ganz unten. */
+body #craft-panel[data-page="market"] #craft-body {
+  display: flex;
+  flex-direction: column;
+}
+body #craft-panel[data-page="market"] #craft-body > * { order: 5; }
+body #craft-panel[data-page="market"] #craft-body > .craft-tabs { order: 0; }
+body #craft-panel[data-page="market"] #craft-body > .craft-wallet { order: 1; }
+body #craft-panel[data-page="market"] #craft-body > .market-stock { order: 2; }
+body #craft-panel[data-page="market"] #craft-body > h3 { order: 3; }
+body #craft-panel[data-page="market"] #craft-body > .market-amount { order: 4; }
+body #craft-panel[data-page="market"] #craft-body > #sale-range { order: 5; flex: none; }
+body #craft-panel[data-page="market"] #craft-body > #consign-market { order: 6; }
+body #craft-panel[data-page="market"] #craft-body > #sell-market { order: 7; }
+body #craft-panel[data-page="market"] #craft-body > .market-shipping { order: 8; margin-top: 14px; }
+
+/* Artikelbilder in Karten nicht abschneiden: Bild passt sich der Bildzeile an. */
+body #craft-panel #craft-body button:not(.skill-node) i > svg,
+body #area-panel button:not(.skill-node) i > svg {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+/* Einstellungen im selben Stil. */
+body #preferences.preferences-panel {
+  color: var(--rd-ink);
+  border: 8px solid transparent;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, var(--rd-cream), var(--rd-cream-2)) padding-box,
+    var(--rd-wood) border-box;
+  box-shadow:
+    inset 0 0 0 2px #fffaf0,
+    inset 0 0 0 4px #e5c995,
+    0 0 0 2px var(--rd-wood-dark),
+    0 10px 0 rgba(78, 50, 22, .32),
+    0 18px 36px rgba(34, 24, 8, .38);
+}
+body #preferences .lab-heading {
+  position: relative;
+  padding: 8px 10px 8px 16px;
+  border: 2px solid var(--rd-wood-dark) !important;
+  border-radius: 18px !important;
+  background: var(--rd-wood) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 226, 170, .45), inset 0 -3px 0 rgba(60, 34, 12, .3), 0 3px 0 rgba(78, 50, 22, .3) !important;
+}
+body #preferences .lab-heading h2 {
+  color: #fff4dc;
+  font-weight: 900;
+  text-shadow: 0 2px 0 rgba(70, 40, 14, .55);
+}
+body #preferences .lab-heading > button {
+  background: radial-gradient(circle at 40% 30%, #fffef6, #f2e1b8);
+  border: 2.5px solid #b08550;
+  color: var(--rd-wood-dark);
+  font-weight: 900;
+  box-shadow: 0 3px 0 rgba(90, 60, 26, .4), inset 0 2px 0 #fff;
+}
+body #preferences .area-secondary {
+  background: linear-gradient(180deg, var(--rd-card), var(--rd-card-2));
+  border: 2px solid var(--rd-card-line);
+  color: var(--rd-ink);
+  border-radius: 18px;
+  box-shadow: inset 0 2px 0 #fff, 0 3px 0 rgba(150, 118, 70, .3);
+}
+body #preferences label { color: var(--rd-ink); font-weight: 800; }
+body #preferences input[type="checkbox"] { accent-color: var(--rd-green-2); }
+body #preferences input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ecdcb8, #f8eed6);
+  border: 2px solid var(--rd-card-line);
+  box-shadow: inset 0 2px 3px rgba(120, 90, 50, .25);
+}
+body #preferences input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #d9a86a, #9a6536);
+  border: 2.5px solid var(--rd-wood-dark);
+  box-shadow: 0 3px 0 rgba(70, 44, 18, .4), inset 0 2px 0 rgba(255, 230, 180, .6);
+}
+body #preferences input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #d9a86a, #9a6536);
+  border: 2.5px solid var(--rd-wood-dark);
+}
+
+
+/* Werkstatt- und Pressenmenüs (#area-panel und #craft-panel): Holzschild mit lesbarer Schrift.
+   Höhere Spezifität, weil ältere Regeln die Kopfzeile dort wieder hell färben. */
+html body #area-panel.area-panel > .area-heading.area-heading,
+html body #craft-panel.craft-panel > header:first-child {
+  background: var(--rd-wood) !important;
+  border: 2px solid var(--rd-wood-dark) !important;
+}
+html body #area-panel.area-panel > .area-heading.area-heading > h2,
+html body #craft-panel.craft-panel > header:first-child > h2 {
+  color: #fff4dc !important;
+  text-shadow: 0 2px 0 rgba(70, 40, 14, .55) !important;
+}
+/* Marktstand behält seine Markise. */
+html body #craft-panel.craft-panel[data-page="market"] > header:first-child {
+  background: repeating-linear-gradient(90deg, #d4684c 0 34px, #fbeccd 34px 68px) !important;
+  border-color: #a0543e !important;
+}
+html body #craft-panel.craft-panel[data-page="market"] > header:first-child > h2 {
+  color: var(--rd-ink) !important;
+  text-shadow: 0 2px 0 rgba(255, 250, 235, .9) !important;
+}
+
+/* Rezeptkacheln, drei pro Reihe (iPhone-17-Breite): Name, darunter klein die Zeit,
+   großes Produktbild, Zutaten mit Menge. Keine feste Höhe, damit kein Leerraum entsteht. */
+html body :is(#area-panel, #craft-panel) .machine-modes {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  padding-top: 3px;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  width: 100%;
+  aspect-ratio: auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 6px 4px 6px !important;
+  text-align: center;
+  background: linear-gradient(170deg, var(--rd-card), var(--rd-card-2));
+  border: 2px solid var(--rd-card-line);
+  border-radius: 14px;
+  box-shadow: inset 0 2px 0 #fff, 0 2px 0 rgba(150, 118, 70, .28);
+  color: var(--rd-ink);
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode][aria-pressed="true"] {
+  background: linear-gradient(170deg, #c9e39c, #8fbb5e);
+  border-color: var(--rd-green-line);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 2px 0 var(--rd-green-shadow);
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > small {
+  order: 0;
+  font-size: 12.5px; font-weight: 900; line-height: 1.12;
+  margin: 0; padding: 0 3px;
+  max-width: 100%;
+  hyphens: auto; -webkit-hyphens: auto;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > em {
+  order: 1;
+  font-size: 11px; font-style: normal; line-height: 1.1;
+  color: var(--rd-ink-soft);
+  margin: 0; white-space: nowrap;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > svg {
+  order: 2;
+  width: 52px !important; height: 52px !important;
+  flex: none; margin: 0 0 -3px;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > span {
+  order: 3;
+  display: flex !important; flex-wrap: wrap; justify-content: center; gap: 1px 6px;
+  margin: 0;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .mode-ingredient {
+  display: inline-flex !important; align-items: center; gap: 2px;
+  flex-direction: row !important;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .mode-ingredient > small { display: none !important; }
+html body :is(#area-panel, #craft-panel) .machine-modes .mode-ingredient > svg { width: 20px !important; height: 20px !important; margin: 0; }
+html body :is(#area-panel, #craft-panel) .machine-modes .mode-ingredient > b { font-size: 12px; }
+/* Kleiner, mittig gefüllter Markierungsknopf oben rechts. */
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > .goal-mark {
+  width: 22px !important; height: 22px !important;
+  min-width: 22px !important; min-height: 22px !important;
+  padding: 0 !important;
+  display: grid !important; place-items: center;
+  top: -5px !important; right: -5px !important; bottom: auto !important; left: auto !important;
+  transform: none !important;
+  border-radius: 50%;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > .goal-mark > svg {
+  width: 12px !important; height: 12px !important; margin: 0 !important;
+}
+
+/* Rucksack-Karten zum Ziehen: flach, Bild links. */
+html body :is(#area-panel, #craft-panel) .machine-bag { gap: 5px; padding: 2px 1px 5px; }
+html body :is(#area-panel, #craft-panel) .machine-bag > button {
+  display: grid !important;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 5px;
+  align-items: center;
+  justify-items: start;
+  text-align: left;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 4px 6px !important;
+  border-radius: 12px;
+}
+html body :is(#area-panel, #craft-panel) .machine-bag > button > svg { grid-column: 1; grid-row: 1 / 3; width: 28px !important; height: 28px !important; margin: 0; }
+html body :is(#area-panel, #craft-panel) .machine-bag > button > small { grid-column: 2; grid-row: 1; font-size: 11px; line-height: 1.1; margin: 0; }
+html body :is(#area-panel, #craft-panel) .machine-bag > button > b { grid-column: 2; grid-row: 2; font-size: 13px; margin: 0; }
+
+/* Einfüllfeld niedriger. */
+html body :is(#area-panel, #craft-panel) .machine-bin { min-height: 36px !important; padding: 3px !important; }
+html body :is(#area-panel, #craft-panel) .machine-empty-bin { padding: 6px 0 !important; font-size: 12px; }
+/* Platz für den Markierungsknopf in der Ecke, Name darunter frei. */
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] { padding-top: 9px !important; }
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice { overflow: visible !important; }
+html body :is(#area-panel, #craft-panel) .machine-modes { overflow: visible !important; padding: 6px 5px 4px !important; }
+
+/* Zwei Produkte pro Reihe, alle Kacheln gleich hoch (Höhe der höchsten Kachel). */
+html body :is(#area-panel, #craft-panel) .machine-modes {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice {
+  height: 100% !important;
+  display: flex !important;
+}
+/* Umschalter Produkte/Möbel: ausgeblendete Kacheln müssen trotz display:flex verschwinden. */
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice[hidden] {
+  display: none !important;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] {
+  height: 100% !important;
+  flex: 1 1 auto;
+}
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > small { font-size: 13.5px; }
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > svg { width: 56px !important; height: 56px !important; }
+/* Zutaten unten bündig, damit Kacheln mit einer oder zwei Zutaten ruhig wirken. */
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] > span { margin-top: auto !important; }
+
+/* Neugestaltung: Hitzeanzeige des Kraftsaugers als eigene Leiste direkt über der Akkuleiste (vorher verdeckt oben links). */
+html body #power-temperature:not([hidden]){position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(200px,44vw);height:14px;padding:4px 10px;box-sizing:content-box;display:flex;align-items:center;gap:7px;background:#f8edccdd;border:2px solid #b8a779;border-radius:11px;box-shadow:0 3px #625f3a33;z-index:9;color:#b4522c;font-size:16px;pointer-events:none}
+html body #power-temperature>div{flex:1;width:auto;height:9px;border-radius:6px;background:#d9cfb066;overflow:hidden}
+html body #temperature-fill{display:block;height:100%;background:linear-gradient(90deg,#f2c14e,#e98a35 55%,#cf4a2c);border-radius:6px;transition:width .12s linear}
+html body #power-temperature.overheated{border-color:#cf4a2c;animation:redesign-overheat .6s ease-in-out infinite alternate}
+html body #power-temperature.overheated #temperature-fill{background:#cf4a2c}
+@keyframes redesign-overheat{from{box-shadow:0 0 0 #cf4a2c00}to{box-shadow:0 0 14px #cf4a2ccc}}
+
+/* Schmiede: Glutleiste */
+html body :is(#area-panel, #craft-panel) .machine-glow-meter > i { background: linear-gradient(90deg, #f3b24f, #e0643a) !important; }
+html body :is(#area-panel, #craft-panel) .machine-glow-help { display: block; margin: 2px 4px 8px; font-size: 11px; color: #8a6a4a; }
+.craft-floating[data-page=forge] { background: linear-gradient(140deg, #f6e8d6, #e7c4a8); border-color: #a7694e; }
+
+/* Aquarium-Fenster im Haus */
+#aquarium-panel { position: absolute; z-index: 40; left: 50%; bottom: 96px; transform: translateX(-50%); width: min(360px, calc(100% - 32px)); max-height: 62vh; overflow-y: auto; padding: 14px 14px 12px; border-radius: 22px; background: linear-gradient(#fff8e8, #f1e3c4); border: 3px solid #9c7a52; box-shadow: 0 6px 0 #6f553844, 0 10px 24px #0003; color: #5a4a33; }
+#aquarium-panel[hidden] { display: none; }
+#aquarium-panel h2 { margin: 0 0 6px; font-size: 18px; text-align: center; }
+#aquarium-panel p { margin: 8px 2px 4px; font-size: 12px; font-weight: 700; color: #8a6a4a; }
+#aquarium-panel .tank-fish { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#aquarium-panel .tank-fish button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 76px; padding: 4px; border-radius: 14px; border: 2px solid #d8c49c; background: #fffaf0; color: #5a4a33; }
+#aquarium-panel .tank-fish button:disabled { opacity: .45; }
+#aquarium-panel .tank-fish svg { width: 64px; height: 50px; }
+#aquarium-panel .tank-fish small { font-size: 10.5px; text-align: center; }
+#aquarium-panel .craft-primary { width: 100%; margin-top: 10px; }
+/* Verkaufsstand: Wunschware und Ausbau */
+html body #craft-panel .market-wish-banner, html body #area-panel .market-wish-banner { display: flex; align-items: center; gap: 8px; margin: 6px 0; padding: 6px 10px; border-radius: 14px; background: #fff1c9; border: 2px solid #e2b85c; color: #6b5124; font-size: 12.5px; }
+.market-wish-banner svg { width: 34px; height: 34px; flex: none; }
+.market-stock button.market-wish { box-shadow: 0 0 0 3px #e2b85c inset !important; }
+.market-stock button.market-wish::after { content: '★'; position: absolute; top: 4px; right: 6px; color: #d39a2c; font-size: 14px; }
+.market-upgrade { margin-top: 14px; padding: 10px; border-radius: 16px; background: #fbf3df; border: 2px dashed #cdb282; }
+.market-upgrade h3 { margin: 0 0 6px; }
+.market-upgrade p { margin: 4px 0; font-size: 12.5px; }
+.market-stock button.market-wish { position: relative; }
+
+/* Zwei Aufträge: Vorrang-Abzeichen auf den Rezeptkacheln */
+html body :is(#area-panel, #craft-panel) .machine-modes .recipe-choice > button[data-machine-mode] { position: relative; }
+html body :is(#area-panel, #craft-panel) .prio-badge {
+  position: absolute; top: -6px; left: -5px; z-index: 2;
+  display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  font: 800 14px/1 inherit; font-style: normal;
+  color: #fff; background: #4f8a2f; border: 2px solid #fff8e6;
+  box-shadow: 0 1px 3px rgba(60, 40, 15, .45);
+}
+html body :is(#area-panel, #craft-panel) .prio-badge.second { background: #c08a35; }
+html body :is(#area-panel, #craft-panel) .machine-priority-help { display: block; margin: 0 4px 6px; font-size: 12px; line-height: 1.3; color: var(--rd-ink); opacity: .8; }
+
+/* Baubare Abkürzungen (Jakob 31.10.) */
+#route-build{position:absolute;z-index:14;left:50%;bottom:170px;transform:translateX(-50%);width:min(320px,86vw);border:3px solid #8a6543;background:#fff4dcf5;color:#5b4930;border-radius:18px;padding:12px 14px;box-shadow:0 6px 20px #233a2840}
+#route-build[hidden]{display:none}
+#route-build header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:15px}
+#route-build>div{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+#route-build span{display:flex;flex-direction:column;align-items:center;text-align:center;padding:5px 3px;border-radius:10px;background:#f4e4c4;font-size:11px;min-width:0}
+#route-build span.ready{background:#dcebc0}
+#route-build span i{display:block;width:38px;height:38px}
+#route-build span i svg{width:100%;height:100%}
+#route-build span small{font-size:11px;line-height:1.15}
+#route-build span b{font-size:12px}
+#route-build>button{width:100%;min-height:46px;border:0;border-radius:14px;background:#6f9a4c;color:#fff;font-weight:700;font-size:16px}
+#route-build>button:disabled{background:#c2b89f;color:#f6efe0}
+#game:has(#vacuum-picker:not([hidden])) #route-build,#game:has(#craft-panel:not([hidden])) #route-build,#game:has(#area-panel:not([hidden])) #route-build{visibility:hidden}
+/* Spezialblobs (Jakob 31.10.) */
+.special-text{margin:6px 0 2px;font-size:13px;color:#6b5a3e}.special-status{margin:2px 0 8px;font-weight:700;font-size:14px;color:#4f7a3a}.special-note{margin:4px 0 8px;font-size:12.5px;color:#6b5a3e}
+.special-checks{display:grid;gap:6px;margin-bottom:10px}.special-checks label{display:flex;align-items:center;gap:10px;min-height:40px;padding:4px 10px;background:#f4e4c4;border-radius:10px;font-size:14px}.special-checks input{width:22px;height:22px}
+.special-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;font-size:14px}.special-row select{flex:1;min-height:40px}
+#special-toggle,#special-place{width:100%;min-height:46px;margin:4px 0;border:0;border-radius:14px;background:#6f9a4c;color:#fff;font-weight:700;font-size:15px}#special-toggle:disabled{background:#c2b89f}#special-place{background:#a07a54}
+#special-sale-search{width:100%;min-height:38px;margin-bottom:6px;box-sizing:border-box}.special-sale{display:grid;gap:5px;max-height:240px;overflow:auto;margin-bottom:8px}.special-sale>div{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 8px;background:#f4e4c4;border-radius:10px}.special-sale label{display:flex;align-items:center;gap:8px;font-size:13px;flex:1;min-width:0}.special-sale small{opacity:.7}.special-sale input[type=number]{width:64px;min-height:34px}.special-sale input[type=checkbox]{width:20px;height:20px}
+#route-build [data-pile-place]{width:100%;min-height:46px;border:0;border-radius:14px;background:#6f9a4c;color:#fff;font-weight:700;font-size:16px;margin-bottom:6px}#route-build .special-cancel{width:100%;min-height:38px;border:0;border-radius:12px;background:#d9cbac;color:#5b4930}
+
+/* Blobmenü neu (Jakob 31.10.) */
+#area-panel:has(.blobm),#craft-panel:has(.blobm){width:min(94vw,440px)!important;max-width:94vw!important}
+.blobm{display:flex;flex-direction:column;gap:10px;color:#5b4930}
+.blobm-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:16px;background:#ecd9b6}
+.blobm-tabs button{min-height:40px;border:0;border-radius:12px;background:transparent;font-weight:700;font-size:14px;color:#7d6543}
+.blobm-tabs button[aria-selected=true]{background:#fff8ea;color:#4f7a3a;box-shadow:0 2px 5px #7a5a2a33}
+.blobm-helpers{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700}.blobm-helpers span{margin-right:5px}.blobm-helpers i{font-style:normal;font-size:16px;color:#dcc9a8}.blobm-helpers i.on{color:#e0707e}.blobm-helpers small{margin-left:auto;font-weight:500;opacity:.75}
+.blobm-chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px}.blobm-chips button{flex:none;min-height:34px;padding:0 12px;border:0;border-radius:17px;background:#f4e4c4;color:#7d6543;font-size:13px;font-weight:600}.blobm-chips button.on{background:#6f9a4c;color:#fff}
+.blob-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.blob-tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 8px;border:0;border-radius:18px;background:#fff8ea;box-shadow:0 2px 6px #7a5a2a26;color:#5b4930;min-width:0}
+.blob-tile strong{font-size:12.5px;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blob-tile-art{display:block;width:62px;height:62px;border-radius:50%;background:var(--g,#e4f0cf)}.blob-tile-art svg,.blob-hero-art svg,.fusion-slot svg,.blob-tray svg,.book-row svg{width:100%;height:100%;display:block}
+.blob-tile:active .blob-tile-art svg{animation:blob-boing .4s}.blob-tile-art svg{transform-origin:50% 85%;animation:blob-breathe 3.2s ease-in-out infinite}.blob-tile:nth-child(3n+1) svg{animation-delay:-1s}.blob-tile:nth-child(3n+2) svg{animation-delay:-2.1s}
+@keyframes blob-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.95)}}@keyframes blob-boing{0%{transform:scale(1)}35%{transform:scale(1.2,.8)}70%{transform:scale(.9,1.14)}100%{transform:scale(1)}}
+.g-wald{--g:#dcedc4}.g-kueste{--g:#fbecc0}.g-berg{--g:#e2eefa}.g-vulkan{--g:#f3d2c0}.g-spezial{--g:#efdcf2}
+.blob-dots{display:inline-flex;gap:3px}.blob-dots i{width:6px;height:6px;border-radius:50%;background:#e2d3b5}.blob-dots i.on{background:#e9a03c}
+.blob-tile-busy,.blob-tile-to{font-size:10.5px;font-weight:700;color:#4f7a3a}.blob-tile-to{color:#a35fb0}
+.blobm-back{align-self:flex-start;min-height:34px;padding:0 12px;border:0;border-radius:17px;background:#f4e4c4;color:#7d6543;font-weight:700}
+.blob-hero{display:flex;gap:12px;align-items:center;padding:12px;border-radius:22px;background:var(--g,#e4f0cf)}.blob-hero-art{flex:none;width:104px;height:104px}.blob-hero-art svg{transform-origin:50% 85%;animation:blob-breathe 2.8s ease-in-out infinite}.blob-hero>div{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.blob-hero input{width:100%;box-sizing:border-box;border:0;border-bottom:2px dashed #b9a57f;background:transparent;font-size:18px;font-weight:800;color:#5b4930;padding:2px 0;border-radius:0}.blob-hero small{font-size:12px;opacity:.8}.blob-hero p{margin:3px 0 0;font-size:12.5px;line-height:1.3}
+.blob-live{margin:0;text-align:center;font-weight:700;font-size:14px;color:#4f7a3a}
+.blobm-main,.blobm-fuse,.blobm-soft{width:100%;min-height:46px;border:0;border-radius:16px;font-weight:800;font-size:15px}.blobm-main{background:#6f9a4c;color:#fff;box-shadow:0 3px 0 #557a38}.blobm-main:disabled{background:#c2b89f;box-shadow:none}.blobm-soft{background:#f4e4c4;color:#7d6543;min-height:40px}.blobm-fuse{background:linear-gradient(90deg,#e58fb0,#b58fe0,#7fb6e8);color:#fff;box-shadow:0 3px 0 #8a6fb0}.blobm-fuse:disabled{background:#d9cfbe;box-shadow:none;color:#fff}
+.blob-work-materials{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}.blob-work-materials i{width:32px;height:32px}.blob-work-materials svg{width:100%;height:100%}.blob-work-materials strong{margin-left:6px}
+.blobm-question{margin:0;text-align:center;font-weight:700;font-size:14px}
+.blob-map{width:100%;height:auto;display:block;border-radius:22px;box-shadow:0 0 0 3px #a07a54,0 3px 8px #5b493055;touch-action:manipulation}
+.map-label{font:800 10.5px/1 system-ui,sans-serif;fill:#3e3424;paint-order:stroke;stroke:#fff8ead0;stroke-width:3px;pointer-events:none}
+.map-area.locked{opacity:.75}.map-area.pick{cursor:pointer}.map-area.pick path{stroke:#fff;stroke-width:3.4;animation:map-pulse 1.4s ease-in-out infinite}.blob-map:has(.pick) .map-area:not(.pick){opacity:.45}@keyframes map-pulse{50%{stroke:#ffd76a;filter:brightness(1.1)}}
+.map-pin circle{fill:#fff8ea;stroke:#a07a54;stroke-width:2}.map-pin.on circle{fill:#ffd76a;stroke:#b98a22}.map-pin text{font-size:12px;pointer-events:none}.map-pin{cursor:pointer}
+.blob-tray{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px}.blob-tray button{position:relative;flex:none;width:68px;padding:5px 2px;border:0;border-radius:14px;background:#fff8ea;color:#5b4930;box-shadow:0 2px 5px #7a5a2a26}.blob-tray button.on{outline:3px solid #6f9a4c}.blob-tray span{display:block;width:46px;height:46px;margin:auto}.blob-tray small{display:block;font-size:10.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.blob-tray i{position:absolute;top:3px;right:6px;font-style:normal;color:#e0707e}
+.fusion-slots{display:flex;align-items:center;justify-content:center;gap:5px}.fusion-slots b{font-size:20px;color:#a07a54}.fusion-slot{display:grid;place-items:center;width:78px;height:78px;border-radius:50%;background:#fff8ea;box-shadow:inset 0 0 0 2px #e4d2ae;font-size:26px;font-weight:800;color:#c7b48e}.fusion-slot.empty{border:0;background:#f7ecd4}.fusion-slot.result:not(.empty){background:#f6e3f8;box-shadow:inset 0 0 0 3px #c79fd8}.fusion-result-name{margin:0;text-align:center;font-weight:700;font-size:14px}
+.book-title{margin:6px 0 0;font-size:14px}.book-row{display:grid;grid-template-columns:50px 12px 50px 12px 50px 1fr;align-items:center;gap:4px;padding:5px 8px;border-radius:14px;background:#fff8ea;font-size:12.5px}.book-row span{width:50px;height:50px;display:block}.book-unknown{display:grid!important;place-items:center;border-radius:50%;background:#efe3cb;color:#b7a582;font-weight:800;font-size:20px;width:44px!important;height:44px!important;margin:3px}.book-row small{font-weight:700;padding-left:4px}.book-row b{text-align:center;color:#a07a54}
+.blob-portrait{width:100%;height:100%;display:block;object-fit:contain;transform-origin:50% 85%}.blob-tile-art img{animation:blob-breathe 3.2s ease-in-out infinite}.blob-tile:nth-child(3n+1) img{animation-delay:-1s}.blob-tile:nth-child(3n+2) img{animation-delay:-2.1s}.blob-tile:active .blob-tile-art img{animation:blob-boing .4s}.blob-hero-art img{animation:blob-breathe 2.8s ease-in-out infinite}
+
+html body .blob-tile{display:flex!important;flex-direction:column!important;align-items:center!important;height:auto!important;text-align:center}html body .blob-tile .blob-tile-art{position:static!important;flex:none;width:72px;height:72px;margin:0 auto}
+
+#placement-controls[data-kind=spot] .placement-angle,#placement-controls[data-kind=spot] #placement-rotate{display:none}
+/* Setzkasten (Jakob 31.10.) */
+.setz h3{margin:0;display:inline-block;padding:2px 12px;background:#fff4dc;border-radius:8px 8px 0 0;font-size:13px;color:#5b4930}
+.setz{padding:8px 8px 10px;border-radius:14px;background:#d9b98a;display:grid;gap:8px}
+.setz-rack{display:grid;grid-template-columns:1fr 12px 1fr 12px 1fr;align-items:stretch;background:#8a6543;border:4px solid #8a6543;border-radius:8px;gap:0}.setz-rack.plain{grid-template-columns:repeat(3,1fr);gap:4px}.setz-rack>b{align-self:center;text-align:center;color:#fff;font-size:15px;font-weight:800}
+.cub{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding:4px 2px 5px;border:0;border-radius:5px;background:linear-gradient(#a57f4e,#d0a874 42%,#e9cfa2 43%,#fff4dc 44%);color:#5b4930}
+.cub-art{display:block;width:70px;height:70px}.cub-art img{animation:blob-breathe 3.2s ease-in-out infinite}.cub:nth-of-type(2n) .cub-art img{animation-delay:-1.3s}.cub:active .cub-art img{animation:blob-boing .4s}
+.cub strong{font-size:11.5px;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cub-does{display:flex;justify-content:center;gap:1px;min-height:22px;font-size:9.5px;line-height:1.1;text-align:center;padding:0 2px}.cub-does i{display:block;width:18px;height:18px}.cub-does svg,.cub-does img{width:100%;height:100%}
+.cub-sizes{display:flex;gap:2px;justify-content:center;min-height:17px}.cub-sizes span{display:inline-flex;align-items:center;gap:1px;padding:0 4px;height:16px;border-radius:8px;background:#efdfbf;color:#9b8862;font:700 9.5px system-ui}.cub-sizes span.on{background:#6f9a4c;color:#fff}
+.cub-busy{position:absolute;top:3px;right:3px;padding:0 5px;border-radius:9px;background:#e0707e;color:#fff;font:700 10px system-ui}
+.cub.none .cub-art img{filter:brightness(0) opacity(.3);animation:none}.cub.none strong{opacity:.65}
+.size-head{margin:6px 0 2px;font-size:13px;font-weight:800}
+
+.blobm .special-note,.blobm .blob-live,.blobm .blob-hero p,.blobm .blob-hero small{color:#5b4930!important;opacity:1!important}.blobm .blob-live{color:#3f6b2c!important}.blob-hero input{color:#4a3a22!important}
+
+.station-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:8px}.station-tiles button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 3px;border:0;border-radius:14px;background:#fff8ea;box-shadow:0 2px 5px #7a5a2a26;color:#5b4930;min-width:0}.station-tiles button.on{background:#dcebc0;outline:3px solid #6f9a4c}.station-tiles span{display:block;width:60px;height:60px}.station-tiles svg{width:100%;height:100%}.station-tiles small{font-size:11px;font-weight:700;line-height:1.15}
+
+/* Gemalte Karte */
+.blob-map{background:#74c4dc}.map-area path{fill:#fff;opacity:0;stroke:none!important;animation:none!important}.map-area.locked path{fill:#d6d0c2;opacity:.93}.map-area.pick{cursor:pointer}.map-area.pick path{fill:#fff6c8;opacity:.28;animation:map-run 1.5s ease-in-out infinite!important}.blob-map:has(.pick) .map-area:not(.pick):not(.locked) path{fill:#2a2a2a;opacity:.34}.blob-map:has(.pick) .map-area{opacity:1!important}@keyframes map-run{50%{opacity:.5}}
+.map-banner path{fill:#fff4dc;stroke:#8a6543;stroke-width:1.3}.map-banner text{font:800 10.5px/1 Georgia,serif;fill:#4a3a22}.map-banner.fog path{fill:#e6e0d0;stroke:#a39e92}.map-banner.fog text{fill:#8a8476}
+
+html body .blobm .blobm-question{color:#4a3a22!important;opacity:1!important}
+
+/* Meine Blobs */
+.blobm-chips small{opacity:.7;font-weight:500}.my-blob-head{margin:6px 2px 0;font-size:14px;color:#5b4930}.my-blob-head small{font-weight:500;opacity:.7}
+.my-blobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.my-blob{position:relative;display:flex;align-items:center;gap:7px;padding:6px 8px 6px 6px;border:0;border-radius:16px;background:#fff8ea;box-shadow:0 2px 5px #7a5a2a26;color:#5b4930;text-align:left;min-width:0}
+.my-blob-art{flex:none;width:54px;height:54px;border-radius:50%;background:var(--g,#e4f0cf)}.my-blob-art img{animation:blob-breathe 3s ease-in-out infinite}.my-blob:nth-child(2n) img{animation-delay:-1.2s}.my-blob:active img{animation:blob-boing .4s}
+.my-blob-text{display:flex;flex-direction:column;min-width:0;gap:1px}.my-blob strong{font-size:14px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-blob small{font-size:11px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.my-blob-size{display:flex;align-items:center;gap:4px}.my-blob-size em{font:600 10px system-ui;opacity:.7}.my-blob-work{position:absolute;top:4px;right:7px;font-style:normal;color:#e0707e}
+#blob-nametag{position:absolute;z-index:13;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;padding:4px 11px;border-radius:13px;background:#fff8eaf2;border-bottom:3px solid var(--tag,#afe084);box-shadow:0 3px 9px #3a2a1a44;color:#5b4930;pointer-events:none;white-space:nowrap;animation:tag-in .22s ease-out}#blob-nametag[hidden]{display:none}#blob-nametag strong{font-size:14px;line-height:1.15}#blob-nametag small{font-size:11px}#blob-nametag em{font:600 10.5px system-ui;font-style:normal;color:#4f7a3a}@keyframes tag-in{from{opacity:0;margin-top:6px}}
+/* Sammelalbum */
+.album{color:#4a3a22}html body .blobm .album p{color:#4a3a22!important;opacity:1!important}.album-count{margin:0 0 5px;text-align:center;font-size:13px;font-weight:700}
+.album-tabs{display:flex;gap:3px;padding:0 6px}.album-tabs button{flex:1;min-width:0;min-height:36px;padding:0;border:0;border-radius:11px 11px 0 0;background:#ead7b2;color:#7d6543;font-weight:700;font-size:12px}.album-tabs button.on{background:#fff;color:#4f7a3a}
+.album-page{padding:14px 10px 12px;border-radius:14px;background:#fff radial-gradient(#ead7b2 1px,transparent 1.2px) 0 0/14px 14px;box-shadow:0 3px 9px #5b493040}
+.album-line{display:flex;align-items:center;justify-content:center;gap:7px}.album-line b{font-size:21px;color:#a07a54}.album-line+.album-line{margin-top:4px}.album-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.sticker{position:relative;display:block;width:100px;padding:5px 4px 5px;border:0;border-radius:9px;background:#fff8ea;box-shadow:0 2px 6px #5b493044;transform:rotate(var(--r,0deg));color:#5b4930;transition:transform .15s}.album-grid .sticker{width:auto}.sticker.big{width:124px}.sticker>span{display:block;height:74px}.sticker.big>span{height:94px}.sticker small{display:block;font-size:11px;font-weight:700;line-height:1.1;margin-top:2px}.sticker u{position:absolute;top:-6px;right:-5px;padding:1px 6px;border-radius:9px;background:#6f9a4c;color:#fff;font:800 11px system-ui;text-decoration:none}.sticker.on{outline:3px solid #e9a03c;transform:rotate(0) scale(1.05)}.sticker img{animation:blob-breathe 3s ease-in-out infinite}.sticker.unknown img{filter:brightness(0) opacity(.3);animation:none}
+.album-info{margin-top:13px;padding:10px 12px;border-radius:13px;background:#fff8ea;border:2px solid #efdfbf}.album-info h4{margin:0 0 4px;font-size:16px}html body .blobm .album-info p{margin:3px 0 5px;font-size:13px;line-height:1.35}.album-info b{color:#9a5c30}.album-items{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}.album-items span{display:flex;flex-direction:column;align-items:center;width:54px;text-align:center}.album-items i{width:32px;height:32px}.album-items svg,.album-items img{width:100%;height:100%}.album-items small{font-size:10px;line-height:1.05}
+html body .blobm .album-recipe{display:inline-block;padding:2px 9px;border-radius:9px;background:#f6e3f8;color:#6f3f80!important;font-size:12px;font-weight:700}.album-table{width:100%;margin-top:6px;border-collapse:collapse;font-size:11px;text-align:center}.album-table th{padding:2px 1px;color:#9a5c30}.album-table td{padding:3px 1px;border-top:1px solid #efdfbf;white-space:nowrap}.album-table td:first-child{text-align:left;white-space:normal;line-height:1.1;max-width:74px}
+html body .blobm .album-foot{margin:9px 0 0;font-size:12px;text-align:center;color:#7d6543!important}
+
+/* Verkaufsblob wie die übrigen Menüs */
+.sale-summary{display:flex;justify-content:space-between;gap:8px;margin:6px 0;padding:8px 12px;border-radius:14px;background:#fff8ea;box-shadow:0 2px 5px #7a5a2a26;color:#5b4930;font-size:12.5px}.sale-summary b{color:#4f7a3a;white-space:nowrap}
+.sale-head{margin:12px 2px 6px;color:#5b4930;font-size:15px}.sale-head small{font-weight:600;font-size:12px;color:#8a6f4a}
+.sale-rows{display:grid;gap:7px}.sale-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:16px;background:#dcebc0;box-shadow:0 2px 5px #7a5a2a26;color:#4a3a22}.sale-row>i{flex:none;width:46px;height:46px}.sale-row>i svg,.sale-row>i img{width:100%;height:100%}.sale-row>div{flex:1;min-width:0}.sale-row strong{display:block;font-size:13.5px;line-height:1.15}.sale-row small{display:block;font-size:11.5px;color:#4f6b36}
+.sale-keep{display:flex;align-items:center;gap:6px;margin-top:3px}html body .blobm .sale-keep input[type=range]{flex:1;min-width:0;margin:0}.sale-keep button{flex:none;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:#fff8ea;color:#5b4930;font:800 18px system-ui;box-shadow:0 2px 4px #7a5a2a33}
+.sale-wares{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:10px}.sale-wares button{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:96px;padding:6px 3px;border:0;border-radius:15px;background:#fff8ea;box-shadow:0 2px 5px #7a5a2a26;color:#5b4930}.sale-wares button.on{background:#dcebc0;outline:3px solid #6f9a4c}.sale-wares button.on::after{content:'✓';position:absolute;top:4px;left:7px;color:#4f7a3a;font:800 15px system-ui}.sale-wares button:disabled{opacity:.45}.sale-wares span{display:block;width:50px;height:50px}.sale-wares svg,.sale-wares img{width:100%;height:100%}.sale-wares small{font-size:11px;font-weight:700;line-height:1.1}.sale-wares em{font:700 11.5px system-ui;color:#8a6f4a}
+/* Karte: Blobs im Einsatz */
+.map-blob{cursor:pointer}.map-blob-ring{fill:#fff;fill-opacity:0;stroke:none}.map-blob.on .map-blob-ring{fill-opacity:.55;stroke:#ffd76a;stroke-width:3}.map-blob-act circle{fill:#fff8ea;stroke:#a07a54;stroke-width:1}.map-blob-act text{font-size:8px;pointer-events:none}
+.map-workers{display:grid;gap:6px}.map-worker{border-radius:15px;background:#fff8ea;box-shadow:0 2px 5px #7a5a2a26}.map-worker.on{outline:3px solid #6f9a4c}.map-worker>button[data-map-pick]{display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px 6px 6px;border:0;background:none;color:#5b4930;text-align:left}.map-worker>button>span:first-child{flex:none;width:52px;height:52px}.map-worker img{width:100%;height:100%}.map-worker strong{display:block;font-size:14px;line-height:1.15}.map-worker small{display:block;font-size:11px;color:#8a6f4a}.map-worker em{display:block;margin-top:1px;font:600 12px/1.2 system-ui;color:#3f6b2c}.map-worker .blobm-soft{display:block;width:calc(100% - 16px);margin:0 8px 8px}
+
+/* Akku als Ring um den Saugerknopf (Jakob 31.10.) */
+html body #battery-meter{opacity:0!important;pointer-events:none}
+#vacuum-choose::before{content:"";position:absolute;inset:-7px;border-radius:inherit;padding:6px;background:conic-gradient(from 0deg,var(--ring,#7ccf6e) var(--battery,100%),#3a3a2a55 0);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none}
+#vacuum-choose{overflow:visible!important}#vacuum-choose.battery-low{--ring:#e8603f}#vacuum-choose.battery-low::before{animation:battery-low 1s ease-in-out infinite}@keyframes battery-low{50%{opacity:.45}}
+/* Blobmenü */
+.blobm-chips{flex-wrap:wrap;overflow:visible}.blobm-chips button{padding:0 10px}
+.map-frame{position:relative}.map-zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}.map-zoom button{width:40px;height:40px;padding:0;border:2px solid #a07a54;border-radius:50%;background:#fff8ea;color:#5b4930;font:800 22px system-ui;box-shadow:0 2px 5px #3a2a1a55}
+.sticker-q{display:flex;align-items:center;justify-content:center;height:100%;font:800 42px system-ui;color:#c9b48f}.sticker.unknown{background:#f2e6cd}
+.blob-mats button{min-height:84px}.blob-hero-art,.my-blob-art{position:relative}.worn-head,.worn-collar{position:absolute;left:50%;transform:translateX(-50%);display:block;width:44%;height:44%;pointer-events:none}.worn-head{top:-4%}.worn-collar{top:58%;width:40%;height:30%}.worn-head svg,.worn-collar svg{width:100%;height:100%;display:block}
+.acc-label{display:block;margin:6px 2px 3px;font-weight:700;color:#8a6f4a}.acc-row{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px}.acc-row button{flex:none;width:72px;min-height:80px;padding:5px 3px;border:0;border-radius:14px;background:#fff8ea;color:#5b4930;box-shadow:0 2px 5px #7a5a2a26}.acc-row button.on{background:#dcebc0;outline:3px solid #6f9a4c}.acc-row span{display:block;width:44px;height:44px;margin:auto}.acc-row svg{width:100%;height:100%}.acc-none{font:800 24px/44px system-ui;color:#c9b48f}.acc-row small{display:block;font-size:10.5px;line-height:1.1;font-weight:700}
+
+.nursery-fuse{position:absolute;z-index:12;transform:translate(-50%,-100%);min-height:40px;padding:0 15px;border:2px solid #fff3c8;border-radius:20px;background:linear-gradient(#d78ae6,#a35fc9);color:#fff;font:800 14px system-ui;white-space:nowrap;box-shadow:0 3px 8px #3a2a4a66;pointer-events:auto;animation:fuse-bob 1.6s ease-in-out infinite}.nursery-fuse[hidden]{display:none}@keyframes fuse-bob{50%{margin-top:-5px}}
+
+html body .nursery-fuse{z-index:15}
+
+/* Namensschild klein und ruhig (Jakob 31.10.) */
+html body #blob-nametag{flex-direction:row;gap:5px;padding:1px 8px;border:0;border-radius:9px;background:#2b241a80;box-shadow:none;color:#fff;margin-top:-3px}html body #blob-nametag strong{font:600 11.5px/1.35 system-ui;text-shadow:0 1px 2px #0006}html body #blob-nametag i{font:800 11px/1.2 system-ui;font-style:normal;letter-spacing:-1px;color:var(--tag,#afe084)}
+/* Streichelknopf an derselben Stelle wie die übrigen Aktionsknöpfe */
+.placing #vacuum-choose,.placing #sprint,.placing #pet-blob,.placing #joystick,.placing #nursery-touch{visibility:hidden!important}
+#pet-blob{position:absolute;z-index:10;left:calc(50% - 32px);bottom:calc(224px + env(safe-area-inset-bottom));width:64px;height:64px;border:2px solid #dfc594;border-radius:23px;background:linear-gradient(145deg,#fffce8,#dce8c3);color:#52745d;box-shadow:0 5px 0 #5c725858,0 9px 25px #304d3620;touch-action:manipulation;padding:12px}
+#pet-blob svg{width:100%;height:100%}
+#pet-blob[hidden]{display:none!important}#pet-blob svg{width:100%;height:100%}
+
+html body .blobm-tabs button{padding-left:2px;padding-right:2px;min-width:0;font-size:14px}.blob-hero>div>strong{display:block;font-size:18px;color:#5b4930}
+
+html body .blobm-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+
+html body #blob-nametag{flex-direction:column;align-items:center;gap:0;padding:2px 8px}html body #blob-nametag>span{display:flex;align-items:center;gap:5px}html body #blob-nametag i{display:flex;align-items:center;gap:2px;line-height:1}html body #blob-nametag i b{display:block;width:5px;height:5px;border-radius:50%;background:var(--tag,#afe084)}html body #blob-nametag em{font:500 10px/1.2 system-ui;font-style:normal;color:#fff;opacity:.85}
+
+/* Aktionsknöpfe seitlich über dem Saugerknopf (Jakob 31.10.) */
+html body #world-interact,html body #pet-blob,html body #home-computer{left:auto!important;top:auto!important;transform:none;right:calc(max(20px,env(safe-area-inset-right)) + 24px)!important;bottom:calc(178px + env(safe-area-inset-bottom))!important}
+html body #home-actions{top:auto!important;left:auto!important;transform:none;right:calc(max(20px,env(safe-area-inset-right)) + 24px)!important;bottom:calc(178px + env(safe-area-inset-bottom))!important}
+html body #fish-bait{bottom:calc(252px + env(safe-area-inset-bottom))!important;right:calc(max(20px,env(safe-area-inset-right)) + 28px)!important}
+#blob-info{position:absolute;z-index:10;right:calc(max(20px,env(safe-area-inset-right)) + 96px);bottom:calc(178px + env(safe-area-inset-bottom));width:64px;height:64px;padding:8px;border:2px solid #dfc594;border-radius:23px;background:linear-gradient(145deg,#fffce8,#dce8c3);box-shadow:0 5px 0 #5c725858,0 9px 25px #304d3620;touch-action:manipulation}#blob-info[hidden]{display:none!important}#blob-info svg{width:100%;height:100%}.placing #blob-info,.craft-modal #blob-info,.craft-modal #pet-blob{visibility:hidden!important}
+
+/* Fangfortschritt direkt über dem wilden Blob (Jakob 31.10.) */
+#blob-catch{position:absolute;z-index:14;transform:translate(-50%,-34px);width:84px;height:13px;padding:2px;box-sizing:border-box;border:2px solid #fff8ea;border-radius:8px;background:#2b241acc;box-shadow:0 2px 6px #0006;pointer-events:none}#blob-catch[hidden]{display:none}#blob-catch i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#f2b23c,#8fd45a);transition:width .08s linear}#blob-catch.near{animation:catch-near .25s ease-in-out infinite alternate}@keyframes catch-near{to{transform:translate(-50%,-34px) scale(1.12)}}
+
+.station-up{margin-top:14px;padding:10px 12px;border-radius:16px;background:#fbf3df;border:2px dashed #cdb282;color:#5b4930}.station-up h4{margin:0 0 3px;font-size:15px}.station-up h4 small{font-weight:600;color:#8a6f4a}html body .blobm .station-up p{margin:0 0 7px;font-size:12.5px;color:#5b4930!important;opacity:1!important}.station-costs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:8px}.station-costs span{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:11px;background:#fff8ea;text-align:center}.station-costs span.ok{background:#dcebc0}.station-costs i{display:block;width:32px;height:32px;font:800 24px/32px system-ui;font-style:normal;color:#c4932f}.station-costs svg,.station-costs img{width:100%;height:100%}.station-costs small{font-size:10px;line-height:1.05}.station-costs b{font:700 10.5px system-ui;color:#8a6f4a}.station-buy{display:flex;gap:8px;align-items:center}.station-buy .blobm-main{flex:1;margin:0}
+
+.blob-hearts{margin:4px 2px;color:#ef6f8e;font-size:18px;letter-spacing:2px;text-align:center}.blob-hearts i{font-style:normal;color:#e6d9c0}.blob-hearts small{display:block;letter-spacing:0;font-size:11.5px;color:#7d6543}#blob-nametag u{text-decoration:none;color:#ff9fb5;font:700 10.5px system-ui}.morning-gift{margin:2px 0;color:#c2506d;font-size:13px;font-weight:600}.comfort-card{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin:0 0 10px;padding:8px 12px;border-radius:14px;background:#fff3d6;border:2px solid #e2c98e;color:#5b4930;font-size:12.5px}.comfort-card strong{color:#c2506d;font-size:14px}.comfort-card b{margin-left:auto;color:#4f7a3a}.fish-reward{margin:0 0 6px;font-size:12px;color:#8a6f4a}.fish-reward.got{color:#4f7a3a;font-weight:700}
+
+/* Saugtank und Rucksack klar getrennt (Jakob 31.10.) */
+.bag-card{margin-bottom:10px;padding:10px;border-radius:16px;border:2px solid;color:#4a3a22}.bag-card.tank{background:#e6f1dc;border-color:#8cb86c}.bag-card.hand{background:#f8ecd2;border-color:#c79e62}.bag-card header{display:flex;justify-content:space-between;align-items:baseline}.bag-card strong{font-size:16px}.bag-card em{font:700 13px system-ui;font-style:normal}.bag-meter{height:8px;margin:5px 0;border-radius:5px;background:#0000001a;overflow:hidden}.bag-meter i{display:block;height:100%;border-radius:5px}.bag-card.tank .bag-meter i{background:#6f9a4c}.bag-card.hand .bag-meter i{background:#b98a4a}html body .bag-hint{margin:0 0 7px;font-size:11.5px;color:#6b5a3e}.bag-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.bag-tiles span{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:11px;background:#fffdf5;text-align:center}.bag-tiles i{display:block;width:34px;height:34px}.bag-tiles svg,.bag-tiles img{width:100%;height:100%}.bag-tiles small{font-size:10px;line-height:1.05}.bag-tiles b{font:700 11.5px system-ui}
+
+.leaf-counter{position:relative}.leaf-counter::after{content:'Saugtank';position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);padding:0 6px;border-radius:7px;background:#2b241a80;color:#fff;font:600 9.5px/13px system-ui;pointer-events:none}
+
+html body .leaf-counter{overflow:visible!important}html body .leaf-counter::after{display:block!important;z-index:3}
+
+/* Einmalige Erklärungen */
+#first-tip{position:absolute;z-index:70;left:50%;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 32px));box-sizing:border-box;padding:16px 20px 18px;border:4px solid #bd9d64;border-radius:26px;background:linear-gradient(120deg,#fff7dd,#efddaf);box-shadow:inset 0 0 0 2px #fff7d9,0 10px 30px #293e3e88;color:#5f5038;text-align:center;animation:tip-in .22s ease-out}
+#first-tip[hidden]{display:none}
+#first-tip h2{margin:4px 0 6px;font-size:20px}
+#first-tip p{margin:0 0 12px;font-size:15px;line-height:1.38}
+#first-tip .tip-art{height:74px;display:flex;justify-content:center}
+#first-tip .tip-art svg,#first-tip .tip-art img{height:74px;width:auto;max-width:96px}
+#first-tip .tip-dots{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+#first-tip .tip-dots i{width:8px;height:8px;border-radius:50%;background:#cfb988}
+#first-tip .tip-dots i.on{background:#6d9a4e}
+#first-tip .craft-primary{width:100%}
+@keyframes tip-in{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}}
+/* Fangzeit */
+#blob-catch{height:17px}
+#blob-catch i{height:8px}
+#blob-catch b{display:block;height:3px;width:100%;margin-top:1px;border-radius:2px;background:#e9f2ff;transition:width .1s linear}
+#blob-catch.late b{background:#ff5a3c}
+#blob-catch.late{border-color:#ffb9a5}
+/* Aquarium und Teich ansehen */
+#aquarium-panel .tank-scene{position:relative;display:block;width:100%;height:170px;padding:0;overflow:hidden;border:3px solid #8f7454;border-radius:16px;background:linear-gradient(#a8e3ee,#58b3cf 62%,#3f8fb4);cursor:zoom-in}
+#aquarium-panel .tank-scene.is-pond{background:radial-gradient(ellipse at 40% 30%,#7fcbc4,#3f96a0 60%,#2d6f7c);border-color:#8c9186}
+#aquarium-panel .tank-sand{position:absolute;left:0;right:0;bottom:0;height:14%;background:linear-gradient(#e8d5a4,#c9ae74)}
+#aquarium-panel .tank-weed{position:absolute;left:var(--x);bottom:6%;width:12px;height:46%;border-radius:8px 8px 0 0;background:linear-gradient(#7fb05e,#4f8548);transform-origin:bottom;animation:tank-sway 4s ease-in-out infinite alternate}
+#aquarium-panel .tank-pad{position:absolute;left:var(--x);top:var(--y);width:44px;height:28px;border-radius:50%;background:#6fa35a;box-shadow:inset -4px -3px 0 #4f8548;opacity:.95;z-index:2}
+#aquarium-panel .tank-swimmer{position:absolute;top:var(--y);width:62px;animation:tank-swim var(--d) linear infinite;animation-delay:var(--w)}
+#aquarium-panel .tank-bob{display:block;animation:tank-bob var(--b) ease-in-out infinite alternate}
+#aquarium-panel .tank-swimmer svg{display:block;width:100%;height:auto;animation:tank-flip var(--d) linear infinite;animation-delay:var(--w)}
+#aquarium-panel .tank-swimmer small{display:none}
+#aquarium-panel .tank-bubble{position:absolute;left:var(--x);bottom:0;width:8px;height:8px;border-radius:50%;border:1.5px solid #ffffffb0;animation:tank-rise var(--d) linear infinite;animation-delay:var(--w)}
+#aquarium-panel.viewing{inset:0;left:0;bottom:0;transform:none;width:100%;max-height:none;height:100%;padding:0;border:0;border-radius:0;overflow:hidden}
+#aquarium-panel.viewing>*:not(.tank-scene){display:none}
+#aquarium-panel.viewing .tank-scene{height:100%;border:0;border-radius:0;cursor:zoom-out}
+#aquarium-panel.viewing .tank-swimmer{width:120px}
+#aquarium-panel.viewing .tank-swimmer small{display:block;text-align:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 3px #0009}
+#aquarium-panel.viewing .tank-pad{width:120px;height:76px;box-shadow:inset -8px -6px 0 #4f8548}
+#aquarium-panel.viewing .tank-weed{width:26px}
+#aquarium-panel.viewing .tank-scene::after{content:'×';position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:44px;height:44px;line-height:42px;text-align:center;font-size:28px;color:#fff;border-radius:50%;background:#0003}
+@keyframes tank-swim{0%{left:-22%}50%{left:100%}100%{left:-22%}}
+@keyframes tank-flip{0%,49.9%{transform:scaleX(1)}50%,100%{transform:scaleX(-1)}}
+@keyframes tank-bob{from{transform:translateY(-4px) rotate(-2deg)}to{transform:translateY(5px) rotate(2deg)}}
+@keyframes tank-sway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes tank-rise{from{transform:translateY(0);opacity:0}15%{opacity:1}to{transform:translateY(-190px);opacity:0}}
+/* Testlabor geordnet */
+#test-panel .lab-section{margin:8px 0;border:2px solid #d1b37b;border-radius:16px;background:#fff8e4}
+#test-panel .lab-section>summary{padding:11px 14px;font-weight:800;font-size:15px;cursor:pointer;list-style-position:inside}
+#test-panel .lab-section>div{padding:2px 12px 12px}
+#test-panel .lab-grid{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#test-panel .lab-grid>button{min-height:44px;flex:1 1 42%;padding:8px;border-radius:12px;border:1px solid #b49b64;background:#fffdf3;color:#574b32;font-weight:700}
+#test-panel .lab-grid>button[aria-pressed="true"]{background:#cfe6ae;border-color:#6d9a4e}
+#test-panel .stage-row{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;padding:8px 0;border-bottom:1px solid #e6d5ac}
+#test-panel .stage-row b{font-size:13.5px}
+#test-panel .stage-row.done b{color:#5f8a3f}
+#test-panel .stage-row.done b::before{content:"✓ "}
+#test-panel .stage-row small{grid-column:1/-1;font-size:11px;color:#8a6a4a}
+#test-panel .stage-row span{display:flex;gap:4px}
+#test-panel .stage-row button{min-height:38px;padding:4px 8px;border-radius:10px;border:1px solid #b49b64;background:#fffdf3;color:#574b32;font-size:12px;font-weight:700}
+#test-panel .mat-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}
+#test-panel .mat-picker select,#test-panel .mat-picker input{min-height:44px;width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #b49b64;background:#fffdf3;color:#574b32;padding:0 8px}
+#test-panel .mat-picker select:first-child{grid-column:1/-1}
+
+/* 1.11. */
+#craft-panel .upgrade-building{margin-top:8px}
+#craft-panel .collection h3{margin:12px 0 4px}
+.recipe-effect{display:block;margin-top:3px;font-size:11px;font-weight:800;color:#4f7a3a}
+#craft-panel .workshop-tree-scroll{overflow:auto;max-height:34vh}
+#craft-panel .skill-inspector{position:static}
+#craft-panel .placed-list button[data-upgrade]{min-width:40px}
+
+#tank-card{position:absolute;z-index:22;left:14px;bottom:calc(150px + env(safe-area-inset-bottom));width:150px;padding:8px 10px;border:3px solid #bd9d64;border-radius:18px;background:linear-gradient(120deg,#fff7dd,#efddaf);color:#5f5038;text-align:center;box-shadow:0 6px 16px #293e3e55}
+#tank-card[hidden]{display:none}
+#tank-card i{display:block;height:84px}
+#tank-card svg{width:100%;height:100%}
+#tank-card strong{display:block;font-size:13px}
+#tank-card small{font-size:11px;opacity:.75}
+#catch-card{position:absolute;z-index:60;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;align-items:center;gap:10px;width:min(330px,calc(100% - 28px));padding:10px 12px;border:4px solid #bd9d64;border-radius:22px;background:linear-gradient(120deg,#fff7dd,#efddaf);color:#5f5038;text-align:left;box-shadow:inset 0 0 0 2px #fff7d9,0 10px 26px #293e3e77}
+#catch-card[hidden]{display:none}
+#catch-card.pop{animation:catch-pop .34s cubic-bezier(.2,1.5,.5,1)}
+#catch-card i{flex:0 0 112px;height:88px}
+#catch-card svg{width:100%;height:100%}
+#catch-card span{display:flex;flex-direction:column;gap:1px;min-width:0}
+#catch-card strong{font-size:16px}
+#catch-card small{font-size:12.5px}
+#catch-card b{font-size:12.5px;color:#7a5a2c}
+#catch-card em{font-style:normal;font-weight:800;font-size:12px;color:#4f8a3a}
+@keyframes catch-pop{from{transform:translateX(-50%) scale(.7);opacity:0}}
+#butterfly-catch{position:absolute;z-index:14;transform:translate(-50%,-30px);width:64px;height:11px;padding:2px;box-sizing:border-box;border:2px solid #fff8ea;border-radius:7px;background:#2b241acc;pointer-events:none}
+#butterfly-catch[hidden]{display:none}
+#butterfly-catch i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#e8a6d8,#ffe08a)}
+
+/* Jakob 1.11.: Werkstatt- und Pressenbäume sehen aus wie die Saugerbäume. */
+html body #craft-panel.craft-panel:has(.press-tree){--tool-color:#91ad69;color:#e0eddb;border-color:transparent;background:radial-gradient(at 50% 48%,#25443e 0,#1a302f 50%,#142728 100%);box-shadow:0 0 0 1px #0d2020,0 18px 60px #10262170}
+html body #craft-panel.craft-panel:has(.press-tree)>header:first-child{background:#172c2cea!important;border:0!important;border-bottom:1px solid #afccb317!important;border-radius:0!important;box-shadow:none!important}
+html body #craft-panel.craft-panel:has(.press-tree)>header:first-child::before{display:none}
+html body #craft-panel.craft-panel:has(.press-tree)>header:first-child>h2{color:#eef1df!important;text-shadow:none!important;font:500 22px/1.2 Georgia,serif}
+html body #craft-panel.craft-panel:has(.press-tree)>header>button{background:#304a40;border:1px solid #8ca88b55;color:#dae4c5;box-shadow:none}
+html body #craft-panel:has(.press-tree) :is(.machine-upgrade,[data-tree-back],[data-workshop-back]){background:#304a40;border:1px solid #8ca88b55;color:#dae4c5;box-shadow:none}
+html body #craft-panel:has(.press-tree) .skill-inspector .area-primary{min-height:54px;width:100%;border:1.6px solid #d5e4b0;border-radius:19px;background:#bbcd91;color:#233c30;box-shadow:none;font-weight:700;text-shadow:none}
+html body #craft-panel:has(.press-tree) .skill-inspector .area-primary:disabled{border-color:#829077;background:linear-gradient(#6b7b6b,#4b6458);color:#b7c2a7;opacity:1;font-weight:500}
+
+/* Jakob 1.11.: iPhone-Safari. Langes Drücken markiert nichts und öffnet kein Bildmenü, kein Zoom, kein Gummiband. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation;overscroll-behavior:none}
+body{position:fixed;inset:0;width:100%;height:100%;overscroll-behavior:none}
+*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+svg,img,canvas{-webkit-user-drag:none}
+input:not([type=range]),textarea,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+
+/* Jakob 1.11.: Knopfgröße und Position (preferences.mjs). Der Joystick erscheint nur unter dem Finger. */
+#joystick:not(.active){display:none!important}
+body{--hud-scale:1;--hud-lift:0px}
+html body .vacuum-dock{transform:scale(var(--hud-scale))!important;transform-origin:100% 100%;bottom:calc(24px + var(--hud-lift) + env(safe-area-inset-bottom))!important}
+html body #sprint{transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 124px * var(--hud-scale))!important;bottom:calc(40px + var(--hud-lift) + env(safe-area-inset-bottom))!important}
+html body.hud-left .vacuum-dock{right:auto!important;left:max(20px,env(safe-area-inset-left))!important;transform-origin:0 100%}
+html body.hud-left #sprint{right:auto!important;left:calc(max(20px,env(safe-area-inset-left)) + 124px * var(--hud-scale))!important;transform-origin:0 100%}
+html body.hud-left #tank-card{left:auto;right:14px}
+html body.hud-left :is(#vacuum-tree,#wheel-lab){left:calc(.5 * var(--wheel-radius))}
+#hud-setup{top:max(70px,env(safe-area-inset-top));transform:translateX(-50%);max-height:none}
+.preferences-panel .hud-side-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;font-size:15px}
+.preferences-panel .hud-side-row .craft-tabs{display:flex;gap:6px}
+.preferences-panel .hud-side-row button{min-width:72px;min-height:44px;border:2px solid #c3ae7c;border-radius:14px;background:#fff8df;color:#5d5036;font-weight:700}
+.preferences-panel .hud-side-row button[aria-pressed=true]{background:linear-gradient(#a9cd7c,#7fa858);border-color:#5f8440;color:#fff}
+.preferences-panel .save-transfer{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.preferences-panel .save-transfer small{grid-column:1/-1;min-height:16px}
+#hud-setup small{display:block;margin:4px 0 12px}
+#hud-setup #hud-setup-done{width:100%;min-height:52px}
+html body #world-interact,html body #pet-blob,html body #home-computer,html body #home-actions{transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 24px * var(--hud-scale))!important;bottom:calc(178px * var(--hud-scale) + var(--hud-lift) + env(safe-area-inset-bottom))!important}
+html body #blob-info{transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 96px * var(--hud-scale))!important;bottom:calc(178px * var(--hud-scale) + var(--hud-lift) + env(safe-area-inset-bottom))!important}
+html body #fish-bait{transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 28px * var(--hud-scale))!important;bottom:calc(252px * var(--hud-scale) + var(--hud-lift) + env(safe-area-inset-bottom))!important}
+html body.hud-left #world-interact,html body.hud-left #pet-blob,html body.hud-left #home-computer,html body.hud-left #home-actions{right:auto!important;left:calc(max(20px,env(safe-area-inset-left)) + 24px * var(--hud-scale))!important;transform-origin:0 100%}
+html body.hud-left #blob-info{right:auto!important;left:calc(max(20px,env(safe-area-inset-left)) + 96px * var(--hud-scale))!important;transform-origin:0 100%}
+html body.hud-left #fish-bait{right:auto!important;left:calc(max(20px,env(safe-area-inset-left)) + 28px * var(--hud-scale))!important;transform-origin:0 100%}
+/* Portalblob: große Knöpfe zum Setzen der Punkte. */
+.portal-spots{display:grid;gap:8px;margin:8px 0}
+.portal-spots button{min-height:48px;border:2px solid #b8955e;border-radius:15px;background:linear-gradient(#fff9e8,#efdcae);color:#5b4930;font-weight:800;font-size:15px;box-shadow:0 3px 0 #a98a5a55;touch-action:manipulation}
+/* Jakob 2.11.: Ladestation im selben Stil wie die übrigen Menüs. */
+.charge-panel{display:grid;justify-items:center;gap:6px;padding:4px 2px 2px}
+.charge-gauge{--v:0;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#7fa858 calc(var(--v)*1%),#e6d6ae 0);box-shadow:inset 0 0 0 2px #b8955e55,0 3px 0 #a98a5a44}
+.charge-gauge.on{background:conic-gradient(#f0b23c calc(var(--v)*1%),#e6d6ae 0)}
+.charge-gauge i{width:106px;height:106px;border-radius:50%;background:linear-gradient(#fffaf0,#f4e6c4);display:grid;place-items:center;box-shadow:0 0 0 2px #b8955e55}
+.charge-gauge svg{width:80px;height:80px}
+.charge-panel>strong{font-size:26px;font-weight:900;color:#5b4930;line-height:1.1}
+.charge-panel>small{font-size:13px;color:#8a7650;margin-bottom:6px}
+.charge-panel .charge-cells{display:flex;gap:6px;width:100%}
+html body .charge-panel .battery-slot{flex:1;margin:0;min-height:48px;display:grid;gap:4px;align-content:center;font-size:12px;font-weight:700;color:#5b4930;background:linear-gradient(#fff9e8,#efdcae);border:2px solid #c9ac75;border-radius:14px;padding:6px 8px}
+html body .charge-panel .battery-slot[aria-pressed=true]{background:linear-gradient(#e6f1cf,#c9dea5);border-color:#7fa858}
+.charge-panel .battery-slot em{display:block;height:6px;border-radius:4px;background:#d9c79c;overflow:hidden}
+.charge-panel .battery-slot u{display:block;height:100%;background:#7fa858}
+.charge-panel .craft-primary,.charge-panel .area-secondary{width:100%;min-height:50px}
+
+/* Sammelziel: Zutat antippen zeigt den Fundort */
+#goal-hud [data-where]{cursor:pointer;touch-action:manipulation}
+#goal-hud [data-where][aria-pressed=true]{outline:2px solid #8fae5d;outline-offset:-2px}
+#goal-hud .goal-where{margin:0 7px 7px;padding:6px 8px;border-radius:10px;background:#fffaf0cc;font-size:11px;line-height:1.3}
+#goal-hud .goal-where strong{display:block;font-size:11px;margin-bottom:2px}
+#goal-hud .goal-where p{margin:2px 0 0}
+/* Tank voll: kurzes Wackeln, danach ruhiges Leuchten */
+.leaf-counter.tank-full{animation:tankShake 2.4s ease-in-out infinite,tankGlow 1.2s ease-in-out infinite alternate}
+@keyframes tankShake{0%,12%,100%{transform:rotate(0)}2%{transform:rotate(-5deg)}4%{transform:rotate(5deg)}6%{transform:rotate(-4deg)}8%{transform:rotate(3deg)}10%{transform:rotate(-1.5deg)}}
+@keyframes tankGlow{from{filter:drop-shadow(0 0 3px #ffd76a)}to{filter:drop-shadow(0 0 11px #ffc23d) brightness(1.08)}}
+@media(prefers-reduced-motion:reduce){.leaf-counter.tank-full{animation:tankGlow 1.2s ease-in-out infinite alternate}}
+
+/* Einheitliche Kacheln: Lager, Stand, Tank, Verkaufskorb */
+.floating-stock,.market-stock,.shipping-items,.bag-tiles{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.floating-stock button.stock-token,.market-stock button,.shipping-items button,.bag-tiles span{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:2px!important;min-width:0!important;min-height:92px!important;aspect-ratio:auto!important;padding:6px 3px!important;border:2px solid #d8c49c!important;border-radius:14px!important;background:#fffaf0!important;color:#5a4a33!important;text-align:center!important}
+.floating-stock button.stock-token[aria-pressed=true],.market-stock button[aria-pressed=true]{border-color:#7fa858!important;background:#eef6dc!important}
+.floating-stock button.stock-token>i,.market-stock button>i,.shipping-items button>i,.bag-tiles span>i{display:block!important;width:42px!important;height:42px!important;flex:none!important;order:1}
+.floating-stock button.stock-token small,.market-stock button small,.shipping-items button small,.bag-tiles span small{order:0;display:flex;align-items:center;justify-content:center;min-height:25px;font-size:10.5px!important;line-height:1.15!important;overflow-wrap:anywhere}
+.floating-stock button.stock-token strong,.market-stock button strong,.shipping-items button strong,.bag-tiles span strong,.bag-tiles span b{order:2;font-size:13px!important}
+/* Titelanimation */
+#title-intro{position:absolute;inset:0;z-index:999;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,#fff3c4 0,#c6e08b 38%,#5f9a4c 78%,#3f7a45 100%);transition:opacity .6s,transform .6s;touch-action:none}
+#title-intro.leaving{opacity:0;transform:scale(1.12)}
+#title-intro .ti-sun{position:absolute;left:50%;top:42%;width:150vmax;height:150vmax;margin:-75vmax;background:repeating-conic-gradient(#fff6c844 0 9deg,#fff6c800 9deg 22deg);animation:tiSpin 16s linear infinite}
+#title-intro h1{position:relative;margin:0 0 9vh;display:grid;justify-items:center;font-family:"Trebuchet MS",system-ui,sans-serif;font-weight:900;line-height:.92}
+#title-intro h1 span{display:inline-block;animation:tiDrop .85s var(--d) both cubic-bezier(.3,1.5,.5,1)}
+#title-intro h1 b{font-size:min(30vw,132px);letter-spacing:-.02em;color:#a9e87a;-webkit-text-stroke:3px #2f6b34;text-shadow:0 9px 0 #2f6b34,0 16px 20px #0005}
+#title-intro h1 i{margin-top:12px;font-style:normal;font-size:min(10.5vw,48px);letter-spacing:.03em;color:#fff6dc;text-shadow:0 3px 0 #7d5a2c,0 6px 10px #0005}
+#title-intro .ti-blob{position:absolute;left:50%;top:66%;width:92px;height:76px;margin-left:-46px;border-radius:52% 48% 44% 44%/62% 62% 40% 40%;background:radial-gradient(circle at 34% 26%,#f4ffd8,#a9e87a 45%,#5fae4c);box-shadow:inset 0 -8px 12px #3f8a3f66,0 10px 0 -3px #0003;animation:tiBlob 1.15s 1.5s both cubic-bezier(.3,1.5,.5,1),tiWobble 1.1s 2.65s ease-in-out infinite}
+#title-intro .ti-blob u{position:absolute;top:30px;width:9px;height:12px;border-radius:50%;background:#26351f}#title-intro .ti-blob u:first-child{left:27px}#title-intro .ti-blob u:last-child{right:27px}
+#title-intro .ti-leaves em{position:absolute;left:50%;top:66%;width:20px;height:11px;margin:-5px -10px;border-radius:100% 0 100% 0;background:linear-gradient(135deg,#ffd76a,#e0893a);transform:rotate(var(--a)) translateX(var(--r)) scale(var(--s));opacity:0;animation:tiLeaf 1.2s var(--d) ease-in both}
+@keyframes tiDrop{0%{transform:translateY(-70vh) scale(.8,1.25);opacity:0}55%{transform:translateY(0) scale(1.25,.72);opacity:1}75%{transform:translateY(-14px) scale(.92,1.1)}100%{transform:none;opacity:1}}
+@keyframes tiBlob{0%{transform:translateY(60vh) scale(.6)}60%{transform:translateY(0) scale(1.22,.76)}100%{transform:none}}
+@keyframes tiWobble{0%,100%{transform:scale(1,1)}50%{transform:scale(1.08,.92)}}
+@keyframes tiLeaf{0%{opacity:0}25%{opacity:1}100%{opacity:1;transform:rotate(calc(var(--a) + 280deg)) translateX(0) scale(.2)}}
+@keyframes tiSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#title-intro *{animation-duration:.01s!important;animation-iteration-count:1!important;animation-delay:0s!important}}
+
+#title-intro .ti-leaves{position:absolute;inset:0}
+#title-intro h1{margin-bottom:12vh}
+#goal-hud:has(.goal-where){max-height:min(420px,70dvh)}
+
+/* Produktionsbaum */
+.factory-cost[data-tree]{cursor:pointer;touch-action:manipulation}
+#goal-hud .goal-tree{width:100%;min-height:32px;margin-top:5px;border:2px solid #5f8440;border-radius:10px;background:#7fa858;color:#fff;font-weight:700;font-size:11px}
+#tree-sheet{position:absolute;inset:max(10px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom));z-index:500;display:flex;flex-direction:column;gap:8px;overflow-y:auto;overscroll-behavior:contain;padding:10px;border:4px solid #a57b4c;border-radius:20px;background:#fff6dc;box-shadow:inset 0 0 0 2px #fff,0 8px 24px #0006;color:#4a3a22}
+#tree-sheet[hidden]{display:none}
+#tree-sheet button{padding:0;font:inherit;color:inherit;touch-action:manipulation}
+#tree-sheet svg{display:block;width:100%;height:100%}#tree-sheet i{display:block}
+#tree-sheet header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none}#tree-sheet header strong{font-size:17px}
+#tree-close{flex:none;width:40px;height:40px;border:2px solid #c6ad74;border-radius:50%;background:#fffdf5;font-size:22px!important;line-height:1}
+.tree-info{display:flex;flex:none;gap:8px;align-items:center;min-height:50px;padding:5px 8px;border-radius:12px;background:#fff}.tree-info>i{flex:none;width:38px;height:38px}.tree-info strong{display:block;font-size:14px}.tree-info p{margin:0;font-size:11px;line-height:1.25;color:#6f5c3f}
+#tree-sheet h3{flex:none;margin:0;font-size:11px;color:#7a6647}
+.tree-sum{display:grid;flex:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.tree-sum button{display:grid;justify-items:center;padding:5px 2px!important;border:2px solid #a9c47f;border-radius:12px;background:#eef6dc}.tree-sum button[aria-pressed=true]{outline:3px solid #e2a93c}.tree-sum small{display:flex;align-items:center;min-height:22px;font-size:10px;line-height:1.08;text-align:center}.tree-sum i{width:36px;height:36px}.tree-sum b{font-size:12px;color:#b4562f}.tree-sum .ok b{color:#4b8a33}
+.tree-chip{position:relative;display:grid;flex:none;place-items:center;width:42px;height:42px;border:2px solid #dcc899;border-radius:11px;background:#fffdf5}.tree-chip i{width:31px;height:31px}.tree-chip b{position:absolute;right:-3px;bottom:-4px;min-width:17px;padding:0 3px;border-radius:8px;background:#b4562f;color:#fff;font-size:9.5px;line-height:15px;text-align:center}.tree-chip.ok b{background:#5c9440}.tree-chip.raw{border-color:#a9c47f;background:#eef6dc}.tree-chip[aria-pressed=true]{outline:3px solid #e2a93c;outline-offset:1px}
+.tree-scroll{flex:none;overflow-x:auto;padding:4px 0 8px}.tree-org,.tree-org ul{display:flex;justify-content:center;margin:0;padding:0;list-style:none}.tree-org{width:max-content;min-width:100%}.tree-org ul{position:relative;padding-top:11px}.tree-org ul::before{content:"";position:absolute;top:0;left:50%;height:11px;border-left:2px solid #c9a86f}.tree-org li{position:relative;display:flex;flex-direction:column;align-items:center;padding:11px 2px 0}.tree-org>li{padding-top:0}.tree-org li::before,.tree-org li::after{content:"";position:absolute;top:0;right:50%;width:50%;height:11px;border-top:2px solid #c9a86f}.tree-org li::after{right:auto;left:50%;border-left:2px solid #c9a86f}.tree-org li:only-child::before,.tree-org li:only-child::after,.tree-org li:first-child::before,.tree-org li:last-child::after{border-top:0}.tree-org li:only-child::before{display:none}.tree-org li:last-child::before{border-right:2px solid #c9a86f}.tree-org>li::before,.tree-org>li::after{display:none}
+
+/* Baum in der Karte, Kosten einheitlich */
+#tree-sheet.in-card{position:absolute;inset:auto;z-index:60;box-sizing:border-box;margin:0;border:0;border-radius:inherit;box-shadow:none}
+#tree-sheet.dark{background:radial-gradient(ellipse at 50% 30%,#2b4a42,#1a302f);color:#f1eede}
+#tree-sheet.dark h3{color:#c8d0bb}#tree-sheet.dark .tree-info{background:#ffffff14}#tree-sheet.dark .tree-info p{color:#c8d0bb}#tree-sheet.dark #tree-close{background:#ffffff14;border-color:#8d9a78}
+#tree-sheet.dark .tree-sum button,#tree-sheet.dark .tree-chip{color:#4a3a22}
+.skill-inspector .factory-costs{flex-wrap:wrap}
+
+/* Münzen bleiben am Hauscomputer sichtbar */
+#game:has(#craft-panel[data-page=catalogue]:not([hidden])) #coin-hud{visibility:visible;z-index:60}
+
+/* Verkauf: fliegende Waren */
+#sale-flight{position:absolute;inset:0;z-index:30;pointer-events:none}
+#sale-flight i{position:absolute;left:0;top:0;width:40px;height:40px;opacity:0;filter:drop-shadow(0 3px 3px #0004)}
+#sale-flight svg{width:100%;height:100%}
+
+/* Lager nach Herkunft */
+.floating-stock .stock-group{grid-column:1/-1;margin:6px 2px 0;padding:3px 10px;border-radius:9px;background:#eadbb4;color:#6a5434;font-size:12px;font-weight:800}
+.floating-stock .stock-group[data-origin=coast]{background:#d8ecef}.floating-stock .stock-group[data-origin=mountain]{background:#e4eef7}.floating-stock .stock-group[data-origin=volcano]{background:#f3d9cc}.floating-stock .stock-group[data-origin=product]{background:#e6e0f0}.floating-stock .stock-group[data-origin=forest]{background:#dfeccd}
+/* Jakob 3.11.: Reiter am Verkaufsstand (Verkaufen/Ausbau, Rucksack/Lager) berührten sich */
+.craft-panel[data-page=market] .craft-tabs{gap:8px!important}
+.craft-panel[data-page=market] .craft-tabs+.craft-tabs{margin-top:9px!important}
+
+/* Jakob 3.11.: Füttern über dem Streicheln-Knopf, Essen im Rucksack */
+#feed-blob{position:absolute;z-index:10;width:64px;height:64px;padding:9px;border:2px solid #dfc594;border-radius:23px;background:linear-gradient(145deg,#fffce8,#f3dcc0);box-shadow:0 5px 0 #5c725858,0 9px 25px #304d3620;touch-action:manipulation;transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 24px * var(--hud-scale));bottom:calc(254px * var(--hud-scale) + var(--hud-lift) + env(safe-area-inset-bottom))}
+#feed-blob svg{width:100%;height:100%}#feed-blob[hidden]{display:none!important}
+body.hud-left #feed-blob{right:auto;left:calc(max(20px,env(safe-area-inset-left)) + 24px * var(--hud-scale));transform-origin:0 100%}
+.placing #feed-blob{visibility:hidden!important}
+.bag-card.food .food-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px}
+.bag-card.food .food-row button{display:grid;justify-items:center;gap:2px;padding:8px;border:2px solid #dfc594;border-radius:16px;background:#fffaf0;color:#4a3a22}
+.bag-card.food .food-row i{width:44px;height:44px;display:block}.bag-card.food .food-row i svg{width:100%;height:100%}
+.bag-card.food .food-row small{font-weight:700}.bag-card.food .food-row b{font-size:12px;color:#5f7d4b}
+
+.blob-friend-points{margin-left:8px;font-size:12px;color:#8a6a45;font-weight:700}
+
+/* Jakob 3.11.: Pinnwand */
+#mission-board-btn{position:absolute;z-index:10;width:64px;height:64px;padding:8px;border:2px solid #dfc594;border-radius:23px;background:linear-gradient(145deg,#fffce8,#dce8c3);box-shadow:0 5px 0 #5c725858,0 9px 25px #304d3620;touch-action:manipulation;transform:scale(var(--hud-scale));transform-origin:100% 100%;right:calc(max(20px,env(safe-area-inset-right)) + 24px * var(--hud-scale));bottom:calc(178px * var(--hud-scale) + var(--hud-lift) + env(safe-area-inset-bottom))}
+body.hud-left #mission-board-btn{right:auto;left:calc(max(20px,env(safe-area-inset-left)) + 24px * var(--hud-scale));transform-origin:0 100%}
+#mission-board-btn[hidden]{display:none!important}#mission-board-btn svg{width:100%;height:100%}
+#mission-board-btn b{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#e2553f;color:#fff;font-size:13px;line-height:22px;display:none}
+#mission-board-btn.ready b{display:block;animation:missionPulse 1.2s ease-in-out infinite}
+@keyframes missionPulse{50%{transform:scale(1.18)}}
+#mission-sheet{position:absolute;z-index:40;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,calc(100% - 32px));max-height:calc(100% - 120px);overflow:auto;padding:0 0 14px;border:5px solid #8a6543;border-radius:22px;background:#c79a62;box-shadow:0 14px 40px #0006}
+#mission-sheet[hidden]{display:none}
+#mission-sheet header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(#a57a4c,#8a6543);color:#fff6dc;font-size:20px}
+#mission-sheet header button{width:40px;height:40px;border-radius:14px;border:2px solid #dfc594;background:#fff6dc;color:#7a5634;font-size:22px}
+.mission-notes{display:grid;gap:12px;padding:14px}
+.mission-note{position:relative;padding:14px 12px 10px;border-radius:6px;background:#fff6dc;color:#4a3a22;box-shadow:0 3px 6px #0003;transform:rotate(-.6deg)}
+.mission-note.n1,.mission-note.n3{transform:rotate(.7deg);background:#f6efd2}.mission-note.n2{background:#eef4dc}.mission-note.n4{background:#f8e4dc}
+.mission-note .pin{position:absolute;top:-6px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#d0473a;box-shadow:0 2px 2px #0004}
+.mission-note strong{display:block;font-size:16px;margin-bottom:6px}
+.mission-bar{height:8px;border-radius:4px;background:#e2d3b0;overflow:hidden}.mission-bar i{display:block;height:100%;background:#7aa45c}
+.mission-note small{display:block;margin-top:4px;color:#8a6a45;font-weight:700}
+.mission-note em{display:block;margin-top:4px;font-style:normal;color:#8a6a45}
+.mission-note button{margin-top:8px;width:100%;min-height:44px;border:0;border-radius:14px;background:linear-gradient(#8fc06a,#6b9a4a);color:#fff;font-weight:800;font-size:16px;box-shadow:0 4px 0 #4f7a3f}
+.mission-note.done{outline:3px solid #8fc06a}
+.mission-empty{color:#fff6dc;text-align:center}
+
+/* Jakob 3.11.: Handknopf ohne Sauger */
+#vacuum-choose.hand-mode{--tool-color:#e8b46a}
+#vacuum-choose.hand-mode #vacuum-current-icon svg{width:72%;height:72%}
+
+/* Jakob 4.11.: Infoseite bei langem Drücken auf ein Produkt */
+#product-info{position:absolute;z-index:70;left:50%;top:50%;transform:translate(-50%,-50%);width:min(380px,calc(100% - 32px));max-height:calc(100% - 100px);overflow:auto;border:5px solid #8a6543;border-radius:22px;background:#fffaf0;color:#4a3a22;box-shadow:0 14px 40px #0006;padding-bottom:12px}
+#product-info[hidden]{display:none}
+#product-info header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(#a57a4c,#8a6543);color:#fff6dc;font-size:19px}
+#product-info header button{width:40px;height:40px;border-radius:14px;border:2px solid #dfc594;background:#fff6dc;color:#7a5634;font-size:22px}
+#product-info .info-hero{display:flex;gap:12px;align-items:center;padding:12px 14px}
+#product-info .info-hero i{width:84px;height:84px;flex:none;display:block}#product-info .info-hero i svg{width:100%;height:100%}
+#product-info .info-effect{margin:0;font-weight:700;color:#4f7a3f}
+#product-info h3{margin:10px 14px 4px;font-size:14px;color:#8a6a45}
+#product-info p{margin:0 14px;line-height:1.4}
+#product-info .info-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px}
+#product-info .info-chips span{display:grid;justify-items:center;width:78px;padding:6px 4px;border:2px solid #e6d3ad;border-radius:14px;background:#fff6dc;text-align:center}
+#product-info .info-chips i{width:40px;height:40px;display:block}#product-info .info-chips i svg{width:100%;height:100%}
+#product-info .info-chips b{font-size:15px}#product-info .info-chips small{font-size:11px;line-height:1.15}
+
+/* Jakob 4.11.: Pinnwand schöner: Korkbrett mit Holzrahmen, hängendes Titelschild */
+#mission-sheet{border:9px solid #6e4a2c;border-radius:20px;box-shadow:inset 0 0 0 3px #a57a4c,inset 0 0 30px #5b3b1f66,0 16px 40px #0007;background:radial-gradient(circle at 20% 15%,#d9b27a 0 2px,transparent 3px) 0 0/22px 22px,radial-gradient(circle at 70% 60%,#b98a52 0 2px,transparent 3px) 0 0/17px 17px,linear-gradient(135deg,#cfa468,#bb8d57)}
+#mission-sheet header{position:relative;display:block;text-align:center;padding:26px 14px 4px;background:none;color:#fff6dc}
+#mission-sheet .mission-sign{display:inline-flex;align-items:center;gap:10px;margin:-6px auto 4px;padding:8px 26px;border:3px solid #4d3320;border-radius:12px;background:linear-gradient(#8e6a43,#6e4a2c);box-shadow:0 4px 0 #3d2816,0 8px 14px #0005;font-size:24px;letter-spacing:1px;text-shadow:0 2px 0 #3d2816;position:relative}
+#mission-sheet .mission-sign::before,#mission-sheet .mission-sign::after{content:"";position:absolute;top:-22px;width:3px;height:22px;background:#4d3320}
+#mission-sheet .mission-sign::before{left:22px}#mission-sheet .mission-sign::after{right:22px}
+#mission-sheet .mission-sign i{font-style:normal;font-size:20px}
+#mission-sheet header small{display:block;color:#fff6dcd0;text-shadow:0 1px 2px #3d2816;margin-top:4px}
+#mission-sheet header #mission-close{position:absolute;right:8px;top:8px}
+.mission-note{box-shadow:0 4px 8px #3d281666}
+.mission-note strong{font-family:Georgia,serif}
+
+/* Jakob 4.11.: Testlabor versteckt, Entwicklerseite hinter PIN */
+#test-open,#wheel-lab{display:none!important}
+.dev-gate{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.dev-gate #settings-lab{width:34px;height:34px;padding:6px;border:2px solid #dfc594;border-radius:12px;background:#fffaf0;color:#8a6a45;opacity:.6}
+.dev-gate #settings-lab svg{width:100%;height:100%}
+.dev-gate input{width:84px;padding:6px 8px;border:2px solid #dfc594;border-radius:10px;font-size:16px;text-align:center}
+#dev-panel{z-index:90;padding:14px;overflow:auto;background:#fffaf0;color:#4a3a22}
+#dev-panel .dev-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#dev-panel .dev-tabs button{min-height:40px;padding:0 12px;border:2px solid #dfc594;border-radius:999px;background:#fff6dc;color:#4a3a22;font-weight:700}
+#dev-panel .dev-tabs button[aria-pressed=true]{background:#7aa45c;color:#fff;border-color:#4f7a3f}
+#dev-panel label{display:grid;gap:4px;margin:8px 0;font-weight:700}
+#dev-panel input,#dev-panel select{min-height:44px;font-size:16px;border:2px solid #dfc594;border-radius:12px;padding:0 10px;background:#fff}
+#dev-panel .dev-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+#dev-panel .dev-row button,#dev-panel .dev-list button{min-height:44px;padding:0 14px;border:2px solid #4f7a3f;border-radius:14px;background:linear-gradient(#8fc06a,#6b9a4a);color:#fff;font-weight:800}
+#dev-panel .dev-list{display:flex;flex-wrap:wrap;gap:6px}
+#dev-panel .dev-list button{background:#fff6dc;color:#4a3a22;border-color:#dfc594;font-weight:600}
+#dev-panel .dev-list button.on{background:#dcecc8;border-color:#7aa45c}
+#dev-panel .dev-msg{display:block;margin-top:10px;color:#4f7a3f;font-weight:700}
+/* Jakob 5.11.: Entwicklerseite besser lesbar: feste dunkle Schrift auf hellen Kacheln, nichts erbt mehr Weiß vom Labor-Stil */
+html body #dev-panel{background:#fffaf0!important;color:#3a2c1a!important}
+html body #dev-panel h2,html body #dev-panel h4,html body #dev-panel p,html body #dev-panel label,html body #dev-panel small{color:#3a2c1a!important}
+html body #dev-panel .dev-list button{background:#fff!important;color:#3a2c1a!important;border:2px solid #c9a96a!important;font-size:15px!important;font-weight:700!important;text-shadow:none!important;opacity:1!important}
+html body #dev-panel .dev-list button.on{background:#d9efc0!important;border-color:#5f8f3f!important}
+html body #dev-panel .dev-tabs button{background:#fff!important;color:#3a2c1a!important;opacity:1!important}
+html body #dev-panel .dev-tabs button[aria-pressed=true]{background:#5f8f3f!important;color:#fff!important}
+html body #dev-panel .dev-row button{color:#fff!important;text-shadow:0 1px 2px #2d4a1f!important;opacity:1!important}
+html body #dev-panel select,html body #dev-panel input{background:#fff!important;color:#3a2c1a!important}
+
+/* Jakob 5.11.: Bauplätze Brücke und Treppe */
+#site-build{position:absolute;z-index:25;left:50%;bottom:calc(250px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(340px,calc(100% - 32px));padding:10px 12px;border:3px solid #8a6543;border-radius:18px;background:#fffaf0ee;color:#3a2c1a;box-shadow:0 8px 24px #0005}
+#site-build[hidden]{display:none}#site-build strong{display:block;margin-bottom:6px}
+#site-build .site-cost{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+#site-build .site-cost span{display:grid;justify-items:center;width:64px;padding:4px;border:2px solid #e6d3ad;border-radius:12px;background:#fff6dc}
+#site-build .site-cost span.ok{border-color:#7aa45c;background:#e9f4d8}
+#site-build .site-cost i{width:32px;height:32px;display:block}#site-build .site-cost i svg{width:100%;height:100%}
+#site-build .site-cost small{font-size:10px;text-align:center;line-height:1.1}
+#site-build button{width:100%;min-height:46px;border:0;border-radius:14px;background:linear-gradient(#8fc06a,#6b9a4a);color:#fff;font-weight:800;font-size:17px;box-shadow:0 4px 0 #4f7a3f}
+#site-build button:disabled{background:#b9b2a0;box-shadow:0 4px 0 #8d8672}
+
+/* Jakob 6.11.: Notizbuch in der Sammlung, alte Papierseiten */
+.collection .notebook{display:grid;gap:10px;margin:6px 0 14px}
+.collection .note-page{background:#efe0bd;border:2px solid #c9ab7a;border-radius:6px 10px 8px 12px;padding:10px 12px;box-shadow:inset 0 0 18px rgba(120,85,40,.25);color:#5a3f26;transform:rotate(-.4deg)}
+.collection .note-page:nth-child(2n){transform:rotate(.5deg)}
+.collection .note-page small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.65}
+.collection .note-page strong{display:block;margin:2px 0 4px}
+.collection .note-page p{margin:0;font-size:13.5px;line-height:1.4;font-style:italic}
+.collection .note-page.missing{opacity:.55;filter:grayscale(.6)}
+/* Jakob 7.11.: alte, ausgefranste Notizen (Notizbuch und Fundkarte): zerrissene Kante, braune Ränder, Flecken, Knick */
+.collection .note-page,#story-card{--torn:polygon(0% 3%,4% 0%,9% 2%,15% .5%,22% 2.5%,30% .8%,37% 2.2%,45% .4%,52% 2.6%,60% 1%,67% 3%,74% .6%,82% 2.4%,88% .3%,94% 2%,100% 1%,99% 9%,100% 17%,98.4% 26%,100% 35%,98.8% 44%,100% 53%,98.2% 62%,99.6% 71%,98% 80%,100% 88%,97% 95%,100% 100%,93% 98.5%,86% 100%,78% 98%,70% 99.8%,62% 97.8%,55% 99.5%,47% 98%,40% 100%,32% 97.6%,24% 99.4%,17% 97.9%,10% 99.7%,4% 98%,0% 100%,1.2% 92%,0% 84%,1.8% 75%,0% 66%,1.4% 57%,0% 48%,1.6% 39%,0% 30%,1.5% 21%,0% 12%);clip-path:var(--torn);border:0!important;border-radius:0!important;
+ background:radial-gradient(ellipse at 22% 30%,rgba(140,100,50,.22) 0 9%,transparent 10%),radial-gradient(ellipse at 78% 72%,rgba(120,85,40,.18) 0 12%,transparent 13%),radial-gradient(circle at 64% 18%,rgba(110,80,40,.14) 0 6%,transparent 7%),linear-gradient(90deg,transparent 49.6%,rgba(90,60,30,.18) 50%,rgba(255,245,220,.2) 50.4%,transparent 51%),radial-gradient(ellipse at 50% 50%,#ead7ae 0 45%,#d8bd8a 72%,#b08850 92%,#7c5a33 100%)!important;
+ box-shadow:none!important;filter:drop-shadow(0 4px 6px rgba(60,40,20,.35))}
+.collection .note-page{padding:16px 16px 18px!important}
+.collection .note-page p,#story-card p{color:#4f3a24;font-family:"Segoe Print","Bradley Hand","Comic Sans MS",cursive;font-style:normal!important;opacity:.85}
+.collection .note-page.missing{filter:grayscale(.7) drop-shadow(0 2px 3px rgba(60,40,20,.2))!important}
+#fish-bait{touch-action:none;-webkit-user-select:none;user-select:none}
+#fish-bait.aiming{box-shadow:0 0 0 4px #9be37f99,0 4px 0 #7c845a55!important;transform-origin:50% 50%}
+/* Jakob 7.11.: Rucksack unter dem Saugtank; Saugtank nur mit Sauger in der Hand */
+html body .topbar .inventory{display:flex!important;flex-direction:column;align-items:flex-end;gap:16px}
+html body .leaf-counter[hidden]{display:none!important}
+.pack-counter{position:relative;overflow:visible!important;cursor:pointer}
+.pack-counter .pack-icon{display:inline-flex;width:30px;height:30px}.pack-counter .pack-icon svg{width:30px;height:30px}
+.pack-counter::after{content:'Rucksack';position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);padding:0 6px;border-radius:7px;background:#2b241a80;color:#fff;font:600 9.5px/13px system-ui;pointer-events:none;z-index:3}
+/* Jakob 7.11.: Mengenfeld in der Ecke des Maschinenvorrats / Rucksacks und Regler über allem */
+.machine-bin,.machine-bag{position:relative}
+.amount-zone{position:absolute;top:4px;right:4px;z-index:2;padding:6px 9px;border-radius:12px;border:2px dashed #b99c6c;background:#fff8e6e6;color:#8a6a42;font:700 11px/1 system-ui;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s}
+body:has(.machine-drag-ghost) .amount-zone{opacity:1}
+.over .amount-zone{opacity:1}.zone .amount-zone{transform:scale(1.15);background:#ffe9a8;border-color:#e0a63a;border-style:solid}
+.amount-slider{position:fixed;left:14px;right:14px;z-index:9999;padding:14px 16px 12px;border-radius:20px;background:#fff7e3;border:3px solid #c9a46a;box-shadow:0 12px 30px #3a2a1450;color:#5a3f26;pointer-events:none;font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui}
+.amount-slider .as-head{display:flex;align-items:center;gap:8px}.amount-slider .as-head svg{width:34px;height:34px}.amount-slider .as-head b{font-size:30px}.amount-slider .as-head em{margin-left:auto;font-style:normal;font-weight:700;color:#5d8a4a}
+.amount-slider .as-track{position:relative;height:22px;margin:12px 6px 8px;border-radius:11px;background:#ead9b4;box-shadow:inset 0 2px 3px #8a6a4240}.amount-slider .as-track i{position:absolute;left:0;top:0;bottom:0;border-radius:11px;background:linear-gradient(90deg,#9fd37f,#5f9f4f)}.amount-slider .as-track span{position:absolute;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:#fff;border:3px solid #5f9f4f;box-shadow:0 3px 6px #0003}
+.amount-slider>small{display:block;text-align:center;opacity:.75;font-size:11.5px}
+.move-dir{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0 6px;color:#6a5034;font-size:14px}.move-dir b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#7fae5f;color:#fff;font-size:15px}
+.pack-stock{max-height:190px}
+/* Jakob 7.11.: Lager oben, Rucksack unten, ein gemeinsamer Regler; runder Pfeil dreht sich nach der Richtung */
+.side-title{display:flex;align-items:center;gap:6px;margin:8px 2px 4px;color:#6a5034;font-size:14px}.side-title svg{width:22px;height:22px}.side-title small{margin-left:auto;opacity:.7;font-weight:600}
+.move-row{display:flex;align-items:center;gap:10px}.move-row .craft-primary{flex:1}
+
+/* Jakob 7.11. (2): Pfeil im Stil des grünen Knopfs daneben; Regler im Stil der übrigen Regler; Mengenfeld höher, nur am Maschinenvorrat */
+.move-arrow{flex:none;display:grid;place-items:center;width:50px;height:50px;border-radius:20px;background:linear-gradient(180deg,var(--rd-green-1),var(--rd-green-2));border:2px solid var(--rd-green-line);color:#fffdf0;font-size:22px;text-shadow:0 1px 0 rgba(50,80,26,.65);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),inset 0 -3px 0 rgba(60,100,30,.25),0 4px 0 var(--rd-green-shadow),0 7px 12px rgba(60,90,30,.25)}
+.move-arrow span{display:inline-block;transition:transform .25s}.move-arrow.down span{transform:rotate(90deg)}.move-arrow.up span{transform:rotate(-90deg)}
+.amount-zone{top:6px;right:6px;bottom:6px;width:64px;padding:0;display:grid;place-items:center;text-align:center;line-height:1.25;font-size:12px}
+.amount-slider{background:linear-gradient(180deg,var(--rd-card),var(--rd-card-2));border:2px solid var(--rd-card-line);border-radius:22px;color:var(--rd-ink)}
+.amount-slider .as-head em{color:var(--rd-green-2)}
+.amount-slider .as-track{height:14px;border-radius:999px;background:linear-gradient(180deg,#ecdcb8,#f8eed6);border:2px solid var(--rd-card-line);box-shadow:inset 0 2px 3px rgba(120,90,50,.25)}
+.amount-slider .as-track i{border-radius:999px;background:linear-gradient(180deg,var(--rd-green-1),var(--rd-green-2))}
+.amount-slider .as-track span{width:30px;height:30px;margin:-15px 0 0 -15px;background:radial-gradient(circle at 40% 30%,#d9a86a,#9a6536);border:2.5px solid var(--rd-wood-dark);box-shadow:0 3px 0 rgba(70,44,18,.4),inset 0 2px 0 rgba(255,230,180,.6)}
+/* Jakob 7.11.: Pfeilknopf genau so hoch wie der Knopf daneben */
+html body .move-row{align-items:stretch}html body .move-row .craft-primary{margin:0!important}html body .move-row .move-arrow{height:auto;min-height:0;align-self:stretch;width:56px}
+
+/* Jakob 7.11.: Saugtank und Rucksack gleich groß, eigene Symbole */
+html body .topbar .leaf-counter,html body .topbar .pack-counter{min-width:124px;height:48px;box-sizing:border-box;justify-content:flex-start}
+html body .topbar .leaf-counter>svg,html body .topbar .pack-counter .pack-icon,html body .topbar .pack-counter .pack-icon svg{width:32px!important;height:32px!important;flex:none}
+html body .topbar .pack-counter strong,html body .topbar .leaf-counter strong{font-size:inherit}
+/* Jakob 7.11. (2): Rucksack-Anzeige etwas kleiner, Beschriftung nicht verdeckt */
+html body .topbar .inventory{gap:22px}
+html body .topbar .pack-counter{min-width:100px;height:38px;padding-top:2px;padding-bottom:2px;font-size:.85em;transform-origin:100% 0}
+html body .topbar .pack-counter .pack-icon,html body .topbar .pack-counter .pack-icon svg{width:24px!important;height:24px!important}
+
+/* Jakob 7.11. (3): Beschriftung klein in der Kachel statt dunkler Schilder darunter; Saugtank-Zahlen groß, Rucksack kompakt */
+html body .topbar .leaf-counter::after,html body .topbar .pack-counter::after{display:none!important}
+html body .topbar .inventory{gap:8px}
+html body .topbar .leaf-counter .counter-label,html body .topbar .pack-counter .counter-label{display:block!important;font:800 9.5px/1 ui-rounded,"SF Pro Rounded",system-ui;letter-spacing:.08em;text-transform:uppercase;color:#9a7a52;margin-bottom:2px}
+html body .topbar .leaf-counter{height:54px;min-width:132px}
+html body .topbar .leaf-counter strong{font-size:22px!important;line-height:1}html body .topbar .leaf-counter .counter-max{font-size:13px!important}
+html body .topbar .pack-counter{height:34px;min-width:0;padding:2px 10px 2px 6px;gap:5px}
+html body .topbar .pack-counter .pack-icon,html body .topbar .pack-counter .pack-icon svg{width:20px!important;height:20px!important}
+html body .topbar .pack-counter .counter-label{font-size:8px;margin-bottom:1px}
+html body .topbar .pack-counter strong{font-size:13px!important;line-height:1}html body .topbar .pack-counter .counter-max{font-size:10px!important}
+html body .storage-pickup .move-row{margin-top:14px}
+/* Jakob 7.11.: Materialfilter mit Bildern, nach Fundort */
+#filter-options .filter-group{margin:10px 2px 6px;color:#6a5034;font-size:14px}
+#filter-options .filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#filter-options .filter-grid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:14px;border:2px solid #e0c99c;background:#fffaf0;color:#5a3f22;font:600 10.5px/1.15 system-ui}
+#filter-options .filter-grid button i svg{width:34px;height:34px}
+#filter-options .filter-grid button[aria-pressed="false"]{opacity:.38;filter:grayscale(.8);border-style:dashed}
+#filter-options .filter-grid button[aria-pressed="true"]{border-color:#7fae5f;box-shadow:inset 0 0 0 2px #a8cf7866}
+
+#relic-pick{position:absolute;z-index:30;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:12px 22px;border-radius:20px;border:2px solid var(--rd-green-line);background:linear-gradient(180deg,var(--rd-green-1),var(--rd-green-2));color:#fffdf0;font:800 16px ui-rounded,system-ui;box-shadow:0 4px 0 var(--rd-green-shadow)}#relic-pick[hidden]{display:none}
+
+/* Jakob 7.11.: Minikarte beim Platzieren */
+#placement-mini{position:absolute;z-index:40;left:calc(12px + env(safe-area-inset-left));bottom:calc(150px + env(safe-area-inset-bottom));width:118px;border-radius:14px;overflow:hidden;border:3px solid #fff3d6;box-shadow:0 4px 12px #0004;touch-action:none}#placement-mini[hidden]{display:none}
+#placement-mini img{display:block;width:100%;height:auto}#placement-mini i{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#e8566e;border:2px solid #fff;box-shadow:0 0 0 2px #0003}
+
+.side-title .stock-filters{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}.side-title .stock-filters button{padding:3px 8px;border-radius:12px;border:1.5px solid #e0c99c;background:#fffaf0;color:#6a5034;font:700 10.5px system-ui}.side-title .stock-filters button[aria-pressed="false"]{opacity:.45;text-decoration:line-through}

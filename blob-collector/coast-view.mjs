@@ -1,0 +1,61 @@
+﻿import {coastRiverGeometry} from './coast-river-geometry.mjs';
+import {BeachWind} from './beach-wind.mjs';
+import {createSwash} from './coast-surface-effects.mjs';
+import {coastRockGeometry} from './coast-reference-assets.mjs';
+import {effectiveVacuum} from './vacuum-skills.mjs';
+import {CoastPolish,configureCoastWater,CLIFF_SLAB_GLSL} from './coast-polish.mjs';
+import {terrainColor} from './terrain-color.mjs';
+import {gorgeWarpZ} from './gorge-shape.mjs';
+import * as T from './vendor/three.module.js';
+import {COAST,coastShore,coastRegion,coastRiver,coastBase,coastHeight,coastBridgeDeck,COAST_ROCKS,COAST_PALMS,COAST_TIDE_ROCKS,SAND_LAYER,sandMask,windLower,windUpper,windApproach} from './coast-area.mjs';
+import {sunnyHeight} from './sunny-area.mjs';
+import {ScenicBatch} from './scenic-geometry.mjs';
+export class CoastView{
+ constructor(scene){
+  this.root=new T.Group();scene.add(this.root);const positions=[],colors=[],indices=[],n=128,m=160,zRows=[...new Set([...Array.from({length:m+1},(_,j)=>-54+j*80/m),-31,-29])].sort((a,b)=>a-b),color=new T.Color(),sand=new T.Color('#f2cf96'),grass=new T.Color('#8ca66a'),wet=new T.Color('#d3bb91'),cliffColor=new T.Color('#a6aa97');
+  for(let j=0;j<zRows.length;j++)for(let i=0;i<=n;i++){const rawX=42+i*48/n,rz=zRows[j],rr=coastRiver(rawX<=56?rawX:56+(rawX-56)/34*(coastShore(rz)+1-56)),bankMargin=.7*Math.max(0,Math.min(1,(rawX-57.4)/2)),bankHalf=rr.half+bankMargin,z=rawX<=56?gorgeWarpZ(rawX,rz):rz<=-38||rz>=-22?rz:rz<=-31?-38+(rz+38)/7*(rr.z-bankHalf+38):rz>=-29?rr.z+bankHalf+(rz+29)/7*(-22-rr.z-bankHalf):rr.z-bankHalf+(rz+31)/2*rr.half*2,x=rawX<=56?rawX:56+(rawX-56)/34*(coastShore(z)+1-56),/* Neugestaltung: bis zur Fallkante ungeschnitten, die Schluchtwände führen den Fluss dorthin */y=x>=47?(x<=57.4&&!windLower(x,z)&&!windUpper(x,z)?coastBase(x,z):coastHeight(x,z,true)):sunnyHeight(x,z);positions.push(x,y+.025,z);terrainColor(x,z,color);/* Neugestaltung: geschwungener statt gerader Gras-Sand-Übergang */const sandMix=Math.max(0,Math.min(1,(x-42+2.4*Math.sin(z*.31)+1.3*Math.sin(z*.83+x*.4))/13));color.lerp(sand,sandMix*sandMix*(3-2*sandMix)).multiplyScalar(.99+.01*Math.sin(x*.6+z*.7));const d=coastShore(z)-x;if(d<4)color.lerp(wet,Math.max(0,1-d/4)*.4);color.lerp(cliffColor,Math.max(0,Math.min(1,(-z-29)/8))*.65);colors.push(color.r,color.g,color.b);}
+  for(let j=0;j<zRows.length-1;j++)for(let i=0;i<n;i++){const a=j*(n+1)+i,b=a+n+1,x=(positions[a*3]+positions[(a+1)*3]+positions[b*3]+positions[(b+1)*3])/4,z=(positions[a*3+2]+positions[(a+1)*3+2]+positions[b*3+2]+positions[(b+1)*3+2])/4;if(zRows[j]>=-31&&zRows[j+1]<=-29)continue;if(z>=25||z<=-43||z< -33&&x<75&&!windApproach(x,z))continue;indices.push(a,b,a+1,a+1,b,b+1);}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();const terrainMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
+  terrainMaterial.onBeforeCompile=shader=>{
+   shader.vertexShader='varying vec3 coastGround;varying float coastNy;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ncoastGround=position;coastNy=objectNormal.y;');
+   shader.fragmentShader='varying vec3 coastGround;varying float coastNy;\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+   vec2 q=coastGround.xz;float broad=sin(q.x*.19+sin(q.y*.13))*sin(q.y*.16+sin(q.x*.11));
+   float grain=fract(sin(dot(floor(q*7.),vec2(127.1,311.7)))*43758.5453);
+   diffuseColor.rgb*=.985+broad*.014+grain*.018;
+   // Neugestaltung: gemalter Sand nur auf sandfarbenen Flächen (Gras am Übergang bleibt unberührt).
+   float sandy=smoothstep(.02,.2,diffuseColor.r-diffuseColor.g)*smoothstep(.02,.1,diffuseColor.g-diffuseColor.b);
+   float fields=sin(q.x*.11+sin(q.y*.09)*1.7)*sin(q.y*.13-sin(q.x*.07)*1.3);
+   vec3 warm=diffuseColor.rgb*vec3(1.05,1.0,.9),cool=diffuseColor.rgb*vec3(.95,.95,.97);
+   vec3 sand=mix(cool,warm,smoothstep(-.35,.35,fields));
+   float rip=sin(dot(q,vec2(.82,.34))*7.5+sin(q.y*.6+q.x*.2)*2.2+fields*2.);
+   sand*=1.+smoothstep(.82,1.,rip)*.06-smoothstep(-1.,-.88,-rip)*.035;
+   vec2 cell=floor(q*9.);float h=fract(sin(dot(cell,vec2(12.9898,78.233)))*43758.5453);vec2 fq=fract(q*9.)-.5;float dotm=1.-smoothstep(.08,.16,length(fq));
+   sand*=1.-step(.965,h)*dotm*.22;sand*=1.+step(h,.03)*dotm*.12;
+   float wet=smoothstep(-3.85,-4.45,coastGround.y);
+   sand=mix(sand,sand*vec3(.76,.74,.78),wet*.85);
+   diffuseColor.rgb=mix(diffuseColor.rgb,sand,sandy);
+   vec3 cliffP=coastGround;float cliffNy=coastNy;`+CLIFF_SLAB_GLSL);
+  };
+  terrainMaterial.customProgramCacheKey=()=> 'coast-painted-sand-cliff-redesign';
+  const terrain=new T.Mesh(g,terrainMaterial);terrain.userData.sandSurface=true;terrain.receiveShadow=true;this.root.add(terrain);
+  const b=new ScenicBatch({smooth:true}),rock=coastRockGeometry(),wood=new T.CylinderGeometry(1,1,1,7),cap=new T.SphereGeometry(1,10,7),box=new T.BoxGeometry(1,1,1);
+  for(const r of COAST_ROCKS){const h=sunnyHeight(r.x,r.z);if(windLower(r.x,r.z)||windUpper(r.x,r.z)||r.z>-24&&r.z<-19)continue;b.add(rock,['#7f8994','#8f99a3','#717c88'][Math.abs(Math.round(r.x*7))%3],r.x,h+r.r*.7,r.z,r.r*1.2,r.r*1.6,r.r,.08,r.x,.12);b.add(cap,'#6f9a3a',r.x,h+r.r*1.9,r.z,r.r,.13,r.r*.8);}
+  for(const {x,z,r:scale,a,i}of COAST_TIDE_ROCKS){const y=sunnyHeight(x,z);b.add(rock,i%3?'#8a939d':'#9ea6ad',x,y+scale*.45,z,scale*1.3,scale*.95,scale,.1,a,.2);}
+  for(const [x,z,h]of COAST_PALMS){const y=sunnyHeight(x,z),curve=new T.CatmullRomCurve3([new T.Vector3(x,y,z),new T.Vector3(x-.3,y+h*.45,z+.1),new T.Vector3(x+.3,y+h,z+.2)]),trunk=new T.TubeGeometry(curve,12,.15,7,false);b.add(trunk,'#86603c');trunk.dispose();/* Neugestaltung: Stammringe */for(let k=1;k<6;k++){const pt=curve.getPoint(k/6);b.add(wood,'#5e4229',pt.x,pt.y,pt.z,.18,.05,.18);}for(let k=0;k<8;k++){const a=k*Math.PI/4,frond=new T.BufferGeometry(),p=[],ids=[];for(let j=0;j<7;j++){const t=j/6,r=t*2.35,w=Math.sin(t*Math.PI)*.32,py=y+h+.28*Math.sin(t*Math.PI)-t*t*.72;for(const side of [-1,1])p.push(x+.3+Math.sin(a)*r+Math.cos(a)*w*side,py,z+.2+Math.cos(a)*r-Math.sin(a)*w*side);}for(let j=0;j<6;j++){const q=j*2;ids.push(q,q+2,q+1,q+1,q+2,q+3);}frond.setAttribute('position',new T.Float32BufferAttribute(p,3));frond.setIndex(ids);b.add(frond,k%2?'#3f7f2e':'#5d9a35');frond.dispose();for(let j=1;j<7;j++)for(const side of [-1,1]){const t=j/7,r=t*2.35,w=(1-t)*.58+.08,py=y+h+.28*Math.sin(t*Math.PI)-t*t*.72,dx=Math.sin(a),dz=Math.cos(a),sx=Math.cos(a)*side,sz=-Math.sin(a)*side,points=[x+.3+dx*(r-.16),py,z+.2+dz*(r-.16),x+.3+dx*(r+.3)+sx*w,py-.12,z+.2+dz*(r+.3)+sz*w,x+.3+dx*(r+.12),py+.035,z+.2+dz*(r+.12)],g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(points,3));g.setIndex(side>0?[0,1,2]:[0,2,1]);b.add(g,j%2?'#5d9a35':'#7fb440');g.dispose();}}for(let k=0;k<3;k++)b.add(cap,'#6b4a2a',x+.25+Math.sin(k*2.4)*.18,y+h-.18,z+.2+Math.cos(k*2.4)*.15,.13,.18,.13);}
+  const river=coastRiver(60),bridgeY=z=>coastBridgeDeck(60,z)+.07;for(let i=0;i<27;i++){const z=river.z-4.45+i*.34,y=bridgeY(z);b.add(box,i%2?'#c5aa78':'#b39a6e',60,y,z,1.9,.13,.33,-Math.atan((bridgeY(z+.1)-bridgeY(z-.1))/.2),0,0);if(i%4===0)for(const side of [-1,1]){const base=river.water-1.0;b.add(wood,'#8f8064',60+side*.88,(y+base)/2,z,.07,y-base,.07);}}for(const side of [-1,1]){for(const dz of [-4.2,4.2]){const x=60+side*.9,z=river.z+dz,y=bridgeY(z);b.add(wood,'#92734f',x,y+.43,z,.1,.92,.1);b.add(wood,'#c1a071',x,y+.9,z,.125,.07,.125);}const curve=new T.CatmullRomCurve3([new T.Vector3(60+side*.9,bridgeY(river.z-4.2)+.78,river.z-4.2),new T.Vector3(60+side*.9,bridgeY(river.z)+.63,river.z),new T.Vector3(60+side*.9,bridgeY(river.z+4.2)+.78,river.z+4.2)]),rope=new T.TubeGeometry(curve,18,.022,4,false);b.add(rope,'#b5a07a');rope.dispose();}for(let i=0;i<18;i++){const x=65+i*.55,y=sunnyHeight(x,-21)+.11;b.add(box,i%2?'#bca477':'#cbb789',x,y,-21,.5,.13,1.8);if(i%3===0)for(const side of [-1,1])b.add(wood,'#9a8a6d',x,y-.6,-21+side*.7,.07,1.4,.07);}b.finish(this.root);for(const item of [rock,wood,cap,box])item.dispose();
+  const ocean=new T.Mesh(new T.PlaneGeometry(110,140,40,52),new T.MeshStandardMaterial({color:'#6caeb1',roughness:.32,metalness:.12,side:T.DoubleSide}));ocean.rotation.x=-Math.PI/2;ocean.position.set(80,COAST.sea,-13);this.root.add(ocean);this.polish=new CoastPolish(this.root);configureCoastWater(ocean.material,this.polish.time);createSwash(this.root,this.polish.time);this.beachWind=new BeachWind(this.root);
+  const rg=coastRiverGeometry();const riverMat=new T.MeshStandardMaterial({color:'#2f86a6',roughness:.35,transparent:true,depthWrite:false,side:T.DoubleSide});riverMat.onBeforeCompile=q=>{q.uniforms.flowTime=this.polish.time;q.vertexShader='varying vec3 riverWorld;varying vec2 riverUV;\n'+q.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nriverWorld=transformed;riverUV=uv;');q.fragmentShader='uniform float flowTime;varying vec3 riverWorld;varying vec2 riverUV;\n'+q.fragmentShader;q.fragmentShader=q.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat flow=sin(riverWorld.x*8.-flowTime*3.+sin(riverWorld.z*5.))*sin(riverWorld.z*3.+riverWorld.x*2.);/* Neugestaltung: tiefes Flussblau wie Schlucht und Steinbach, heller Glanz auf der Strömung */float riverMid=1.-abs(riverUV.y-.5)*2.;diffuseColor.rgb=mix(vec3(.015,.16,.3),vec3(.005,.075,.19),smoothstep(.15,.8,riverMid))*(1.+flow*.08);diffuseColor.rgb+=vec3(.05,.11,.12)*smoothstep(.55,1.,sin(riverWorld.x*2.2-flowTime*1.4+sin(riverWorld.z*3.1)*.9)*sin(riverWorld.z*1.7+riverWorld.x*.5+flowTime*.3))*(.4+.6*riverMid);float foam=exp(-pow((riverWorld.x-59.)*1.8,2.))*(.5+.5*flow);float edge=abs(riverUV.y-.5)*2.;float lace=smoothstep(.55,.9,sin(riverUV.x*8.-flowTime*.65+sin(riverUV.y*15.)*1.5));foam=max(foam,smoothstep(.78,.98,edge)*(.3+.7*lace));diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.82,.94,.87),foam*.65);diffuseColor.a*=1.-smoothstep(75.,82.,riverWorld.x);/* oberhalb der Fallkante zeigt das Schluchtwasser den Fluss */diffuseColor.a*=step(57.38,riverWorld.x);');};this.root.add(new T.Mesh(rg,riverMat));
+  // A gently curved sheet with a broken edge and fine animated foam streaks.
+  const up=coastRiver(57.4),down=coastRiver(58.9),fp=[],fu=[],fi=[],cols=28,rows=14;
+  for(let j=0;j<=rows;j++)for(let i=0;i<=cols;i++){
+   const t=j/rows,u=i/cols,edge=(u-.5)*2,curve=t*t*(3-2*t),z=(up.z*(1-t)+down.z*t)+edge*(up.half*(1-t)+down.half*t)*(.97+.025*Math.sin(u*19));
+   const x=57.4+1.5*t+.08*Math.sin(u*13+t*3)*Math.sin(Math.PI*t),y=up.water+(down.water-up.water)*curve+.055+.06*Math.sin(u*25+t*5)*Math.sin(Math.PI*t);
+   fp.push(x,y,z);fu.push(u,1-t);
+   if(j<rows&&i<cols){const a=j*(cols+1)+i;fi.push(a,a+cols+1,a+1,a+1,a+cols+1,a+cols+2);}
+  }
+  const fg=new T.BufferGeometry();fg.setAttribute('position',new T.Float32BufferAttribute(fp,3));fg.setAttribute('uv',new T.Float32BufferAttribute(fu,2));fg.setIndex(fi);fg.computeVertexNormals();
+  const fm=new T.ShaderMaterial({uniforms:{time:this.polish.time},transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:'varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform float time;varying vec2 v;void main(){float a=sin(v.x*53.+sin(v.x*19.)*2.+v.y*6.+time*4.);float b=sin(v.x*91.-v.y*12.+time*6.);float streak=smoothstep(.28,.9,a*.7+b*.3);float foam=smoothstep(.6,1.,sin(v.x*46.+time*1.2))*(1.-smoothstep(0.,.22,v.y));float edge=smoothstep(0.,.025,v.x)*smoothstep(0.,.025,1.-v.x);vec3 c=mix(vec3(.13,.47,.64),vec3(.93,.98,1.),.18+streak*.55+foam*.3);gl_FragColor=vec4(c,edge*.88);}'});this.root.add(new T.Mesh(fg,fm));
+  for(const p of [{x:74,z:12,rx:3,rz:2},{x:78,z:19,rx:2.3,rz:1.7},{x:69,z:17,rx:2.1,rz:1.4}]){const pool=new T.Mesh(new T.CircleGeometry(1,48),new T.MeshStandardMaterial({color:'#80bdb0',roughness:.3,side:T.DoubleSide}));pool.rotation.x=-Math.PI/2;pool.position.set(p.x,sunnyHeight(p.x,p.z)+.13,p.z);pool.scale.set(p.rx,p.rz,1);configureCoastWater(pool.material,this.polish.time,p);this.root.add(pool);}
+ }
+ update(s){this.root.visible=!s.testWorld.enabled;if(this.root.visible){this.polish.update(s);this.beachWind.update(s);}}
+}

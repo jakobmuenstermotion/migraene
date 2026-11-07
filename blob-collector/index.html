@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e5ecce">
+  <meta name="description" content="Die Sonnenlichtung: sammeln, nach Hause zurückkehren, Materialien einlagern und Papier und Holzbriketts pressen.">
+  <title>Blob Collector · Sonnenlichtung</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%237aae68' d='M9 44C4 12 58 3 57 39Q59 59 32 57Q8 59 9 44'/%3E%3Ccircle cx='24' cy='35' r='3'/%3E%3Ccircle cx='42' cy='35' r='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="workshop.css">
+  <link rel="stylesheet" href="mobile-hud.css">
+  <link rel="stylesheet" href="sunny-ui.css">
+  <link rel="stylesheet" href="world-ui.css">
+  <link rel="stylesheet" href="expansion.css">
+  <link rel="stylesheet" href="redesign.css">
+</head>
+<body>
+  <main id="game" aria-label="Blob Collector Spielfeld">
+    <canvas id="world" aria-label="3D-Waldlichtung. Mit WASD oder Pfeiltasten bewegen, mit Shift sprinten." tabindex="0"></canvas>
+    <header class="topbar">
+      <div class="inventory" aria-label="Gesammelte Gegenstände">
+        <div class="counter leaf-counter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16C0 7 12 3 21 3c0 12-6 18-14 14m-3 4L16 9" fill="#bf873f" stroke="#916431" stroke-width="1.5" stroke-linecap="round"/></svg><div><span class="counter-label">Saugtank</span><strong><span id="leaf-count">0</span><span id="bag-max" class="counter-max"> / 1000</span></strong></div></div>
+        <div class="counter pack-counter" role="button" tabindex="0" aria-label="Rucksack ansehen"><i class="pack-icon"></i><div><span class="counter-label">Rucksack</span><strong><span id="pack-count">0</span><span id="pack-max" class="counter-max"> / 1000</span></strong></div></div>
+        <div class="counter blob-counter" hidden><span class="mini-blob" aria-hidden="true">••</span><div><span class="counter-label">MOOSBLOB</span><strong id="blob-count">0 <span class="counter-max">/ 1</span></strong></div></div>
+      </div>
+    </header>
+    <div id="ground-radar-bearing" class="ground-radar-bearing" hidden role="img"></div>
+    <button id="world-interact" type="button" aria-label="Gebäude öffnen" hidden></button>
+    <div id="area-backdrop" hidden></div>
+    <section id="area-panel" class="area-panel lab-panel" role="dialog" aria-modal="true" aria-labelledby="area-title" hidden><div class="area-heading"><h2 id="area-title">Sonnenlichtung</h2><button id="area-close" type="button" aria-label="Gebäudemenü schließen">×</button></div><div id="area-content"></div></section>
+    <div class="tool-meters"><div id="battery-meter" role="img" aria-label="Akku 100 Prozent"><span>▰</span><div><i id="battery-fill"></i></div></div><div id="power-temperature" role="img" aria-label="Temperatur" hidden><span>♨</span><div><i id="temperature-fill"></i></div></div></div>
+    <nav class="tool-actions" aria-label="Saugerfunktionen"><button id="push-action" aria-label="Schubumkehr (Q)" aria-pressed="false" hidden></button><button id="stone-action" aria-label="Stein schießen (R)" hidden></button><button id="filter-action" aria-label="Materialfilter öffnen" hidden></button><button id="transport-action" aria-label="Transportziel wechseln" hidden></button></nav>
+    <div id="wheel-backdrop" hidden></div>
+    <div class="vacuum-dock"><button id="vacuum-choose" type="button" aria-label="Tippen: Saugen an/aus. Halten und ziehen: Sauger wechseln." aria-pressed="true" aria-expanded="false" aria-controls="vacuum-wheel"><span id="vacuum-current-icon"></span><span class="vacuum-power-state" aria-hidden="true"></span><strong id="vacuum-name">Fernsauger</strong></button></div>
+    <section id="vacuum-wheel" class="vacuum-wheel" aria-label="Sauger wählen" hidden><div id="wheel-options"></div><div class="wheel-preview" aria-live="polite"><strong id="wheel-name">Fernsauger</strong><span id="wheel-role">Der Präzise</span></div><button id="vacuum-tree" type="button">✦ Skilltree</button><button id="wheel-lab" type="button">⚙ Testlabor</button></section>
+    <div id="workshop-backdrop" hidden></div>
+    <section id="vacuum-picker" class="vacuum-picker" role="dialog" aria-modal="true" aria-labelledby="workshop-title" hidden>
+      <div class="workshop-heading"><h2 id="workshop-title">Skilltree</h2><span id="tree-points" aria-label="Verfügbare Skillpunkte">✦ 9</span><button id="vacuum-close" type="button" aria-label="Upgrades schließen">×</button></div>
+      <div class="workshop-main" id="tool-detail"></div>
+      <details class="tree-settings"><summary aria-label="Einstellungen und Testoptionen">⚙</summary><div class="tree-setting-buttons"><button id="test-open" type="button">Testlabor</button><button id="tree-reset" type="button">Skillpunkte zurücksetzen</button><button id="tree-grant" type="button">+5 Testpunkte</button><button id="vacuum-refill" type="button">Lichtung erneuern</button><button id="sound" type="button" aria-pressed="false"><span id="sound-text">Ton aus</span></button><button id="reset" type="button">Neustart</button></div></details>
+    </section>
+    <div id="lab-backdrop" hidden></div>
+    <section id="test-panel" class="lab-panel" role="dialog" aria-modal="true" aria-labelledby="test-title" hidden><div class="lab-heading"><h2 id="test-title">Testlabor</h2><button id="test-close" aria-label="Testlabor schließen">×</button></div><label class="test-tool-label">Sauger<select id="test-tool"></select></label><div id="test-ranks"></div><div class="lab-buttons"><button id="test-unlock">Alle Sauger freischalten</button><button id="test-max">Alle Upgrades maximieren</button><button id="test-super">Superfähigkeit freischalten</button><button id="test-charge">Akku aufladen</button><button id="test-empty">Rucksack leeren</button><button id="test-spawn">Materialien erzeugen</button><button id="test-stones">10 Teststeine</button><button id="test-area">Zum Testbereich</button><button id="test-home">Zur Waldlichtung</button></div><p id="test-stats"></p><p id="test-inventory"></p></section>
+    <section id="material-panel" class="lab-panel material-panel" role="dialog" aria-modal="true" aria-label="Materialfilter" hidden><div class="lab-heading"><h2>Materialfilter</h2><button id="material-close" aria-label="Materialfilter schließen">×</button></div><div id="filter-options"></div></section>
+    <footer class="bottom-bar">
+      <div class="stamina"><div><span>SPRINTENERGIE</span><span id="stamina-number">100 %</span></div><div class="meter"><i id="stamina-fill"></i></div></div>
+    </footer>
+    <div id="joystick" aria-hidden="true"><i></i></div><button id="sprint" type="button" aria-label="Sprinten"></button>
+    <div id="redesign-vignette" aria-hidden="true"></div><div id="loading"><div class="loading-blob">••</div><p>Die Lichtung erwacht …</p></div>
+    <div id="error" hidden><h1>Die Lichtung konnte nicht starten.</h1><p id="error-text"></p><button onclick="location.reload()">Erneut versuchen</button></div>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

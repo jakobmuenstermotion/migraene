@@ -25,12 +25,12 @@ test('a real controller update saves the standalone game before reloading exactl
  const s=setup();await settle();let saves=0;s.window.addEventListener('app:before-update',()=>saves++);s.change();await settle();s.change();await settle();assert.equal(saves,1);assert.equal(s.reloads,1);
 });
 test('a hosted game must acknowledge successful saving before its parent reloads',async()=>{
- const s=setup({frame:true});await settle();s.change();await settle();assert.equal(s.reloads,0);assert.equal(s.ack.type,'mondgarten:save');
- const ack={type:'message',origin:'https://example.test',source:s.target,data:{type:'mondgarten:saved',id:s.ack.id,ok:true}};
+ const s=setup({frame:true});await settle();s.change();await settle();assert.equal(s.reloads,0);assert.equal(s.ack.type,'blob:save');
+ const ack={type:'message',origin:'https://example.test',source:s.target,data:{type:'blob:saved',id:s.ack.id,ok:true}};
  s.window.dispatchEvent({...ack,origin:'https://other.test'});await settle();assert.equal(s.reloads,0);s.window.dispatchEvent(ack);await settle();assert.equal(s.reloads,1);
 });
 test('save failures and missing acknowledgements preserve the running game and allow later retry',async()=>{
- const s=setup({frame:true});await settle();s.change();await settle();s.window.dispatchEvent({type:'message',origin:'https://example.test',source:s.target,data:{type:'mondgarten:saved',id:s.ack.id,ok:false}});await settle();assert.equal(s.reloads,0);
+ const s=setup({frame:true});await settle();s.change();await settle();s.window.dispatchEvent({type:'message',origin:'https://example.test',source:s.target,data:{type:'blob:saved',id:s.ack.id,ok:false}});await settle();assert.equal(s.reloads,0);
  s.window.dispatchEvent({type:'focus'});await settle();for(const callback of [...s.timers.values()])callback();await settle();assert.equal(s.reloads,0);
  const direct=setup();await settle();direct.window.addEventListener('app:before-update',e=>e.preventDefault());direct.change();await settle();assert.equal(direct.reloads,0);
 });

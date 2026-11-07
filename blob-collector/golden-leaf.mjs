@@ -1,0 +1,14 @@
+import {sunnyHeight} from './sunny-area.mjs';
+import {vacuumContains} from './vacuums.mjs';
+import {collectionReward} from './sauger-systems.mjs';
+import {capacityFor,suctionCount,reservedBagSlots} from './inventory.mjs';
+export const GOLDEN_LEAF={interval:165,air:8,fade:5};
+export function spawnGoldenLeaf(s){const g=s.golden??={wait:GOLDEN_LEAF.interval,active:null};if(g.active||s.home?.interior||s.nursery?.interior||s.testWorld.enabled)return null;const candidates=s.leaves.filter(l=>{if(l.status!=='ground')return false;const d=Math.hypot(l.homeX-s.player.x,l.homeZ-s.player.z);return d<13&&d>6.5;});if(!candidates.length)return null;const l=candidates[Math.floor(Math.random()*candidates.length)];g.active={id:l.id,age:0};l.gold=1;l.status='goldair';s.leafChanges.push(l);g.wait=GOLDEN_LEAF.interval;return l;}
+export function advanceGoldenLeaf(s,dt,mode,active){if(s.area!=='sunny'||s.testWorld.enabled||s.home?.interior||s.nursery?.interior||s.roundActive===false)return;const g=s.golden??={wait:GOLDEN_LEAF.interval,active:null};g.wait-=dt;if(!g.active&&g.wait<=0){if(!spawnGoldenLeaf(s))g.wait=5;}const a=g.active,l=a&&s.leaves[a.id];if(!l)return;if(l.status==='gone'){delete l.gold;g.active=null;return;}if(l.status==='pulling')return;a.age+=dt;
+ if(a.age<GOLDEN_LEAF.air){const t=a.age/GOLDEN_LEAF.air;l.status='goldair';l.x=l.homeX-3*(1-t)+Math.sin(t*Math.PI*3)*.65;l.z=l.homeZ-1.4*(1-t)+Math.sin(t*Math.PI*2)*.5;l.y=l.homeY+(1-t)*3.5+Math.sin(t*Math.PI)*.7;l.angle=a.age*2;l.gold=1;
+  if(active&&suctionCount(s)+reservedBagSlots(s)<capacityFor(mode)&&vacuumContains(s.player,l,mode)){const reward=collectionReward(s,mode,'goldleaf');if(reward.route!=='bag'||suctionCount(s)+reservedBagSlots(s)+reward.quantity<=capacityFor(mode)){Object.assign(l,{status:'pulling',reward,progress:0,startX:l.x,startY:l.y,startZ:l.z,pullSpeed:mode.speed,swirl:mode.swirl});s.pullingLeaves.push(l);}}
+ }else{l.status='ground';l.x=l.homeX;l.y=l.homeY;l.z=l.homeZ;l.gold=Math.max(0,1-(a.age-GOLDEN_LEAF.air)/GOLDEN_LEAF.fade);if(!l.gold){delete l.gold;g.active=null;}}
+ s.leafChanges.push(l);
+}
+export function goldenSnapshot(s){const g=s.golden;if(!g)return null;const a=g.active,l=a&&s.leaves[a.id];return {wait:Math.max(0,g.wait),active:l&&l.status!=='gone'?{id:l.id,age:a.age}:null};}
+export function restoreGolden(s,data){s.golden={wait:Number.isFinite(data?.wait)?Math.max(0,Math.min(GOLDEN_LEAF.interval,data.wait)):GOLDEN_LEAF.interval,active:null};const a=data?.active,l=Number.isInteger(a?.id)&&s.leaves[a.id];if(!l||l.status==='gone'||!Number.isFinite(a.age)||a.age<0||a.age>=13)return;s.golden.active={id:l.id,age:a.age};l.gold=a.age<8?1:1-(a.age-8)/5;l.status=a.age<8?'goldair':'ground';const t=Math.min(1,a.age/8);l.x=l.homeX-3*(1-t)+Math.sin(t*Math.PI*3)*.65;l.z=l.homeZ-1.4*(1-t)+Math.sin(t*Math.PI*2)*.5;l.y=l.homeY+(1-t)*3.5+Math.sin(t*Math.PI)*.7;l.angle=a.age*2;}

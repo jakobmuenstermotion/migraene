@@ -1,0 +1,11 @@
+import {CAVE_ROOM,ICE_ROOM,inCave} from './cave-space.mjs';
+// Eisgrotte: Anker IV am Eingang zieht hinein; hinaus geht es vorn zur Tür, dann steht man wieder am Gipfelhang.
+export function enterIceCave(s){if(s.area!=='sunny'||s.testWorld.enabled)return false;s.cave={interior:true,room:'ice'};Object.assign(s.player,{x:ICE_ROOM.x,z:ICE_ROOM.z+ICE_ROOM.d/2-1.2,y:ICE_ROOM.floor,angle:Math.PI});s.flight.active=false;s.anchorPull=null;s.flight.safe={...s.player};s.events?.push('obstacle');return true;}
+export function leaveIceCave(s){s.cave.interior=false;s.cave.room='cave';const x=39.6,z=-94,y=sunnyHeight(x,z);Object.assign(s.player,{x,z,y,angle:0});s.flight.active=false;s.flight.safe={x,y,z};return true;}
+import {sunnyHeight} from './sunny-area.mjs';
+import {CORE_ZONE} from './volcano-area.mjs';
+export function enterCave(s){if(s.area!=='sunny'||s.testWorld.enabled||s.home?.interior||s.nursery?.interior||!s.obstacles.some(o=>o.id==='routeCave'&&o.cleared))return false;s.cave={interior:true,room:'cave'};Object.assign(s.player,{x:CAVE_ROOM.x,z:CAVE_ROOM.z+CAVE_ROOM.d/2-1,y:CAVE_ROOM.floor,angle:Math.PI});s.flight.active=false;s.anchorPull=null;s.flight.safe={...s.player};return true;}
+export function leaveCave(s){if(!inCave(s))return false;s.cave.interior=false;s.cave.room='cave';const x=50,z=-17.25,y=sunnyHeight(x,z);Object.assign(s.player,{x,z,y,angle:0});s.flight.active=false;s.flight.safe={x,y,z};return true;}
+// Der Vulkankern ist seit 6.11. ein Gebiet in der Welt (kein Innenraum mehr). Wer noch im alten Kern-Raum gespeichert hat, landet in dessen Mitte.
+function leaveOldCore(s){s.cave.interior=false;s.cave.room='cave';const x=CORE_ZONE.x,z=CORE_ZONE.z+6,y=sunnyHeight(x,z);Object.assign(s.player,{x,z,y,angle:Math.PI});s.flight.active=false;s.flight.safe={x,y,z};return true;}
+export function updateCaveTraversal(s){if(s.area!=='sunny'||s.testWorld.enabled||s.flight.active)return false;const p=s.player;if(inCave(s)){if(s.cave.room==='core')return leaveOldCore(s);if(s.cave.room==='ice'){if(p.z>ICE_ROOM.z+ICE_ROOM.d/2+.25&&Math.abs(p.x-ICE_ROOM.x)<1.15)return leaveIceCave(s);return false;}if(p.z>CAVE_ROOM.z+CAVE_ROOM.d/2+.25&&Math.abs(p.x-CAVE_ROOM.x)<1.15)return leaveCave(s);return false;}if(s.home?.interior||s.nursery?.interior)return false;if(Math.abs(p.x-50)<1.05&&p.z< -20.2&&p.z> -21.5)return enterCave(s);return false;}

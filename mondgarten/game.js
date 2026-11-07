@@ -31,12 +31,12 @@ import {GardenScene} from './scene.js';
 import {GardenControls} from './controls.js';
 import {JOURNEY,growthFactor,tickJourney,grantRound,startRound,roundYield,rewardCount,dayPrice} from './journey.mjs';
 import {discoverSeeds,productCargoCount,takeWorkshopGoods,sellCarriedProducts,deliverWorkshop,workshopSpot,workshopStock} from './village.mjs';
-const embedded=new URL(location.href).searchParams.get('embedded')==='1'||window.frameElement?.dataset.mondgarten==='1',storageKey=embedded?COMPANION.saveKey:SAVE_KEY;
+const embedded=new URL(location.href).searchParams.get('embedded')==='1'||window.frameElement?.dataset.mondgarten==='1',archive=!embedded&&new URL(location.href).searchParams.get('archiv')==='1',storageKey=embedded||archive?COMPANION.saveKey:SAVE_KEY; // archiv=1: alter Begleit-Spielstand als eigenständiges Spiel (Begleitapp nutzt jetzt Blob Collector)
 const $=id=>document.getElementById(id),modal=$('modal');
 let fishingHolding=false,detectorBeep=0,ingredientDragging=false;
 let boutiqueVisit=null,boutiqueDwell=0;
 let state=freshState(),storageOK=true;try{const raw=localStorage.getItem(storageKey);if(raw)state=normalize(JSON.parse(raw));else if(embedded)prepareHostedState(state);}catch{storageOK=false;}
-if(embedded){try{syncCompanionActions(state,JSON.parse(localStorage.getItem(COMPANION.journalKey)||'null'));}catch{}}
+if(embedded||archive){try{syncCompanionActions(state,JSON.parse(localStorage.getItem(COMPANION.journalKey)||'null'));}catch{}}
 state.journey.goalCost??=dayPrice(state);prepareDay(state,TOOLS);
 const offline=offlineEarnings(state);let cells=[],scene,controls,automation,clock=0,lastFrame=0,active=true,harvestClock=0,uiClock=0,saveClock=0,checkClock=0,saleClock=0,saleCarry=0,saleRate=28,saleTotal=0,productSaleClock=0,lastBagWarn=-20,audioCtx,selectedTab='tools',modalView='',isSelling=false,lastHarvest=-10,combo=0,pads=[],padDwell=0,dwellingID='',completedPad='',padEffectClock=0,storageWarned=false,warehouseRequested=false;
 const player={...WORLD.spawn,angle:0,moving:false},floaters=[];
