@@ -7,8 +7,9 @@ const out=v=>'#'+v.map(x=>Math.round(Math.max(0,Math.min(255,x))).toString(16).p
 // a>0 hellt warm auf, a<0 dunkelt kühl ab.
 export function tint(c,a){const v=hex(c),t=a>0?[255,247,226]:[40,36,58],k=Math.abs(a);return out(v.map((x,i)=>x+(t[i]-x)*k));}
 // Dasselbe Bild steckt oft mehrfach im Menü, auch in versteckten Teilen. Zeigt url(#id) auf eine versteckte Kopie, bleibt die Fläche weiß.
-let sprite=null;const knownDefs=new Set();
-export function liftDefs(html){if(typeof document==='undefined'||!document.body)return html;return html.replace(/<defs>([\s\S]*?)<\/defs>/g,(_,inner)=>{if(!sprite){sprite=document.createElementNS('http://www.w3.org/2000/svg','svg');sprite.setAttribute('aria-hidden','true');sprite.setAttribute('style','position:absolute;width:0;height:0;overflow:hidden');sprite.id='icon-defs';document.body.prepend(sprite);}for(const m of inner.matchAll(/<(linearGradient|radialGradient|filter|clipPath|pattern)\b[^>]*\bid="([^"]+)"[\s\S]*?<\/\1>/g)){if(knownDefs.has(m[2]))continue;knownDefs.add(m[2]);sprite.insertAdjacentHTML('beforeend',m[0]);}return '';});}
+// Jakob 8.11.: Statt gemeinsamer Sammel-Defs bekommt jede Kopie eigene, eindeutige IDs. So kann weder eine versteckte Kopie noch ein fehlendes <mask> (Blatt) ein Icon durchsichtig machen.
+let liftSeq=0;
+export function liftDefs(html){if(typeof document==='undefined'||!document.body||!html.includes('<defs>'))return html;const ids=new Set();for(const d of html.matchAll(/<defs>([\s\S]*?)<\/defs>/g))for(const m of d[1].matchAll(/\bid="([^"]+)"/g))ids.add(m[1]);if(!ids.size)return html;const sfx='-u'+(++liftSeq).toString(36);return html.replace(/\bid="([^"]+)"|url\(#([^)]+)\)|href="#([^"]+)"/g,(all,a,b,c)=>a!==undefined?(ids.has(a)?`id="${a}${sfx}"`:all):b!==undefined?(ids.has(b)?`url(#${b}${sfx})`:all):(ids.has(c)?all.replace(c,c+sfx):all));}
 export function painter(id,{inline=false}={}){
  const defs=[];let n=0;const gid=()=>`pi-${id}-${n++}`;
  const rad=c=>{const g=gid();defs.push(`<radialGradient id="${g}" cx=".34" cy=".28" r=".9"><stop offset="0" stop-color="${tint(c,.42)}"/><stop offset=".45" stop-color="${c}"/><stop offset="1" stop-color="${tint(c,-.34)}"/></radialGradient>`);return `url(#${g})`;};

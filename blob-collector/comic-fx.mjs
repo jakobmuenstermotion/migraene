@@ -1,10 +1,23 @@
-// Jakob 7.11.: Comic-Streifen als Reaktion: bei besonderen Ereignissen springt neben der Figur ein kleines Comic-Panel auf
-// (Rasterpunkte, Zacken-Sprechblase, kräftiges Wort) und verschwindet nach gut einer Sekunde. Höchstens eins alle 2,5 s.
-const WORDS={caught:['HAB DICH!','#ffd166'],fish:['PLATSCH!','#7fd1ff'],blueprint:['AHA!','#a8e6a1'],build:['TADAA!','#ffb3c7'],obstacle:['KRACH!','#ffb36b'],lock:['WUSCH!','#c9b6ff'],golden:['GOLD!','#ffe066']};
-export function bindComicFx(root=document.getElementById('game')){const el=document.createElement('div');el.id='comic-fx';el.hidden=true;el.innerHTML='<div class="comic-panel"><b></b></div>';root.append(el);let until=0,next=0;
- const style=document.createElement('style');style.textContent=`#comic-fx{position:absolute;left:50%;top:30%;z-index:35;pointer-events:none;transform:translate(-50%,-50%)}#comic-fx[hidden]{display:none}
-#comic-fx .comic-panel{position:relative;padding:14px 22px;border:4px solid #2d2433;border-radius:6px;background-color:var(--c);background-image:radial-gradient(#0002 1.6px,transparent 1.8px);background-size:9px 9px;box-shadow:6px 6px 0 #2d2433;transform:rotate(-4deg);animation:comicPop .32s cubic-bezier(.2,1.6,.4,1)}
-#comic-fx .comic-panel::after{content:'';position:absolute;left:28px;bottom:-18px;border:9px solid transparent;border-top:14px solid #2d2433}
-#comic-fx b{display:block;font:900 30px/1 "Comic Sans MS","Chalkboard SE","Marker Felt",ui-rounded,system-ui;color:#fff;letter-spacing:.04em;-webkit-text-stroke:2px #2d2433;paint-order:stroke fill;text-shadow:3px 3px 0 #2d2433}
-@keyframes comicPop{0%{transform:rotate(-14deg) scale(.2)}100%{transform:rotate(-4deg) scale(1)}}@media(prefers-reduced-motion:reduce){#comic-fx .comic-panel{animation:none}}`;document.head.append(style);
- return {trigger(event){const w=WORDS[event];const now=performance.now();if(!w||now<next)return;next=now+2500;until=now+1300;el.querySelector('b').textContent=w[0];el.querySelector('.comic-panel').style.setProperty('--c',w[1]);el.hidden=false;const p=el.querySelector('.comic-panel');p.style.animation='none';void p.offsetWidth;p.style.animation='';},update(){if(!el.hidden&&performance.now()>until)el.hidden=true;}};}
+// Jakob 8.11.: Statt Comic-Wörtern („KRACH!“ usw.) erschrickt die Figur: Schreck-Striche rund um den Kopf
+// und ein kurzer Hüpfer mit Zittern. Höchstens einmal alle 2,5 s.
+const EVENTS=new Set(['caught','fish','blueprint','build','obstacle','lock','golden']);
+const DURATION=650;
+export function bindComicFx(root=document.getElementById('game')){
+ const el=document.createElement('div');el.id='comic-fx';el.hidden=true;
+ // Kurze Striche, strahlenförmig um die Figur (wie in Zeichentrick-Schreckmomenten).
+ const lines=[-150,-120,-90,-60,-30,-180,0].map(a=>{const r=a*Math.PI/180,c=Math.cos(r),s=Math.sin(r);return `<line x1="${(50+c*30).toFixed(1)}" y1="${(50+s*30).toFixed(1)}" x2="${(50+c*44).toFixed(1)}" y2="${(50+s*44).toFixed(1)}"/>`;}).join('');
+ el.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#3a2e3f" stroke-width="4.5" stroke-linecap="round">${lines}</g></svg>`;root.append(el);
+ const style=document.createElement('style');style.textContent=`#comic-fx{position:absolute;left:0;top:0;width:120px;height:120px;z-index:35;pointer-events:none;transform:translate(-50%,-50%)}#comic-fx[hidden]{display:none}
+#comic-fx svg{width:100%;height:100%;overflow:visible}`;document.head.append(style);
+ let start=0,next=0;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;let v=null;
+ return {
+  trigger(event){if(!EVENTS.has(event))return;const now=performance.now();if(now<next)return;next=now+2500;start=now;el.hidden=false;},
+  update(camera,character){if(el.hidden)return;const k=(performance.now()-start)/DURATION;if(k>=1){el.hidden=true;return;}{const svg=el.firstElementChild,sc=k<.18?.55+k/.18*.53:k<.55?1.08-(k-.18)/.37*.08:1+(k-.55)/.45*.12,op=k<.18?k/.18:k<.55?1:1-(k-.55)/.45;svg.style.transform=reduced?'':`scale(${sc.toFixed(3)})`;svg.style.opacity=op.toFixed(3);}
+   if(camera&&character){
+    // Schreck-Hüpfer: schnell hoch, kurz zittern, wieder landen. Die Figurposition wird jedes Bild neu gesetzt, deshalb nur aufaddieren.
+    if(!reduced){const hop=Math.sin(Math.min(1,k/.55)*Math.PI)*.35,shake=k<.55?Math.sin(k*90)*.05*(1-k/.55):0;character.position.y+=hop;character.position.x+=shake;}
+    v??=character.position.clone();v.copy(character.position);v.y+=1.1;v.project(camera);const r=root.getBoundingClientRect();
+    el.style.left=((v.x+1)/2*r.width)+'px';el.style.top=((1-v.y)/2*r.height)+'px';}
+  }
+ };
+}

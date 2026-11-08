@@ -429,6 +429,14 @@ html body :is(#area-panel, #craft-panel) .machine-bag > button {
 html body :is(#area-panel, #craft-panel) .machine-bag > button > svg { grid-column: 1; grid-row: 1 / 3; width: 28px !important; height: 28px !important; margin: 0; }
 html body :is(#area-panel, #craft-panel) .machine-bag > button > small { grid-column: 2; grid-row: 1; font-size: 11px; line-height: 1.1; margin: 0; }
 html body :is(#area-panel, #craft-panel) .machine-bag > button > b { grid-column: 2; grid-row: 2; font-size: 13px; margin: 0; }
+/* Jakob 8.11.: Auf schmalen Handys (z. B. iPhone 17) weniger Karten pro Zeile, Namen nicht mitten im Wort trennen. */
+html body :is(#area-panel, #craft-panel) .machine-bag > button > small { overflow-wrap: normal; word-break: normal; hyphens: manual; min-width: 0; }
+@media (max-width: 480px) {
+  html body :is(#area-panel, #craft-panel) .machine-bag { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 340px) {
+  html body :is(#area-panel, #craft-panel) .machine-bag { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
 
 /* Einfüllfeld niedriger. */
 html body :is(#area-panel, #craft-panel) .machine-bin { min-height: 36px !important; padding: 3px !important; }
@@ -1081,3 +1089,6 @@ html body .storage-pickup .move-row{margin-top:14px}
 #placement-mini img{display:block;width:100%;height:auto}#placement-mini i{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#e8566e;border:2px solid #fff;box-shadow:0 0 0 2px #0003}
 
 .side-title .stock-filters{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}.side-title .stock-filters button{padding:3px 8px;border-radius:12px;border:1.5px solid #e0c99c;background:#fffaf0;color:#6a5034;font:700 10.5px system-ui}.side-title .stock-filters button[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+
+/* Jakob 8.11.: Zielanzeige – Namen nicht mitten im Wort zerschneiden. */
+#goal-hud small{overflow-wrap:normal!important;word-break:normal;hyphens:auto;-webkit-hyphens:auto}
