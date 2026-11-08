@@ -4,6 +4,10 @@
 // 2. kopiert sie nach ./blob-collector (ohne eigenen Service Worker und App-Manifest, das übernimmt die Begleitapp)
 // 3. aktualisiert sw.js der Begleitapp (build-garden.mjs), damit alles offline verfügbar ist
 // Danach: git add -A && git commit && git push
+// Jakob 8.11.2026: GESPERRT. Blob Collector wird jetzt direkt hier in ./blob-collector weiterentwickelt.
+// Ein Einspielen aus BlobGame würde alle Änderungen hier überschreiben. Nur mit --erzwingen ausführen, wenn das wirklich gewollt ist.
+if(!process.argv.includes('--erzwingen')){console.error('Gesperrt: Blob Collector wird jetzt direkt im Ordner blob-collector weiterentwickelt.\nDieses Skript würde alle Änderungen dort mit dem alten Stand aus BlobGame überschreiben.\nNur wenn das wirklich gewollt ist: node update-blob-collector.mjs --erzwingen [Pfad]');process.exit(1);}
+process.argv=process.argv.filter(a=>a!=='--erzwingen');
 import fs from 'node:fs';import path from 'node:path';import {execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 const root=path.dirname(fileURLToPath(import.meta.url));
 const redesign=path.resolve(process.argv[2]??path.join(root,'..','BlobGame','redesign'));
