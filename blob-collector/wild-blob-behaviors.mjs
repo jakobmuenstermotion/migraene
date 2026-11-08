@@ -3,6 +3,8 @@ import {iceRegion,inIcePass,icePondRadius} from './ice-area.mjs';
 import {volcanoRegion,inVolcanoPass,onLava,VOLCANO_LAVA,lavaDistance} from './volcano-area.mjs';
 import {sunnyHeight,facilityFootprint} from './sunny-area.mjs';
 import {walkable} from './test-world.mjs';
+import {woodlandAt} from './woodland-regions.mjs';
+const MOSS_WOODS=new Set(['steinbach','mooswald','pilzhain']);
 import {vacuumContains} from './vacuums.mjs';
 // Wilde Blobs (Jakob 31.10., Testwerte): jede Art hat ihren eigenen Charakter, spätere Gebiete sind schwerer.
 // catch = Sekunden Saugkontakt; restless = bewegt sich auch im Sog weiter.
@@ -16,7 +18,7 @@ export const WILD_RULES={
  ash:{group:'vulkan',catch:1.5,restless:true,trait:'Trickser: macht zwei Doppelgänger aus Rauch, nur einer ist echt.'},
  lava:{group:'vulkan',catch:.8,restless:true,trait:'Lavaspringer: lässt sich nur im Sprung aus dem Lavastrom fangen.'}
 };
-export const WILD_HOMES={moss:[-23,14],forest:[-23,14],sand:[64,-3],tide:[73,13],snow:[33,-52],crystal:[45,-80],ash:[-58,40],lava:[-48,56.5]};
+export const WILD_HOMES={moss:[48,38],forest:[-23,14],sand:[64,-3],tide:[73,13],snow:[33,-52],crystal:[45,-80],ash:[-58,40],lava:[-48,56.5]};
 export function wildGroupAt(x,z){return volcanoRegion(x,z)?'vulkan':iceRegion(x,z)?'berg':coastRegion(x,z)&&x>45?'kueste':'wald';}
 export const GROUP_SPECIES={wald:['moss','forest'],kueste:['sand','tide'],berg:['snow','crystal'],vulkan:['ash','lava']};
 export function wildNature(x,z){return Math.hypot((x+6)/21,(z+7)/17)>1&&!facilityFootprint(x,z,4);}
@@ -25,6 +27,7 @@ export function blobHabitat(species,x,z){
  if(species==='snow'||species==='crystal')return iceRegion(x,z,-.6)&&!inIcePass(x,z)&&icePondRadius(x,z)>1.1;
  if(species==='ash')return volcanoRegion(x,z,-.6)&&!inVolcanoPass(x,z)&&!onLava(x,z,.4);
  if(species==='lava')return lavaDistance(x,z)<.8;
+ /* Jakob 8.11.: Moosblobs leben nur in Steinbach, Mooswald und Pilzhain. */if(species==='moss'&&!MOSS_WOODS.has(woodlandAt(x,z)?.id))return false;
  return wildNature(x,z)&&!(coastRegion(x,z)&&x>45)&&!iceRegion(x,z,1)&&!volcanoRegion(x,z,1);
 }
 const step=(s,b,x,z)=>{if(!blobHabitat(b.species,x,z)||!walkable(s,x,z,sunnyHeight(b.x,b.z)))return false;b.x=x;b.z=z;return true;};
