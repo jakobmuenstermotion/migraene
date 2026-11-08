@@ -429,6 +429,14 @@ html body :is(#area-panel, #craft-panel) .machine-bag > button {
 html body :is(#area-panel, #craft-panel) .machine-bag > button > svg { grid-column: 1; grid-row: 1 / 3; width: 28px !important; height: 28px !important; margin: 0; }
 html body :is(#area-panel, #craft-panel) .machine-bag > button > small { grid-column: 2; grid-row: 1; font-size: 11px; line-height: 1.1; margin: 0; }
 html body :is(#area-panel, #craft-panel) .machine-bag > button > b { grid-column: 2; grid-row: 2; font-size: 13px; margin: 0; }
+/* Jakob 8.11.: Auf schmalen Handys (z. B. iPhone 17) weniger Karten pro Zeile, Namen nicht mitten im Wort trennen. */
+html body :is(#area-panel, #craft-panel) .machine-bag > button > small { overflow-wrap: normal; word-break: normal; hyphens: manual; min-width: 0; }
+@media (max-width: 480px) {
+  html body :is(#area-panel, #craft-panel) .machine-bag { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 340px) {
+  html body :is(#area-panel, #craft-panel) .machine-bag { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
 
 /* Einfüllfeld niedriger. */
 html body :is(#area-panel, #craft-panel) .machine-bin { min-height: 36px !important; padding: 3px !important; }
