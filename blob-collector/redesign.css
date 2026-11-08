@@ -1089,3 +1089,6 @@ html body .storage-pickup .move-row{margin-top:14px}
 #placement-mini img{display:block;width:100%;height:auto}#placement-mini i{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#e8566e;border:2px solid #fff;box-shadow:0 0 0 2px #0003}
 
 .side-title .stock-filters{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}.side-title .stock-filters button{padding:3px 8px;border-radius:12px;border:1.5px solid #e0c99c;background:#fffaf0;color:#6a5034;font:700 10.5px system-ui}.side-title .stock-filters button[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+
+/* Jakob 8.11.: Zielanzeige – Namen nicht mitten im Wort zerschneiden. */
+#goal-hud small{overflow-wrap:normal!important;word-break:normal;hyphens:auto;-webkit-hyphens:auto}
