@@ -1,4 +1,5 @@
-﻿import {BlobFxView} from './blob-fx-view.mjs';
+﻿import './dom-guard.mjs';
+import {BlobFxView} from './blob-fx-view.mjs';
 import {bindSaleFlight} from './sale-flight.mjs';
 import {bindProductionTree} from './production-tree.mjs';
 import {showTitleIntro} from './title-intro.mjs';
