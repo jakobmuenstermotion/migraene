@@ -65,7 +65,7 @@ function closeGame(){const closing=frame;closing?.contentWindow?.postMessage({ty
 // Startet einen Tag nur mit verdienter Gartenaktion (oder setzt einen laufenden fort).
 function openGame(){window.dispatchEvent(new Event('app:check-update'));
  let b=blobDays();if(!b)return;if(!b.active){if(!blobPending(b))return;b=updateBlob(x=>{x.started++;x.active={n:x.started,gameDay:null};});}
- if(!playDialog){playDialog=node('dialog','garden-play-dialog');const head=node('header','garden-play-header');head.append(button('← Zur Begleitseite',closeGame),node('span','','Blob Collector'));playDialog.append(head);document.body.append(playDialog);playDialog.addEventListener('cancel',e=>{e.preventDefault();closeGame();});}
+ if(!playDialog){playDialog=node('dialog','garden-play-dialog');/* Jakob 8.11.: keine Kopfleiste mehr – „Zur Begleitseite“ sitzt in den Spiel-Einstellungen. */document.body.append(playDialog);playDialog.addEventListener('cancel',e=>{e.preventDefault();closeGame();});}
  frame?.remove();frame=node('iframe','garden-game-frame');frame.title='Blob Collector';frame.dataset.blobGame='1';frame.src=C.gameURL;playDialog.append(frame);playDialog.showModal();mount();
 }
 function endBlobDay(){const b=updateBlob(x=>{if(!x.active)return;x.rewards.push({id:'blob-day:'+x.active.n,kind:'water'});x.active=null;});if(!b)return;
@@ -73,6 +73,7 @@ function endBlobDay(){const b=updateBlob(x=>{if(!x.active)return;x.rewards.push(
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==frame?.contentWindow)return;const d=e.data,b=blobDays();if(!b||!d?.type)return;
  const send=m=>frame?.contentWindow?.postMessage(m,location.origin);
+ if(d.type==='blob:close'){closeGame();return;}
  if(d.type==='blob:ready'&&b.active){if(b.active.gameDay==null)send({type:'blob:start-day'});else if(d.day>b.active.gameDay)endBlobDay();else send({type:'blob:continue-day',day:b.active.gameDay});}
  if(d.type==='blob:day-started'&&b.active&&b.active.gameDay==null)updateBlob(x=>{x.active.gameDay=d.day;});
  if(d.type==='blob:day-ended'&&b.active&&d.day===b.active.gameDay)endBlobDay();
