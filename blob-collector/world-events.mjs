@@ -6,7 +6,8 @@ import {spawnForestBlob} from './forest-blobs.mjs';
 import {fishNight} from './fishing.mjs';
 // Überraschungen (Jakob 31.10., Testwerte): selten passiert draußen etwas Besonderes, nichts davon ist Pflicht.
 // Jakob 8.11.: Sternensplitter seltener – nachts nur noch mit 45 %, ein zweiter am selben Tag nur mit 4 %.
-export const EVENT_RULES={interval:[200,420],lifetime:45,lucky:6,starFirst:.45,starAgain:.04};
+// Jakob 8.11.: Besondere Ereignisse etwas seltener (vorher 200–420 s).
+export const EVENT_RULES={interval:[280,560],lifetime:45,lucky:6,starFirst:.45,starAgain:.04};
 const roll=(a,b)=>a+Math.random()*(b-a);
 function spot(s,near,far){const p=s.player;for(let t=0;t<40;t++){const a=Math.random()*Math.PI*2,d=roll(near,far),x=p.x+Math.sin(a)*d,z=p.z+Math.cos(a)*d;if(sunnyInside(x,z)&&!sunnyGapAt(x,z)&&!sunnyCollision(x,sunnyHeight(x,z),z,.5)&&!(coastRegion(x,z)&&x>coastShore(z)-1))return {x,z};}return null;}
 function drop(s,kind,x,z){const e=s.worldEvent,y=sunnyHeight(x,z)+.05,r={id:'event_'+(e.serial=(e.serial??0)+1),kind,eventItem:true,ephemeral:true,x,y,z,homeX:x,homeY:y,homeZ:z,status:'ground',progress:0,respawnAt:1e12,angle:Math.random()*6,expiresAt:s.time+EVENT_RULES.lifetime};s.resources.push(r);return r;}
