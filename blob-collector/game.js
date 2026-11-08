@@ -238,7 +238,7 @@ function updateUI(){
   textIfChanged('bag-max',' / '+capacityFor(effectiveVacuum(state)));
   const caught=state.forestBlobs?.roster.length??(state.blob.status==='caught'?1:0);if(uiCache.caught!==caught){$('blob-count').innerHTML=String(caught);uiCache.caught=caught;}
   {const scale=comfortStamina(state);if(uiCache.staminaScale!==scale){uiCache.staminaScale=scale;const bar=$('stamina-fill').parentElement;uiCache.staminaBase??=bar.offsetWidth||0;if(uiCache.staminaBase)bar.style.width=Math.min(innerWidth*.62,uiCache.staminaBase*scale)+'px';}}const energy=Math.round(state.player.stamina);if(uiCache.energy!==energy){textIfChanged('stamina-number',energy+' %');$('stamina-fill').style.width=energy+'%';$('stamina-fill').style.background=energy<20?'#c59864':'#8ca96f';uiCache.energy=energy;}
-  for(const event of state.events){comicFx?.trigger(event);
+  for(const event of state.events){/* Jakob 8.11.: Comic-Einblendungen („KRACH!“ usw.) im normalen Spiel aus. */
     if(event==='leaf' && state.time-lastLeafSound>.07){tone([440,494,554,659,740][state.total%5],.045,.007,'triangle',620);lastLeafSound=state.time;}
     if(event==='obstacle'){const target=state.obstacles.find(o=>o.clearedAt===state.time);if(target)burst(target.x,.6,target.z);tone(580,.25,.025,'sine',1000);}
     if(event==='lock')tone(220,.35,.035,'sine',660);

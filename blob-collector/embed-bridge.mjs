@@ -5,6 +5,7 @@
 //                {type:'blob:day-started', day}
 //                {type:'blob:day-ended', day}   Figur hat geschlafen (Tag `day` ist vorbei)
 //                {type:'blob:areas', coast, ice} welche Gebiete schon erreicht wurden
+//                {type:'blob:close'}  Knopf „Zur Begleitseite“ in den Einstellungen
 import {fillBatteryBank} from './battery-bank.mjs';
 const embedded=new URLSearchParams(location.search).get('embedded')==='1'&&window.parent!==window;
 if(embedded){
