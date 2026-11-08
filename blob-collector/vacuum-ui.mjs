@@ -72,7 +72,7 @@ export function bindVacuumUI({getState,onChoose,onRefill,onOpen,onUpgrade,onRese
     $('skill-buy').addEventListener('click',()=>{if(skillStatus(getState(),selected,selectedNode)!=='available')return;const scroll=panel.scrollTop;onUpgrade(selected,selectedNode);previous='';update();panel.scrollTop=scroll;panel.querySelector(`[data-node="${selectedNode}"]`).focus({preventScroll:true});});
   }
   function update(){
-    const bank=batteryBank(getState());autoButton.hidden=!bank.unlocked.includes('automatic');autoButton.textContent='Automatik '+(bank.automatic?'an':'aus');autoButton.setAttribute('aria-pressed',String(bank.automatic));
+    const bank=batteryBank(getState());autoButton.hidden=!bank.unlocked.includes('automatic');{const label='Automatik '+(bank.automatic?'an':'aus');if(autoButton.textContent!==label)autoButton.textContent=label;}autoButton.setAttribute('aria-pressed',String(bank.automatic));
     const state=getState(),mode=effectiveVacuum(state),theme=document.body.dataset.hud,hud=mode.profileKey+':'+theme+':'+state.suctionEnabled+':'+Boolean(state.charging)+':'+bank.automatic;
     buttons.forEach((b,i)=>{const owned=ownsVacuum(state,VACUUMS[i].id);b.classList.toggle('unbuilt',!owned);b.setAttribute('aria-disabled',String(!owned));});
     if(theme!==previousTheme){previousTheme=theme;buttons.forEach((b,i)=>b.firstElementChild.innerHTML=vacuumArtwork(VACUUMS[i].id,theme));}
