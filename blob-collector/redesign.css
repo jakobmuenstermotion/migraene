@@ -1127,3 +1127,8 @@ html body .gear-bonuses p,html body .gear-bonuses .gear-total{color:#4b5e3f!impo
 html body #goal-hud.compact header button{min-height:0!important;min-width:0!important;width:auto!important;height:auto!important;padding:2px 5px!important;font-size:12px!important}
 html body #goal-hud.compact header strong{font-size:10.5px!important}
 html body #goal-hud.compact{max-width:min(210px,calc(100vw - 24px))}
+/* Jakob 9.11.: kompakte Zielanzeige als schmale Spalte statt breiter Leiste. */
+html body #goal-hud.compact{width:auto!important;max-width:128px;min-width:0}
+html body #goal-hud.compact>div{flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch;gap:2px!important;padding:3px 4px 4px!important}
+html body #goal-hud.compact>div>span{justify-content:flex-start!important;gap:4px!important}
+html body #goal-hud.compact header strong{max-width:72px}
