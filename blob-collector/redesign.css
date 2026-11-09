@@ -1112,3 +1112,18 @@ html body #craft-panel[data-page=market] .market-stock{max-height:170px}
 .gear-bonuses p{margin:4px 0 0}
 html body .gear-bonuses p,html body .gear-bonuses .gear-total{color:#4b5e3f!important;opacity:1!important}
 .gear-bonuses .gear-total{padding-top:4px;border-top:1px solid #c6ad7466}
+
+/* Jakob 9.11.: kompakte Zielanzeige – nur Icons und Zähler. */
+#goal-hud #goal-toggle{border:0;background:none;font:inherit;font-size:14px;line-height:1;padding:4px 6px;color:inherit;cursor:pointer}
+#goal-hud.compact{width:auto!important;max-width:min(240px,calc(100vw - 24px));border-radius:14px}
+#goal-hud.compact>header{padding:1px 2px 1px 8px}
+#goal-hud.compact header strong{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+#goal-hud.compact>div{display:flex!important;flex-wrap:wrap;gap:3px;padding:4px 5px}
+#goal-hud.compact>div>span{flex-direction:row!important;gap:2px;padding:2px 4px!important;border-radius:8px}
+#goal-hud.compact small{display:none!important}
+#goal-hud.compact i{width:20px!important;height:20px!important}
+#goal-hud.compact .goal-coin{font-size:17px!important;line-height:20px}
+#goal-hud.compact b{font-size:9.5px!important;margin:0!important;white-space:nowrap}
+html body #goal-hud.compact header button{min-height:0!important;min-width:0!important;width:auto!important;height:auto!important;padding:2px 5px!important;font-size:12px!important}
+html body #goal-hud.compact header strong{font-size:10.5px!important}
+html body #goal-hud.compact{max-width:min(210px,calc(100vw - 24px))}
