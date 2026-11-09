@@ -1097,3 +1097,6 @@ html body .storage-pickup .move-row{margin-top:14px}
 body{--hud-shift:0px}
 html body #blob-info,html body #feed-blob,html body #fish-bait,html body #home-actions,html body #home-computer,html body #mission-board-btn,html body #pet-blob,html body #sprint,html body #world-interact,html body .vacuum-dock{translate:calc(var(--hud-shift) * -1) 0}
 html body.hud-left #blob-info,html body.hud-left #feed-blob,html body.hud-left #fish-bait,html body.hud-left #home-actions,html body.hud-left #home-computer,html body.hud-left #mission-board-btn,html body.hud-left #pet-blob,html body.hud-left #sprint,html body.hud-left #world-interact,html body.hud-left .vacuum-dock{translate:var(--hud-shift) 0}
+/* Jakob 9.11.: Marktstand höher, Kachelfläche etwas flacher – „einlegen“ und „Sofort verkaufen“ ohne Scrollen erreichbar. */
+html body #craft-panel.craft-floating[data-page=market]{max-height:calc(100dvh - 190px)}
+html body #craft-panel[data-page=market] .market-stock{max-height:170px}

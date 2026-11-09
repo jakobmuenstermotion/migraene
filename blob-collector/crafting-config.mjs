@@ -287,10 +287,11 @@ CRAFT_RECIPES.stovebuild.inputs={stoneslab:3,stonesocket:1,board:1};
 for(const id of ['wintertea','fishsoup','smokedfish']){const r=CRAFT_RECIPES[id];if(!r)continue;WORKSHOPS[r.workshop].recipes=WORKSHOPS[r.workshop].recipes.filter(x=>x!==id);r.workshop='stove';WORKSHOPS.stove.recipes.push(id);}
 
 // Jakob 5.11.: Nähmaschine: normaler Rucksack 1.500 und 2.000 (zusätzlich zu den Tankstufen).
-for(const [n,name,inputs,coins,seconds] of [[1,'Rucksack · 1.500 Plätze',{fibre:12,rope:4,woodpanel:2},350,60],[2,'Rucksack · 2.000 Plätze',{fabric:8,rope:6,composite:3},1200,90]]){CRAFT_RECIPES['normalbag'+n]={workshop:'sewingmachine',name,inputs,output:'normalbag'+n,quantity:1,seconds,coins,normalBag:n};WORKSHOPS.sewingmachine.recipes.push('normalbag'+n);}
+/* Jakob 9.11.: feste Preise (Rucksäcke, Kopflampe) ca. 10 % günstiger: 350→320, 1200→1100, 600→540. */
+for(const [n,name,inputs,coins,seconds] of [[1,'Rucksack · 1.500 Plätze',{fibre:12,rope:4,woodpanel:2},320,60],[2,'Rucksack · 2.000 Plätze',{fabric:8,rope:6,composite:3},1100,90]]){CRAFT_RECIPES['normalbag'+n]={workshop:'sewingmachine',name,inputs,output:'normalbag'+n,quantity:1,seconds,coins,normalBag:n};WORKSHOPS.sewingmachine.recipes.push('normalbag'+n);}
 
 // Jakob 6.11.: Kopflampe (Naehmaschine, spaete Anleitung, Testrezept). Kein Kleidungsplatz: wird zusammen mit jedem Hut getragen und leuchtet automatisch, sobald es dunkel wird.
-CRAFT_RECIPES.headlamp={workshop:'sewingmachine',name:'Kopflampe',inputs:{fabric:2,polishedglass:2,ironfitting:1,mechanical:2},output:'headlamp',quantity:1,seconds:12,coins:600,headlamp:true};WORKSHOPS.sewingmachine.recipes.push('headlamp');
+CRAFT_RECIPES.headlamp={workshop:'sewingmachine',name:'Kopflampe',inputs:{fabric:2,polishedglass:2,ironfitting:1,mechanical:2},output:'headlamp',quantity:1,seconds:12,coins:540,headlamp:true};WORKSHOPS.sewingmachine.recipes.push('headlamp');
 
 // Jakob 7.11.: Gebietsmöbel. Jedes Gebiet hat mindestens 5 passende Möbel mit dem Gebiet im Namen und mindestens eine Lampe.
 // Neu: Wald-Lagerfeuer, Vulkan-Feuerschale, Vulkanzaun (Testrezepte). Wirkung: area-furniture.mjs.
