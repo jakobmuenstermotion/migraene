@@ -1,5 +1,5 @@
 // Münzpreise (Jakob 31.10.): darüber flacher, damit sie zum gedämpften Warenpreis passen. COIN_CURVE dreht die Kurve,
 // PRICE_CUT (Jakob 1.11.: alles deutlich günstiger, nicht stundenlang sammeln) senkt alle Münzpreise, MATERIAL_CUT alle Materialmengen.
-export const COIN_CURVE=.6,PRICE_CUT=.45,MATERIAL_CUT=.6; // Jakob 9.11.: Münzpreise nochmals ca. 10 % günstiger (vorher .5); Gekauftes wird nicht erstattet.
+export const COIN_CURVE=.6,PRICE_CUT=.405,MATERIAL_CUT=.6; // Jakob 9.11.: Münzpreise zweimal ca. 10 % günstiger (.5 → .45 → .405); Gekauftes wird nicht erstattet.
 export function softCoins(c){if(!Number.isFinite(c)||c<=0)return c;const v=(c<=500?c:500*Math.pow(c/500,COIN_CURVE))*PRICE_CUT,step=v>=2000?50:v>=200?10:5;return Math.max(5,Math.round(v/step)*step);}
 export function cheaper(cost,factor=MATERIAL_CUT){for(const k of Object.keys(cost??{}))cost[k]=Math.max(1,Math.ceil(cost[k]*factor));return cost;}
