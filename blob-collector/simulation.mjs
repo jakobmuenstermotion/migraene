@@ -11,7 +11,7 @@ import {advanceButterflies} from './butterflies.mjs';
 import {comfortStamina} from './comfort.mjs';
 import {advanceWorldEvents} from './world-events.mjs';
 import {setHomeLevel} from './home-space.mjs';
-import {rootContactPoint} from './root-contact.mjs';
+import {rootContactPoint,edgeContactPoint} from './root-contact.mjs';
 import {updateCaveTraversal} from './cave-systems.mjs';
 import {advanceGoldenLeaf} from './golden-leaf.mjs';
 import {inServiceZone} from './sunny-area.mjs';
@@ -95,7 +95,7 @@ export function step(state,input,dt){syncSites(state);setHomeLevel(state);
   state.toolWorking=false;state.autoPush=false;
   for(const o of state.obstacles){if(o.renewable&&o.cleared&&state.time>=(o.respawnAt??Infinity)){o.cleared=false;o.progress=0;if(o.tool==='ground')wanderBuried(o);}if(o.cleared)continue;
     const dx=o.x-p.x,dz=o.z-p.z,d=Math.hypot(dx,dz);
-    const working=(o.route&&o.tool==='power'?state.suctionEnabled&&state.inputSuction!==false&&!state.charging&&state.battery.charge>0:active)&&o.tool===mode.id&&(o.depth??0)<=mode.digDepth&&(o.size??1)<=(mode.obstacleSize??1)&&vacuumContains(p,o.route&&(o.tool==='ground'||o.kind==='icewall'||o.kind==='lavawall')?rootContactPoint(o,p):o,mode)&&(o.tool!=='ground'||o.route||suctionCount(state)+reservedBagSlots(state)+(mode.doubleChance>0?2:1)<=capacity);
+    const working=(o.route&&o.tool==='power'?state.suctionEnabled&&state.inputSuction!==false&&!state.charging&&state.battery.charge>0:active)&&o.tool===mode.id&&(o.depth??0)<=mode.digDepth&&(o.size??1)<=(mode.obstacleSize??1)&&vacuumContains(p,o.route&&(o.tool==='ground'||o.kind==='icewall'||o.kind==='lavawall')?rootContactPoint(o,p):o.route&&o.tool==='fan'&&o.gateRadius?edgeContactPoint(o,p):o,mode)&&(o.tool!=='ground'||o.route||suctionCount(state)+reservedBagSlots(state)+(mode.doubleChance>0?2:1)<=capacity);
     if(working)state.toolWorking=true;
     o.progress=working?Math.min(1,Math.max(o.tool==='ground'?.03:0,o.progress+dt*mode.work/(o.tool==='ground'&&!o.route?DIG_SECONDS[o.depth??0]:o.seconds))):o.tool==='ground'?o.progress:Math.max(0,o.progress-dt*.3);
     if(o.progress>=1){o.cleared=true;o.clearedAt=state.time;if(o.renewable)o.respawnAt=state.time+480+(state.lootSeed%421);if(o.tool==='ground'&&(!o.route||suctionCount(state)+reservedBagSlots(state)+2<=capacity))collectBuried(state,o,mode);awardToolXP(state,mode.id,500);state.events.push('obstacle');continue;}
