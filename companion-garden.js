@@ -66,7 +66,7 @@ function mountPlant(place,p){
  if(p?.stage===0){if(place.querySelector('[data-seed]'))return;const id='soil-cut-'+(++seedSerial);place.innerHTML='<svg data-seed="true" viewBox="0 0 100 70" aria-hidden="true"><defs><clipPath id="'+id+'"><rect width="100" height="57"/></clipPath></defs><ellipse cx="68" cy="58" rx="25" ry="5" fill="#6f513c" opacity=".22"/><ellipse cx="68" cy="55" rx="7" ry="12" transform="rotate(20 68 55)" fill="#a57d50" clip-path="url(#'+id+')"/><path d="M47 58 Q66 54 88 58" fill="none" stroke="#76573f" stroke-width="3" stroke-linecap="round"/></svg>';return;}
  if(place.querySelector('[data-seed]'))place.replaceChildren();renderer.mount(place,p);
 }
-function closeGame(){const closing=frame;closing?.contentWindow?.postMessage({type:'blob:save'},location.origin);if(playDialog?.open)playDialog.close();collectRewards();mount();setTimeout(()=>{if(frame===closing&&!playDialog?.open){closing?.remove();frame=null;}},400);}
+function closeGame(){setTimeout(()=>window.dispatchEvent(new Event('app:check-update')),1200);const closing=frame;closing?.contentWindow?.postMessage({type:'blob:save'},location.origin);if(playDialog?.open)playDialog.close();collectRewards();mount();setTimeout(()=>{if(frame===closing&&!playDialog?.open){closing?.remove();frame=null;}},400);}
 // Startet einen Tag nur mit verdienter Gartenaktion (oder setzt einen laufenden fort).
 function openGame(){window.dispatchEvent(new Event('app:check-update'));
  let b=blobDays();if(!b)return;if(!b.active){if(!blobPending(b))return;b=updateBlob(x=>{x.started++;x.active={n:x.started,gameDay:null};});}
@@ -75,6 +75,8 @@ function openGame(){window.dispatchEvent(new Event('app:check-update'));
 }
 function endBlobDay(){const b=updateBlob(x=>{if(!x.active)return;x.rewards.push({id:'blob-day:'+x.active.n,kind:'water'});x.active=null;});if(!b)return;
  mode=ledger?.tokens.some(t=>t.kind==='water')?'water':null;selection=null;notice=mode?'Tippe auf die Pflanze, die du gießen möchtest.':'Ein schöner Tag geht zu Ende.';closeGame();toolbar?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'center'});}
+/* Jakob 15.11.: Ein App-Update lädt die Seite neu und würde ein laufendes Spiel mitten drin schließen (Sprung zurück zur Begleitseite). Solange das Spiel offen ist, wird das Update zurückgestellt und nach dem Schließen angewendet. */
+window.addEventListener('app:before-update',e=>{if(playDialog?.open)e.preventDefault();});
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==frame?.contentWindow)return;const d=e.data,b=blobDays();if(!b||!d?.type)return;
  const send=m=>frame?.contentWindow?.postMessage(m,location.origin);
