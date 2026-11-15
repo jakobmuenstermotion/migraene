@@ -4,13 +4,21 @@ import {CLOTHING} from './living-config.mjs';
 import {clothingArtwork} from './gear-ui.mjs';
 import * as T from './vendor/three.module.js';
 import {ScenicBatch} from './scenic-geometry.mjs';
-import {sunnyHeight,sunnyInside,mossHedgeAt} from './sunny-area.mjs';
+import {sunnyHeight,sunnyInside,mossHedgeAt,MOOS_PATH} from './sunny-area.mjs';
 import {BUTTERFLIES,wingSVG} from './butterflies.mjs';
 import {FISH} from './fishing.mjs';
 import {fishArtwork} from './fishing-view.mjs';
 import {butterflyArtwork} from './butterflies.mjs';
 import {formatCoins} from './game-balance.mjs';
 // Hecke an der Westgrenze des Mooswalds: zeigt, wo die Kollision liegt.
+// Jakob 15.11.: Wegstreifen vom Strand in den Mooswald – flache Erdspur, folgt dem Gelände.
+export class MoosPathView{
+ constructor(scene){const pts=[];for(let i=0;i<MOOS_PATH.length-1;i++){const [ax,az]=MOOS_PATH[i],[bx,bz]=MOOS_PATH[i+1],n=Math.max(2,Math.ceil(Math.hypot(bx-ax,bz-az)/.6));for(let k=0;k<n;k++)pts.push([ax+(bx-ax)*k/n,az+(bz-az)*k/n]);}pts.push(MOOS_PATH.at(-1));
+  const pos=[],idx=[],col=[],W=1.15;for(let i=0;i<pts.length;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(pts.length-1,i+1)],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1,nx=-dz/l*W,nz=dx/l*W,[x,z]=pts[i],wob=(Math.sin(i*1.7)*.18);for(const side of [-1,1]){const px=x+nx*side*(1+wob*side),pz=z+nz*side*(1+wob*side);pos.push(px,sunnyHeight(px,pz)+.14,pz);const t=.5+.5*Math.sin(i*2.3+side);col.push(.62+.06*t,.5+.05*t,.34+.04*t);}if(i<pts.length-1){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2);}}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+  this.mesh=new T.Mesh(g,new T.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true,polygonOffset:true,polygonOffsetFactor:-6,polygonOffsetUnits:-6}));this.mesh.receiveShadow=true;this.root=new T.Group();this.root.add(this.mesh);scene.add(this.root);}
+ update(s){this.root.visible=!s.testWorld.enabled&&!s.home?.interior&&!s.nursery?.interior;}
+}
 export class MossHedgeView{
  constructor(scene){const b=new ScenicBatch(),leaf=new T.IcosahedronGeometry(1,0);let n=0;for(let i=0;i<260;i++){const a=i/260*Math.PI*2;let r=1;for(let k=0;k<3;k++){const x=48+Math.cos(a)*23*r,z=38+Math.sin(a)*19*r;r=1+.035*Math.sin(x*.4+z*.3);}const x=48+Math.cos(a)*23*r,z=38+Math.sin(a)*19*r;if(!mossHedgeAt(x,z,.01)||!sunnyInside(x,z))continue;n++;const y=sunnyHeight(x,z),seed=Math.sin(i*12.9)*.5+.5,h=.75+seed*.45;b.add(leaf,['#3f6f42','#4c8049','#35603a'][i%3],x,y+h*.55,z,.62+seed*.2,h*.62,.62+(1-seed)*.2,seed,i,0);b.add(leaf,['#5f9a56','#6fa85f'][i%2],x+Math.sin(i)*.28,y+h*.95,z+Math.cos(i)*.28,.36,.3,.36,0,i,0);if(i%5===0)b.add(leaf,'#8c9186',x+.25,y+.14,z+.3,.26,.2,.24,seed,i,0);}
   this.root=new T.Group();scene.add(this.root);if(n)b.finish(this.root);leaf.dispose();}
