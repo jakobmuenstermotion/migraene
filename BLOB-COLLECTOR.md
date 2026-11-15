@@ -40,3 +40,11 @@ git commit -m "Blob Collector aktualisiert"
 git push
 ```
 Das Skript baut `BlobGame/redesign` (über `tools/build-deploy.mjs`) und kopiert das Ergebnis nach `blob-collector/`. Dabei entfernt es den eigenen Service Worker und das Manifest des Spiels und erneuert `sw.js` der App (`build-garden.mjs`). Optional nimmt es einen anderen Spielordner als Argument.
+
+## Schutz vor Spielstand-Verlust (seit 15.11.2026)
+- **Nie stillschweigend überschreiben:** Lässt sich ein vorhandener Spielstand nicht laden (Fehler/unbekannte Version), legt das Spiel eine Rettungskopie an (`blob-collector-rescue`), blockiert das Speichern und fragt nach (Datei sichern, Sicherung laden, neu anfangen).
+- **Automatische Sicherungen:** Beim Schlafengehen (neuer Spieltag) und beim ersten Start werden drei rotierende Sicherungen angelegt (`blob-collector-backup-1..3`). Fehlt der Spielstand, aber eine Sicherung ist da, bietet das Spiel an, sie zurückzuholen.
+- **Datei-Erinnerung:** Nach dem Schlafen fragt das Spiel alle 3 Tage, ob der Spielstand als Datei gesichert werden soll (Teilen-Menü, z. B. iCloud Drive). „Spielstand laden“ in den Einstellungen spielt die Datei zurück.
+- **Dauerhafter Speicher:** Beim Start wird `navigator.storage.persist()` angefragt (iOS entscheidet selbst).
+- **Begleitseite:** Journal und Blob-Tage werden bei jedem Schreiben zusätzlich in `mt-companion-backup` gespiegelt und bei Verlust daraus zurückgeholt. Pflanzen auf den Knöpfen gibt es nicht mehr.
+- **Updates:** Die App prüft beim Start, beim Zurückkehren und alle 10 Minuten auf eine neue Version und lädt nach dem Speichern selbst neu.
