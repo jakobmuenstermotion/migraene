@@ -17,7 +17,7 @@ import {groundAt,collides} from './test-world.mjs';
 export const SPECIAL_RULES={
  storage:{load:[0,50,250,700,1000],stations:[0,1,2,4,99],stockRuns:5},
  treasure:{carry:[0,1,3,5,8],dig:[0,30,22,15,10]},/* Jakob 7.11.: ein Weilchen graben */
- pile:{radius:[0,5,12,25,32],perPile:[0,25,120,400,600],carry:[0,4,10,20,28]},
+ pile:{/* Jakob 15.11.: Reichweite erhöht, vor allem klein (vorher 5/12/25/32 m) */radius:[0,10,16,28,36],perPile:[0,25,120,400,600],carry:[0,4,10,20,28]},
  helper:{bonus:[0,.15,.4,.75,1]},
  portal:{range:[0,60,120,Infinity,Infinity],cooldown:[0,45,20,5,0],points:[0,2,2,2,3]},
  sale:{perMinute:[0,50,200,500,800],trip:[0,20,60,150,250],kinds:[0,3,5,8,Infinity],bonus:[0,0,.07,.15,.2]}
