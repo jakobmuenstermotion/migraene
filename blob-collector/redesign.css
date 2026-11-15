@@ -1132,3 +1132,9 @@ html body #goal-hud.compact{width:auto!important;max-width:128px;min-width:0}
 html body #goal-hud.compact>div{flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch;gap:2px!important;padding:3px 4px 4px!important}
 html body #goal-hud.compact>div>span{justify-content:flex-start!important;gap:4px!important}
 html body #goal-hud.compact header strong{max-width:72px}
+
+/* Jakob 15.11.: Sprinten durch Weiterziehen des Joysticks. Äußerer Ring = Sprintbereich; der Sprintknopf entfällt in dieser Einstellung. */
+body.sprint-stick #sprint{display:none!important}
+body.sprint-stick #joystick:after{content:'';position:absolute;inset:-44px;border:2px dashed #f5ffde66;border-radius:50%;pointer-events:none;transition:border-color .12s,background-color .12s}
+body.sprint-stick #joystick.sprinting:after{border:3px solid #ffe08acc;background:#ffe08a22}
+body.sprint-stick #joystick.sprinting i{box-shadow:0 0 0 6px #ffe08a88}
