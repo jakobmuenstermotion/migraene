@@ -34,11 +34,12 @@ export function bindSaveSafety({getState,storage,root=document.getElementById('g
  const modal=document.createElement('section');modal.id='save-safety';modal.hidden=true;modal.setAttribute('role','alertdialog');modal.setAttribute('aria-modal','true');root.append(modal);
  const banner=document.createElement('aside');banner.id='save-banner';banner.hidden=true;banner.setAttribute('role','status');root.append(banner);
 
- const card=(title,paragraphs,buttons)=>{
+ const card=(title,paragraphs,buttons,opts={})=>{
   modal.replaceChildren();const c=document.createElement('div');c.className='ss-card';const h=document.createElement('h2');h.textContent=title;c.append(h);
-  for(const t of paragraphs){const p=document.createElement('p');p.textContent=t;if(t.startsWith('Hinweis'))p.className='ss-note';c.append(p);}
-  for(const [label,kind,fn] of buttons){const b=document.createElement('button');b.type='button';b.textContent=label;if(kind)b.className=kind;b.addEventListener('click',fn);c.append(b);}
-  modal.append(c);modal.hidden=false;
+  for(const t of paragraphs){const p=document.createElement('p');p.textContent=t;if(t.startsWith('Hinweis'))p.className='ss-note';if(opts.mono&&t===opts.mono)p.style.cssText='font:700 19px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.05em;text-align:center;padding:10px;border-radius:12px;background:#fff8e6;user-select:all;-webkit-user-select:all';c.append(p);}
+  let input=null;if(opts.input){input=document.createElement('input');input.type='text';input.autocomplete='off';input.autocapitalize='characters';input.spellcheck=false;input.placeholder=opts.input.placeholder??'';input.style.cssText='display:block;width:100%;box-sizing:border-box;min-height:46px;margin:8px 0 0;padding:8px 12px;border-radius:14px;border:2px solid #b9a47c;background:#fff;font:700 17px ui-monospace,Menlo,monospace;letter-spacing:.05em;text-transform:uppercase';c.append(input);}
+  for(const [label,kind,fn] of buttons){const b=document.createElement('button');b.type='button';b.textContent=label;if(kind)b.className=kind;b.addEventListener('click',()=>fn(input?.value??''));c.append(b);}
+  modal.append(c);modal.hidden=false;if(input)setTimeout(()=>input.focus(),50);
  };
  const close=()=>{modal.hidden=true;modal.replaceChildren();};
 
@@ -80,9 +81,11 @@ export function bindSaveSafety({getState,storage,root=document.getElementById('g
   },
   /** Nach jedem erfolgreichen Speichern aufrufen: neuer Spieltag = geschlafen → Sicherung + Erinnerung. */
   afterSave(){
-   const s=getState(),day=s.round?.day??1;
-   if(lastDay!==null&&day>lastDay){backupProgress(storage,'schlafen');offerExport();}
-   lastDay=day;
+   const s=getState(),day=s.round?.day??1;let slept=false;
+   if(lastDay!==null&&day>lastDay){backupProgress(storage,'schlafen');offerExport();slept=true;}
+   lastDay=day;return slept;
   },
+  /** Gemeinsamer Dialog für andere Module (z. B. Cloud-Sync). */
+  card,close,isOpen:()=>!modal.hidden,
  };
 }

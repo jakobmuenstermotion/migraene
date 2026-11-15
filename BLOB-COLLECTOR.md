@@ -48,3 +48,10 @@ Das Skript baut `BlobGame/redesign` (über `tools/build-deploy.mjs`) und kopiert
 - **Dauerhafter Speicher:** Beim Start wird `navigator.storage.persist()` angefragt (iOS entscheidet selbst).
 - **Begleitseite:** Journal und Blob-Tage werden bei jedem Schreiben zusätzlich in `mt-companion-backup` gespiegelt und bei Verlust daraus zurückgeholt. Pflanzen auf den Knöpfen gibt es nicht mehr.
 - **Updates:** Die App prüft beim Start, beim Zurückkehren und alle 10 Minuten auf eine neue Version und lädt nach dem Speichern selbst neu.
+
+## Cloud-Sync zwischen Geräten (Supabase, seit 15.11.2026)
+Einstellungen im Spiel → „Cloud-Sync (iPhone & iPad)“. Das erste Gerät erstellt einen 20-stelligen Sync-Code, weitere Geräte verbinden sich damit und laden den Stand.
+- **Einrichtung (einmalig):** `supabase-setup.sql` im Supabase-SQL-Editor ausführen. Danach den öffentlichen Schlüssel („anon“/„publishable“) in `blob-collector/cloud-config.mjs` bei `key` eintragen. NIE den „service_role“-/„secret“-Schlüssel eintragen.
+- **Sicherheit:** Die Tabelle ist für die API gesperrt; Zugriff nur über `save_get`/`save_put`/`save_delete` mit dem Code. Codes lassen sich nicht auflisten. Gespeichert wird nur der Spielstand.
+- **Ablauf:** Hochgeladen wird beim Schlafengehen, beim Verlassen der App und alle 5 Minuten (wenn sich etwas geändert hat). Beim Start prüft das Spiel, ob die Cloud einen neueren Stand hat, und fragt nach. Der Server lehnt Hochladen ab, wenn ein anderes Gerät inzwischen weitergespielt hat (Vergleich über `p_base`); dann entscheidet der Spieler. Vor jedem Einspielen eines Cloud-Stands wird der lokale Stand automatisch gesichert.
+- **Begleitseite:** Jedes Gerät zählt seine Gartentage selbst (Einträge werden pro Gerät gespeichert).
