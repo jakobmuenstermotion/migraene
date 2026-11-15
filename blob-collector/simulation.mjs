@@ -36,7 +36,7 @@ import {createFishing,updateFishing} from './fishing.mjs';
 import {createSaugerSystems,activeSuction,prepareFlight,advanceAnchor,updateAdvanced,collectionReward,finishReward,enabledMaterial,slowBlob} from './sauger-systems.mjs';
 import {capacityFor,takeBag,reservedBagSlots} from './inventory.mjs';
 import {groundAt,walkable,collides} from './test-world.mjs';
-import {initializeSunny,sunnyLeafPoint,sunnyHeight,storageTarget,sunnyInside,SUNNY,MOOS_PATH_ENTRY} from './sunny-area.mjs';
+import {initializeSunny,sunnyLeafPoint,sunnyHeight,storageTarget,sunnyInside,SUNNY} from './sunny-area.mjs';
 import {volcanoRegion} from './volcano-area.mjs';
 export const CONFIG = Object.freeze({capacity:3000, leafCount:4800, leafCellSize:2.5, stackLayers:30, speed:3.3, sprintMultiplier:1.6, sprintDuration:3.6, regen:25, regenDelay:.8, suctionRadius:2.35, suctionHalfAngle:Math.PI*.37, blobRadius:1.9, captureSeconds:1.05, worldX:11.4, worldZ:8.6, leafRespawn:RESOURCE_RULES.leaf.regen[0], leafRespawnSpread:RESOURCE_RULES.leaf.regen[1]-RESOURCE_RULES.leaf.regen[0], leafFallSeconds:3, maxReturningLeaves:64, windLeaves:56, basketX:-6.8, basketZ:4.4, basketY:.6, unloadRadius:2.35, unloadHalfAngle:Math.PI*.28, unloadSeconds:2, unloadPackets:24, deliverySeconds:.38, nozzleOffset:.984, nozzleY:.42});
 export function randomSource(seed=42){return ()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};}
@@ -92,7 +92,6 @@ export function step(state,input,dt){syncSites(state);setHomeLevel(state);
     if(state.testWorld.enabled||state.area==='sunny'){if((state.area!=='sunny'||state.testWorld.enabled||groundAt(state,nx,nz)!==null||(state.flight.active&&sunnyInside(nx,nz)))&&(state.flight.active?!collides(state,nx,p.y,nz):walkable(state,nx,nz,p.y))){p.x=nx;p.z=nz;if(!state.flight.active)p.y=groundAt(state,nx,nz);}if(state.testWorld.enabled){p.x=Math.max(-11.4,Math.min(25,p.x));p.z=Math.max(-8,Math.min(8,p.z));}}else{p.x=nx;p.z=nz;constrain(p);}if(aimMag<=.05)p.angle=approachAngle(p.angle,Math.atan2(x,z),1-Math.exp(-dt*16));}
   updateHomeTraversal(state);updateNurseryTraversal(state);updateCaveTraversal(state);
   advanceTrails(state,trailX,trailZ,dt,state.flight.active||pullingAnchor);
-  /* Jakob 15.11.: Eingang am Strand zum Mooswald – einmal betreten, bleibt der Wald offen. */if(state.area==='sunny'&&!state.builtSites?.mooswaldPath&&Math.hypot(p.x-MOOS_PATH_ENTRY.x,p.z-MOOS_PATH_ENTRY.z)<MOOS_PATH_ENTRY.r){(state.builtSites??={}).mooswaldPath=true;state.events.push('route');}
   state.toolWorking=false;state.autoPush=false;
   for(const o of state.obstacles){if(o.renewable&&o.cleared&&state.time>=(o.respawnAt??Infinity)){o.cleared=false;o.progress=0;if(o.tool==='ground')wanderBuried(o);}if(o.cleared)continue;
     const dx=o.x-p.x,dz=o.z-p.z,d=Math.hypot(dx,dz);

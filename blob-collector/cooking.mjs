@@ -8,6 +8,8 @@ export const MEALS={
  fishstew:{name:'Fischeintopf',speed:.25,seconds:360}
 };
 export const SNACKS={blobcookie:{name:'Blobkeks',friend:2},fishbite:{name:'Fischhäppchen',friend:4}};
+// Marmelade (Jakob 16.11.): je 10 Früchte, wird teuer verkauft (sale = Münzen pro Glas).
+export const JAMS={fruitjam:{name:'Obstmarmelade',fruit:'fruit',sale:30,color:'#e0703a'},palmjam:{name:'Palmfrucht-Marmelade',fruit:'palmfruit',sale:40,color:'#a97c55'},cactusjam:{name:'Kaktusfeigen-Marmelade',fruit:'cactusfruit',sale:45,color:'#d8456b'},glowjam:{name:'Leuchtfrucht-Marmelade',fruit:'glowfruit',sale:70,color:'#f2c965'}};
 export const SNACK_RULES={perDay:3};
 export const BAIT={id:'blobbait',name:'Blob-Köder'};
 export const STOVE_RECIPES={
@@ -18,7 +20,8 @@ export const STOVE_RECIPES={
  fishbite:{inputs:{bachflosse:1,moss:4},seconds:20},
  blobbait:{inputs:{waldcoin:1,amber:1,rareflower:2,essence:1},seconds:60}
 };
-export const FOOD_NAMES=Object.fromEntries([...Object.entries(MEALS),...Object.entries(SNACKS)].map(([id,a])=>[id,a.name]).concat([[BAIT.id,BAIT.name]]));
+for(const [id,j] of Object.entries(JAMS))STOVE_RECIPES[id]={inputs:{[j.fruit]:10},seconds:30};
+export const FOOD_NAMES=Object.fromEntries([...Object.entries(MEALS),...Object.entries(SNACKS)].map(([id,a])=>[id,a.name]).concat([[BAIT.id,BAIT.name]],Object.entries(JAMS).map(([id,j])=>[id,j.name])));
 
 // Eine Mahlzeit auf einmal; eine neue ersetzt die alte, wenn sie stärker ist oder die alte fast vorbei ist.
 export function eatMeal(s,id){const m=MEALS[id];if(!m||!removeMaterial(s,id,1))return false;s.mealBoost={id,speed:m.speed,until:s.time+m.seconds};s.events?.push('eat');return true;}

@@ -35,7 +35,7 @@ export function siteNearby(s){if(s.area!=='sunny'||s.nursery?.interior||s.testWo
 export function switchNearby(s){if(s.cave?.interior||!s.builtSites?.coreActivate)return false;const p=CORE_AT.switch;return Math.hypot(s.player.x-p.x,s.player.z-p.z)<3.2;}
 export function buildSite(s,id){const site=SITES.find(x=>x.id===id);if(!site||siteBuilt(s,id)||siteNearby(s)?.id!==id||!canBuildWithStock(s,site.cost,0)||!payConstruction(s,site.cost,0))return false;(s.builtSites??={})[id]=true;if(id==='iceDrill'||id==='coreActivate'){const e=s.endgame??={water:0,active:false,tick:0,cursor:0,leafCursor:0,progress:0};if(id==='coreActivate')e.active=true;}if(site.sequence){const e=s.endgame??={water:0,active:false,tick:0,cursor:0,leafCursor:0,progress:0};e.seq={id:id.slice(0,-1),at:s.time};}syncSites(s);s.layoutRevision=(s.layoutRevision??0)+1;s.events?.push('obstacle');return true;}
 // introVacuum = Ladestation gekauft (charger-building.mjs); kein Bauplatz mehr, muss aber mitgespeichert werden.
-const KEEP=['introVacuum','mooswaldPath'];
+const KEEP=['introVacuum'];
 export const sitesSnapshot=s=>Object.keys(s.builtSites??{}).filter(k=>KEEP.includes(k)||SITES.some(x=>x.id===k));
 export function restoreSites(s,list){s.builtSites={};for(const k of Array.isArray(list)?list:[])if(KEEP.includes(k)||SITES.some(x=>x.id===k))s.builtSites[k]=true;syncSites(s);}
 
