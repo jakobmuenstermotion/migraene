@@ -27,7 +27,7 @@ export const ICE_TRAIL=[[40.4,-43.6],[37.6,-46.8],[33.8,-51],[33,-55.5],[35.2,-5
 // Mittellinie der flachen Rampe auf den Gipfelhang; daneben ist die Flanke steil und felsig.
 const rampX=z=>38.9+.5*Math.sin(z*.4);
 export const ICE_GATES=[{id:'routeIceWall',kind:'icewall',tool:'power',name:'Frostpass · Eiswand',x:48.75,z:-37.8,gateX:47.9,gateZ:-37.8,gateWidth:2.45,gateDepth:.55,gateRotation:Math.PI/2,depth:0,size:2,seconds:6},
- {id:'routeIceStairs',kind:'cliff',tool:'build',/* Jakob 7.11.: nur vom Eistal aus baubar */buildSide:s=>s.player.x>20.7,build:{name:'Holztreppe ins Eistal',cost:{frostbeam:6,rope:6,icequader:4}},name:'Steinbach · Steilwand',x:20.4,z:-50.2,gateX:20.2,gateZ:-50.2,gateWidth:2.45,gateDepth:.55,gateRotation:Math.PI/2,depth:0,size:1,seconds:6}];
+ {id:'routeIceStairs',kind:'cliff',tool:'build',/* Jakob 7.11.: nur vom Eistal aus baubar */buildSide:s=>s.player.x>20.7,build:{name:'Holztreppe ins Eistal',cost:{frostbeam:3,rope:3,icequader:2}/* Jakob 15.11.: Materialkosten halbiert (vorher 6/6/4) */},name:'Steinbach · Steilwand',x:20.4,z:-50.2,gateX:20.2,gateZ:-50.2,gateWidth:2.45,gateDepth:.55,gateRotation:Math.PI/2,depth:0,size:1,seconds:6}];
 // Große Vorkommen, nur der Kraftsauger baut sie ab (Abbauleistung, Überhitzung wie im Testlabor).
 export const ICE_DEPOSITS=[
  {id:'icedeposit0',kind:'ice',x:36.4,z:-63.2,r:1.15,max:30,regen:18},
