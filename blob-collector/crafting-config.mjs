@@ -6,7 +6,7 @@ import {softCoins,cheaper} from './coin-curve.mjs';
 export const WORKSHOPS={sewingmachine:{name:'Nähmaschine',w:2.2,d:1.4,height:1.8,color:'#83a9a1',recipes:[],indoor:true,station:true},
  woodshop:{name:'Holzwerkstatt',w:3.8,d:3.8,height:3.4,color:'#b48759',x:9,z:-3,cost:{wood:30,essence:2},coins:75,recipes:['reinforcedpanel','driftbead','belllamp','snail','swing','rope','sewing','torch','stool','table','woodbench','planter','boards','beams','panels','composites','chair','bench','pavilion']},
  stoneshop:{name:'Steinwerkstatt',w:3.8,d:3.8,height:3.3,color:'#91a5a4',x:10,z:3,cost:{board:12,stone:25},coins:350,recipes:['glassblank','slabs','bricks','tiles']},
- natureshop:{name:'Naturwerkstatt',w:3.8,d:3.8,height:3.3,color:'#91ac75',x:17,z:-6,cost:{board:8,moss:20,stoneslab:6},coins:500,recipes:['fibres','fibresleaf','resin','extract','fabric','rug','mobile']},
+ natureshop:{name:'Naturwerkstatt',w:3.8,d:3.8,height:3.3,color:'#91ac75',x:17,z:-6,cost:{board:8,moss:20,stoneslab:6},coins:500,recipes:['fibres','resin','extract','fabric','rug','mobile']},
  tinkershop:{name:'Tüftlerwerkstatt',w:3.8,d:3.8,height:3.4,color:'#c49b6c',x:20,z:0,cost:{board:12,stoneslab:8,fibre:8},coins:800,recipes:['gear','lantern','mechanics','filters','aquarium']},
  vacuumshop:{name:'Saugerwerkstatt',w:4.4,d:4.2,height:3.6,color:'#76988d',x:14,z:4,cost:{paper:5,essence:3},coins:50,recipes:[],factory:true}
 };
@@ -40,8 +40,6 @@ export const CRAFT_RECIPES={reinforcedpanel:{workshop:'woodshop',name:'Verstärk
  bricks:{workshop:'stoneshop',name:'Steinziegel',inputs:{stone:12},output:'stonebrick',quantity:1,seconds:6},
  tiles:{workshop:'stoneshop',name:'Sandsteinfliesen',inputs:{sandstone:2,board:2},output:'sandtile',quantity:1,seconds:6},
  fibres:{workshop:'natureshop',name:'Naturfasern',inputs:{moss:10},output:'fibre',quantity:1,seconds:5},
- /* Jakob 15.11.: Naturfasern auch aus Blättern (Moos ist selten, Blätter gibt es reichlich): 100 Blätter → 1 Naturfaser. */
- fibresleaf:{workshop:'natureshop',name:'Naturfasern aus Blättern',inputs:{leaf:100},output:'fibre',quantity:1,seconds:5},
  resin:{workshop:'natureshop',name:'Pflanzenharz',inputs:{wood:5,moss:5},output:'resin',quantity:1,seconds:6},
  extract:{workshop:'natureshop',name:'Pilzextrakt',inputs:{mushroom:8},output:'extract',quantity:1,seconds:6},
  fabric:{workshop:'natureshop',name:'Seegrasgewebe',inputs:{seagrass:12},output:'fabric',quantity:1,seconds:6},
