@@ -90,7 +90,7 @@ export function iceHeight(x,z){
 }
 // Verschneite Tannen [x,z,Größe], deterministisch je Zone: dichter Frostwald vorne, wenige am See, lockere Gruppen am Gipfel.
 // Weg, Bäche, See, Felsen und Vorkommen bleiben frei.
-export const ICE_TREES=(()=>{const out=[],density={forest:.45,lake:.1,summit:.18}/* Jakob 15.11.: ca. 25 % weniger Bäume im Eistal (vorher .78 / .24, 51 Bäume, jetzt 39) */;
+export const ICE_TREES=(()=>{const out=[],density={forest:.78,lake:.1,summit:.24};
  for(let gz=-36;gz>=-99;gz-=1.1)for(let gx=20;gx<=60;gx+=1.1){const i=out.length,h1=hash(gx,gz),h2=hash(gz,gx*.7),x=gx+(h1-.5)*.9,z=gz+(h2-.5)*.9,zone=iceZoneAt(x,z);
   if(!zone||iceValleyRadius(x,z)>.95||hash(gx*1.3,gz*.7)>density[zone.id])continue;
   if(inIcePass(x,z)||lineDistance(ICE_PASS,x,z).d<3||lineDistance(ICE_WEST_PASS,x,z).d<3.2||iceTrailDistance(x,z)<1.5||streamDistance(x,z)<1.2||icePondRadius(x,z)<1.3||out.some(([tx,tz])=>Math.hypot(tx-x,tz-z)<1.95))continue;
