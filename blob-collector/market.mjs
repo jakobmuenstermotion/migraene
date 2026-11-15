@@ -2,6 +2,7 @@ import {softCoins,cheaper} from './coin-curve.mjs';
 import {GAME_BALANCE,roundCoins,creditDirectSale} from './game-balance.mjs';
 import {SAUGER} from './sauger-config.mjs';
 import {BUTTERFLIES} from './butterflies.mjs';
+import {JAMS} from './cooking.mjs';
 import {PRESS} from './material-press.mjs';
 import {CRAFT_RECIPES} from './crafting-config.mjs';
 import {FISH} from './fishing.mjs';
@@ -14,6 +15,7 @@ export const marketSpot=()=>({x:MARKET.x+Math.sin(MARKET.rotation)*2.5,z:MARKET.
 // Provisional wait-time factor approved for the test economy.
 export const PRICE_RULES={rawMultiplier:2,perSecond:50,tradeBonus:1.5};/* Jakob 31.10.: Zutaten × 2 plus Maschinenzeit statt je Stufe × 2 × Zeit; perSecond in Hundertstel-Münzen je Rezeptsekunde */// tradeBonus: Handelsware (Jakob 29.10.)
 function baseSalePrice(kind,visited=new Set()){
+ if(JAMS[kind])return JAMS[kind].sale*GAME_BALANCE.saleDivisor;
  if(PRESS.recipes[kind]?.sale)return PRESS.recipes[kind].sale*GAME_BALANCE.saleDivisor;
  if(kind==='flowers')return SAUGER.material.daisy.value;
  if(FISH[kind])return FISH[kind].value*GAME_BALANCE.fishSaleMultiplier;
