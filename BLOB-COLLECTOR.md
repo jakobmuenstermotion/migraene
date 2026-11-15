@@ -55,3 +55,9 @@ Einstellungen im Spiel → „Cloud-Sync (iPhone & iPad)“. Das erste Gerät er
 - **Sicherheit:** Die Tabelle ist für die API gesperrt; Zugriff nur über `save_get`/`save_put`/`save_delete` mit dem Code. Codes lassen sich nicht auflisten. Gespeichert wird nur der Spielstand.
 - **Ablauf:** Hochgeladen wird beim Schlafengehen, beim Verlassen der App und alle 5 Minuten (wenn sich etwas geändert hat). Beim Start prüft das Spiel, ob die Cloud einen neueren Stand hat, und fragt nach. Der Server lehnt Hochladen ab, wenn ein anderes Gerät inzwischen weitergespielt hat (Vergleich über `p_base`); dann entscheidet der Spieler. Vor jedem Einspielen eines Cloud-Stands wird der lokale Stand automatisch gesichert.
 - **Begleitseite:** Jedes Gerät zählt seine Gartentage selbst (Einträge werden pro Gerät gespeichert).
+
+## Controller (seit 15.11.2026)
+Das Spiel unterstützt Controller über die Gamepad-API (PlayStation, Xbox, MFi am iPad/iPhone). Safari meldet einen Controller erst, wenn darauf eine Taste gedrückt wurde. Belegung (PlayStation; Xbox: Kreuz = A, Kreis = B, Viereck = X, Dreieck = Y):
+- Linker Stick oder Steuerkreuz: laufen · Kreuz: Saugen an/aus bzw. aufheben · Kreis halten: sprinten (zusätzlich L2/L3) · Viereck: Interaktionsknöpfe (Gebäude, Blob füttern, Köder …) · L1/R1: Sauger wechseln · Dreieck oder Start: Einstellungen
+- In Menüs: Steuerkreuz oder linker Stick wählt aus, Kreuz bestätigt, Kreis schließt (bei Sprechblasen: Kreuz weiter, Kreis überspringen). Regler lassen sich mit links/rechts verstellen.
+- Code: `blob-collector/gamepad.mjs`, eingebunden in `game.js` (`gamepad.poll()` pro Bild).
