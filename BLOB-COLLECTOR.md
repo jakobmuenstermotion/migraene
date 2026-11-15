@@ -61,3 +61,6 @@ Das Spiel unterstützt Controller über die Gamepad-API (PlayStation, Xbox, MFi 
 - Linker Stick oder Steuerkreuz: laufen · Kreuz: Saugen an/aus bzw. aufheben · Kreis halten: sprinten (zusätzlich L2/L3) · Viereck: Interaktionsknöpfe (Gebäude, Blob füttern, Köder …) · L1/R1: Sauger wechseln · Dreieck oder Start: Einstellungen
 - In Menüs: Steuerkreuz oder linker Stick wählt aus, Kreuz bestätigt, Kreis schließt (bei Sprechblasen: Kreuz weiter, Kreis überspringen). Regler lassen sich mit links/rechts verstellen.
 - Code: `blob-collector/gamepad.mjs`, eingebunden in `game.js` (`gamepad.poll()` pro Bild).
+
+## Versionsnummer (seit 15.11.2026)
+Unten in den Spiel-Einstellungen („Version 30 · 15.11.2026“) und im Fuß der Begleitseite („App-Version 30 · …“). Die Nummer erzeugt `node build-garden.mjs` automatisch: Sie steigt um 1, sobald sich irgendeine App-Datei ändert, und bleibt gleich, wenn nichts geändert wurde. Dazu legt das Skript `blob-collector/version.json` (Zähler, Datum, Inhalts-Hash) und `blob-collector/version.mjs` an – beide nicht von Hand ändern. Nach jeder Änderung `node build-garden.mjs` ausführen und die beiden Dateien mit einchecken.
