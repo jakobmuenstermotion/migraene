@@ -40,8 +40,8 @@ export const CRAFT_RECIPES={reinforcedpanel:{workshop:'woodshop',name:'Verstärk
  bricks:{workshop:'stoneshop',name:'Steinziegel',inputs:{stone:12},output:'stonebrick',quantity:1,seconds:6},
  tiles:{workshop:'stoneshop',name:'Sandsteinfliesen',inputs:{sandstone:2,board:2},output:'sandtile',quantity:1,seconds:6},
  fibres:{workshop:'natureshop',name:'Naturfasern',inputs:{moss:10},output:'fibre',quantity:1,seconds:5},
- /* Jakob 15.11.: Naturfasern auch aus Blättern (Moos ist selten, Blätter gibt es reichlich): 40 Blätter → 1 Naturfaser. */
- fibresleaf:{workshop:'natureshop',name:'Naturfasern aus Blättern',inputs:{leaf:40},output:'fibre',quantity:1,seconds:5},
+ /* Jakob 15.11.: Naturfasern auch aus Blättern (Moos ist selten, Blätter gibt es reichlich): 100 Blätter → 1 Naturfaser. */
+ fibresleaf:{workshop:'natureshop',name:'Naturfasern aus Blättern',inputs:{leaf:100},output:'fibre',quantity:1,seconds:5},
  resin:{workshop:'natureshop',name:'Pflanzenharz',inputs:{wood:5,moss:5},output:'resin',quantity:1,seconds:6},
  extract:{workshop:'natureshop',name:'Pilzextrakt',inputs:{mushroom:8},output:'extract',quantity:1,seconds:6},
  fabric:{workshop:'natureshop',name:'Seegrasgewebe',inputs:{seagrass:12},output:'fabric',quantity:1,seconds:6},
