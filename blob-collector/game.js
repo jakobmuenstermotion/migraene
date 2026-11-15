@@ -75,6 +75,8 @@ import {capacityFor} from './inventory.mjs';
 import {saveProgress,loadProgress,resetSavedGame,exportSaveText,importSaveText} from './progress-save.mjs';
 import {bindSaveSafety} from './save-safety.mjs';
 import {bindCloudSync} from './cloud-sync.mjs';
+import {bindGamepad} from './gamepad.mjs';
+import {VACUUMS} from './vacuums.mjs';
 import {Daylight} from './daylight.mjs';
 import {groundAt} from './test-world.mjs';
 import {JOYSTICK,joystickInput} from './joystick.mjs';
@@ -94,6 +96,7 @@ let state=createState({area:'sunny',vacuumId:'ground',leafCount:13200}),renderer
 let loaded=false;try{loaded=loadProgress(state,gameStorage);}catch{}
 const saveSafety=bindSaveSafety({getState:()=>state,storage:gameStorage});saveSafety.start(loaded);
 const cloudSync=bindCloudSync({getState:()=>state,storage:gameStorage,safety:saveSafety});cloudSync.start();
+const gamepad=bindGamepad({getState:()=>state,vacuums:VACUUMS,owns:ownsVacuum,setVacuum,persist:()=>persist()});
 furnishHome(state);if(!loaded){state.round=createRound();state.suctionEnabled=false;startIntro(state);bedStart(state);}else if(state.round?.waking)bedStart(state);preferences(state);addEventListener('storage',e=>{if(e.key==='blob-redesign:blob-collector-reset-epoch')location.reload();});
 let pageLife=null,portalView=null;
 const persist=()=>{if(visualLab?.active||pageLife?.superseded())return false;try{const ok=saveProgress(state,gameStorage);if(ok&&saveSafety.afterSave())cloudSync.uploadAfterSleep();return ok;}catch{return false;}};
@@ -272,10 +275,11 @@ function updateStackMotion(p,t,dt){
  });
 }
 function render(timestamp){  requestAnimationFrame(render);const cpuStart=performance.now();const dt=previous?Math.min((timestamp-previous)/1000,.05):1/60;previous=timestamp;visualLab?.beforeFrame(timestamp,dt);
-  const x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+stick.x;
-  const z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+stick.z;
+  const pad=gamepad.poll();/* Controller (Jakob 15.11.) */
+  const x=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+stick.x+pad.x;
+  const z=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+stick.z+pad.z;
   const now=Date.now();let productionChanged=updateCharging(state,now);productionChanged=matureBlobs(state,now)||productionChanged;productionChanged=advanceCrafting(state,now)||productionChanged;if(advancePress(state,now)){productionChanged=true;tone(460,.2,.022,'triangle',780);}if(productionChanged){persist();lastSave=now;}
-  if(!visualLab?.active&&!homeLife.isOpen()&&!firstTips.isOpen()&&!story?.isOpen()&&!vacuumUI.isOpen()&&!testUI.isOpen()&&!areaUI.isOpen()&&!placementUI.isOpen()&&!craftingUI.isOpen()&&!settingsUI.isOpen())step(state,fusionPlaying(state)?{suction:false}:{x,z,aimX:stick.aimX,aimZ:stick.aimZ,analog:stick.id!==null,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight')||touchSprint},dt);else {state.events=[];if(areaUI.isOpen()&&!state.testWorld.enabled)advanceStorageTransfers(state,dt);}
+  if(!visualLab?.active&&!homeLife.isOpen()&&!firstTips.isOpen()&&!story?.isOpen()&&!vacuumUI.isOpen()&&!testUI.isOpen()&&!areaUI.isOpen()&&!placementUI.isOpen()&&!craftingUI.isOpen()&&!settingsUI.isOpen())step(state,fusionPlaying(state)?{suction:false}:{x,z,aimX:stick.id===null&&pad.active?pad.aimX:stick.aimX,aimZ:stick.id===null&&pad.active?pad.aimZ:stick.aimZ,analog:stick.id!==null||pad.active,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight')||touchSprint||pad.sprint},dt);else {state.events=[];if(areaUI.isOpen()&&!state.testWorld.enabled)advanceStorageTransfers(state,dt);}
   updateCanopyTarget(state.player);livingView.update(state);craftingUI.update(now);areaUI.update(now);computerUI.update();updateUI();vacuumUI.update();testUI.update();sunnyView.update(state,areaUI.nearby,reduced,now);coastView.update(state);iceView.update(state);sceneryView.update(state);volcanoView.update(state);caveView.update(state);fishingView.update(state,camera);craftingView.update(state,now);marketView.update(state);blueprintView.update(state);hedgeView.update(state);moosPathView.update(state);homeView.update(state);homeSurroundings.update(state);if(inHome(state)||inNursery(state)||inCave(state)){sceneryView.root.visible=false;sunnyView.root.visible=iceView.root.visible=volcanoView.root.visible=coastView.root.visible=fishingView.root.visible=marketView.root.visible=blueprintView.root.visible=false;}
   if(now-lastSave>2000){persist();lastSave=now;}
   gameAudio.update(state,vacuumUI.isOpen()||testUI.isOpen()||areaUI.isOpen()||placementUI.isOpen()||craftingUI.isOpen()||settingsUI.isOpen());
