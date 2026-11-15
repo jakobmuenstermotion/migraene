@@ -60,3 +60,17 @@ export function restoreBackup(storage,key,now=Date.now()){
 export function rescueText(storage){
  try{const r=JSON.parse(storage.getItem(RESCUE_KEY));if(typeof r?.raw!=='string')return null;let save;try{save=JSON.parse(r.raw);}catch{return r.raw;}return JSON.stringify({game:'blob-collector',exportedAt:r.at,rescued:true,save});}catch{return null;}
 }
+// Jakob 15.11.: Für den Cloud-Sync: aktuellen Spielstand lesen (Rohtext + Zeitstempel) und einen fremden Stand einspielen (vorher wird gesichert).
+export function readSave(storage){
+ const raw=readKey(storage,KEY);if(!raw)return null;
+ try{const d=JSON.parse(raw);return {raw,savedAt:Number(d.savedAt)||0,version:d.version};}catch{return null;}
+}
+export function applyRawSave(storage,raw,now=Date.now()){
+ try{
+  const d=JSON.parse(raw);
+  if(!Number.isInteger(d?.version)||d.version<2||d.version>30||typeof d.inventory!=='object'||!d.inventory)return false;
+  backupProgress(storage,'vor Cloud-Laden',now);
+  storage.setItem(KEY,raw);storage.setItem('blob-collector-reset-epoch',now+'-'+Math.random().toString(36).slice(2));/* neue Epoche: der laufende Stand kann den eingespielten nicht mehr überschreiben */
+  return true;
+ }catch{return false;}
+}
