@@ -1138,3 +1138,6 @@ body.sprint-stick #sprint{display:none!important}
 body.sprint-stick #joystick:after{content:'';position:absolute;inset:-44px;border:2px dashed #f5ffde66;border-radius:50%;pointer-events:none;transition:border-color .12s,background-color .12s}
 body.sprint-stick #joystick.sprinting:after{border:3px solid #ffe08acc;background:#ffe08a22}
 body.sprint-stick #joystick.sprinting i{box-shadow:0 0 0 6px #ffe08a88}
+
+/* Jakob 15.11.: Versionsnummer unten in den Einstellungen. */
+html body .preferences-panel .app-version{margin:14px 0 4px;text-align:center;font-size:14px;font-weight:700;color:#6b5a3a!important;opacity:1;letter-spacing:.02em}
