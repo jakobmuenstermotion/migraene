@@ -2,9 +2,14 @@ import {GARDEN as C} from './garden-config.mjs';
 import {emptyJournal,acceptEntries,acceptGiftCounter,emptyPlants,receiveRewards,usePlantReward} from './garden-ledger.mjs';
 const events=window.CompanionGardenEvents,plants=window.GardenPrototype.plants,renderer=window.GardenPrototype.PlantRenderer.create({plants});
 const read=(key,fallback)=>{const raw=localStorage.getItem(key);if(!raw)return fallback();const s=JSON.parse(raw);if(!s||s.version!==1)throw Error('UNKNOWN_GARDEN_VERSION');if(key===C.journalKey&&(!Array.isArray(s.actions)||!Array.isArray(s.handled)||!s.gifts||!Number.isFinite(s.installedAt)||!Number.isFinite(s.lastRewardAt)))throw Error('INVALID_JOURNAL');if(key===C.plantKey&&(!Array.isArray(s.tokens)||!Array.isArray(s.receipts)||!s.beds))throw Error('INVALID_PLANTS');return s;};
+/* Jakob 15.11.: Zweite Kopie von Journal und Blob-Tagen (mt-companion-backup). Fehlt einer der beiden Einträge beim Start, kommt er daraus zurück. */
+const MIRROR_KEY='mt-companion-backup';
+function mirror(){try{localStorage.setItem(MIRROR_KEY,JSON.stringify({at:Date.now(),journal:localStorage.getItem(C.journalKey),blob:localStorage.getItem(C.blobKey)}));}catch{}}
+try{const m=JSON.parse(localStorage.getItem(MIRROR_KEY)||'null');if(m){if(!localStorage.getItem(C.journalKey)&&m.journal)localStorage.setItem(C.journalKey,m.journal);if(!localStorage.getItem(C.blobKey)&&m.blob)localStorage.setItem(C.blobKey,m.blob);}}catch{}
+try{navigator.storage?.persist?.().catch?.(()=>{});}catch{}/* dauerhaften Speicher anfragen; iOS entscheidet selbst */
 let journal,ledger,issue='',mode=null,selection=null,notice='',busy=false,toolbar,footer,status,playDialog,frame,signature='',seedSerial=0;
 try{journal=read(C.journalKey,()=>emptyJournal(events.startedAt));ledger=read(C.plantKey,emptyPlants);localStorage.setItem(C.journalKey,JSON.stringify(journal));}catch{issue='Der gespeicherte Garten konnte nicht geladen werden. Er bleibt erhalten.';}
-function write(key,s){try{localStorage.setItem(key,JSON.stringify(s));issue='';return true;}catch{issue='Der Garten konnte nicht gespeichert werden. Bitte schaffe Speicherplatz.';return false;}}
+function write(key,s){try{localStorage.setItem(key,JSON.stringify(s));issue='';if(key===C.journalKey||key===C.blobKey)mirror();return true;}catch{issue='Der Garten konnte nicht gespeichert werden. Bitte schaffe Speicherplatz.';return false;}}
 function gameState(){try{return JSON.parse(localStorage.getItem(C.gameKey)||'null');}catch{return null;}}
 // Blob-Collector-Tage (siehe BLOB-COLLECTOR.md). Beim ersten Start werden die im Mondgarten schon verdienten
 // Belohnungen einmal übernommen; danach zählt nur noch Blob Collector. Der Mondgarten-Spielstand bleibt unberührt.
@@ -26,10 +31,10 @@ function mount(){
  const blob=blobDays(),active=!!blob?.active,pending=blobPending(blob);
  const [start]=footer.querySelectorAll('button');start.textContent=active?'☀ Blob-Collector-Tag fortsetzen':'☀ Blob-Collector-Tag starten'+(pending>1?' · '+pending:'');start.disabled=!!issue||!active&&!pending;
  const wait=Math.max(0,journal.lastRewardAt+C.cooldownMs-Date.now());status.textContent=issue||((pending?pending+' Gartentag'+(pending===1?'':'e')+' bereit. ':'')+(wait?'Neue Eintragsbelohnung in '+Math.ceil(wait/60000)+' Min. Eintragen geht weiterhin.':'Ein auf diesem Gerät gespeicherter Eintrag schenkt sofort einen Gartentag.'));
- for(const [id]of C.buttons){const b=app.querySelector('.big[data-act="'+id+'"]');if(!b)continue;let place=b.querySelector('.garden-plants');if(!place){place=node('span','garden-plants');place.setAttribute('aria-hidden','true');b.append(place);}mountPlant(place,ledger.beds[id]);b.classList.toggle('with-garden-plant',!!ledger.beds[id]);b.classList.toggle('garden-eligible',!!mode&&eligible(id));b.classList.toggle('garden-target-muted',!!mode&&!eligible(id));}
+ /* Jakob 15.11.: Keine Pflanzen mehr auf den Eintragsknöpfen (Garten-Optik ganz entfernt). */for(const [id]of C.buttons){const b=app.querySelector('.big[data-act="'+id+'"]');if(!b)continue;b.querySelector('.garden-plants')?.remove();b.classList.remove('with-garden-plant','garden-eligible','garden-target-muted');}
 }
 function renderToolbar(){
- toolbar.replaceChildren();toolbar.hidden=!ledger.tokens.length&&!notice;if(toolbar.hidden)return;
+ toolbar.replaceChildren();toolbar.hidden=true;return;/* Jakob 15.11.: Samen- und Gießkannenleiste entfällt mit den Pflanzen */
  const seeds=ledger.tokens.filter(t=>t.kind==='seed').length,water=ledger.tokens.filter(t=>t.kind==='water').length;
  const hint=node('p','garden-inline-hint',mode==='water'?'Gießkanne bereit. Tippe auf eine Pflanze – dabei wird nur gegossen.':mode==='seed'?'Tippe auf einen freien Eintragsknopf, um den Samen einzupflanzen.':notice||(seeds?'Welcher Samen darf wachsen? Wähle eine Sorte.':'Deine Gießkanne wartet.'));hint.setAttribute('role','status');
  const actions=node('div','garden-controls');if(water){const b=button('♧ Gießkanne · '+water,()=>{mode='water';selection=null;notice='';mount();});b.setAttribute('aria-pressed',String(mode==='water'));actions.append(b);}if(mode)actions.append(button('Später · normal eintragen',()=>{mode=null;selection=null;notice='';mount();}));toolbar.append(actions);

@@ -38,5 +38,7 @@
  }
  document.addEventListener('visibilitychange',check);
  for(var name of ['pageshow','focus','online','app:check-update'])window.addEventListener(name,check);
+ /* Jakob 15.11.: Zusätzlich alle 10 Minuten nach einer neuen Version suchen, solange die App offen ist. */
+ if(typeof setInterval==='function')setInterval(check,10*60*1000);
  navigator.serviceWorker.register(workerURL.href,{scope:new URL('./',workerURL).href,updateViaCache:'none'}).then(function(r){registration=r;check();}).catch(function(){});
 })();

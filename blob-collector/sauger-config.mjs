@@ -1,7 +1,7 @@
 import {FLOWERS,FLOWER_ITEMS} from './flower-config.mjs';
 // Prototype tuning: upgrade arrays include the unupgraded value at index 0.
 export const SAUGER={
- battery:{capacity:100,drain:{ground:.47,fan:.93,focus:1.2,power:1.6,vortex:2.4}/* Jakob 1.11.: Akkuladung 25 % weniger */},
+ battery:{capacity:100,drain:Object.fromEntries(Object.entries({ground:.47,fan:.93,focus:1.2,power:1.6,vortex:2.4}).map(([k,v])=>[k,v/1.2]))/* Jakob 15.11.: Akkulaufzeit aller Sauger +20 % (Verbrauch ÷ 1,2) *//* Jakob 1.11.: Akkuladung 25 % weniger */},
  fan:{angle:[25,50,75,90,120,150],radius:[2,2.5,3,3.5,4],bonus:[0,.15,.3],capacity:[1,1.15,1.3,1.5]},
  focus:{radius:[2.5,3,3.75,4.5,5.25,6]/* Neugestaltung (Jakob): vorher 2,5/3,5/5/6,5/8/10 */,width:[.4,.6,.8]/* Jakob 2.11.: schmaler, dritte Stufe wurde zum Tankausbau */,height:[2.3,3.5,5],anchor:[0,4,7,9,12],anchorAimSeconds:1,slow:.5,slowTail:2},
  // Jakob 7.11.: Start deutlich schwächer (überhitzt nach 3 s, 1,5/s), dafür Sparsam-Stufen: Akkuverbrauch beim Abbau ×1,6 → ×0,8 → ×0,35. Testwerte.

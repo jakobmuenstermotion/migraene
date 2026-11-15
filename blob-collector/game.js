@@ -73,6 +73,7 @@ import {TestWorldView} from './test-world-view.mjs';
 import {bindTestUI} from './test-ui.mjs';
 import {capacityFor} from './inventory.mjs';
 import {saveProgress,loadProgress,resetSavedGame,exportSaveText,importSaveText} from './progress-save.mjs';
+import {bindSaveSafety} from './save-safety.mjs';
 import {Daylight} from './daylight.mjs';
 import {groundAt} from './test-world.mjs';
 import {JOYSTICK,joystickInput} from './joystick.mjs';
@@ -90,9 +91,10 @@ initHUDTheme();/* Jakob 7.11.: Saugtank als eigener Tank mit Sichtfenster, Rucks
 let story,storyNotes,coreView,fishAim,relicView,comicFx;let blobFxView,saleFlight,caveView,iceView,volcanoView,sceneryView;let visualLab,worldPolish,worldPalette;let siteView,siteUI,missionBoard,characterPolish,livingView,firstTips,hedgeView,moosPathView,butterflyView,catchCard,forestBlobView,nurseryTouch,placementUI,coastView,fishingView,craftingView,craftingUI,marketView,blueprintView,homeView,homeSurroundings,computerUI,homeLife,goalsUI,pickupFeedback,settingsUI,gameAudio;
 let state=createState({area:'sunny',vacuumId:'ground',leafCount:13200}),renderer,scene,camera,character,blob,stack,nozzle,blobShadow,playerShadow,blobAura,blobLight,blobGlow,leafRenderer,vacuumView,vacuumUI,challengeView,groundRadarView,testUI,testWorldView,areaUI,sunnyView,daylight,lastSave=0;
 let loaded=false;try{loaded=loadProgress(state,gameStorage);}catch{}
+const saveSafety=bindSaveSafety({getState:()=>state,storage:gameStorage});saveSafety.start(loaded);
 furnishHome(state);if(!loaded){state.round=createRound();state.suctionEnabled=false;startIntro(state);bedStart(state);}else if(state.round?.waking)bedStart(state);preferences(state);addEventListener('storage',e=>{if(e.key==='blob-redesign:blob-collector-reset-epoch')location.reload();});
 let pageLife=null,portalView=null;
-const persist=()=>{if(visualLab?.active||pageLife?.superseded())return false;try{return saveProgress(state,gameStorage);}catch{return false;}};
+const persist=()=>{if(visualLab?.active||pageLife?.superseded())return false;try{const ok=saveProgress(state,gameStorage);if(ok)saveSafety.afterSave();return ok;}catch{return false;}};
 const stackMeshes=[],decor=[],puffs=[];
 let forestScenery=[];
 const deliveryMeshes=new Map();
