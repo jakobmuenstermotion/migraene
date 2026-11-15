@@ -14,8 +14,8 @@ import {formatCoins} from './game-balance.mjs';
 export class MossHedgeView{
  constructor(scene){const b=new ScenicBatch(),leaf=new T.IcosahedronGeometry(1,0);let n=0;for(let i=0;i<260;i++){const a=i/260*Math.PI*2;let r=1;for(let k=0;k<3;k++){const x=48+Math.cos(a)*23*r,z=38+Math.sin(a)*19*r;r=1+.035*Math.sin(x*.4+z*.3);}const x=48+Math.cos(a)*23*r,z=38+Math.sin(a)*19*r;if(!mossHedgeAt(x,z,.01)||!sunnyInside(x,z))continue;n++;const y=sunnyHeight(x,z),seed=Math.sin(i*12.9)*.5+.5,h=.75+seed*.45;b.add(leaf,['#3f6f42','#4c8049','#35603a'][i%3],x,y+h*.55,z,.62+seed*.2,h*.62,.62+(1-seed)*.2,seed,i,0);b.add(leaf,['#5f9a56','#6fa85f'][i%2],x+Math.sin(i)*.28,y+h*.95,z+Math.cos(i)*.28,.36,.3,.36,0,i,0);if(i%5===0)b.add(leaf,'#8c9186',x+.25,y+.14,z+.3,.26,.2,.24,seed,i,0);}
   this.root=new T.Group();scene.add(this.root);if(n)b.finish(this.root);leaf.dispose();
-  /* Jakob 16.11.: kleine Steinstufen an der Lücke zum Strand */
-  const stone=new T.MeshStandardMaterial({color:'#9a9a8c',roughness:.95});for(let i=0;i<3;i++){const m=new T.Mesh(new T.BoxGeometry(2.2-i*.25,.16,.7),stone);m.position.set(51,sunnyHeight(51,20.6-i*.75)+.08+i*.12,20.6-i*.75);this.root.add(m);}}
+  /* Jakob 16.11.: kleine Steinstufen auf der Rampe zwischen Strand und Mooswald */
+  const stone=new T.MeshStandardMaterial({color:'#b9b29b',roughness:.95});for(let i=0;i<5;i++){const z=22.7+i*.62,m=new T.Mesh(new T.BoxGeometry(2.7,.34,.62),stone);m.position.set(51,sunnyHeight(51,z)+.1,z);m.rotation.y=(i%2?.03:-.03);this.root.add(m);}}
  update(s){this.root.visible=!s.testWorld.enabled&&!s.home?.interior&&!s.nursery?.interior;}
 }
 // Schmetterling in der Welt: gebogene Vorder- und Hinterflügel, die versetzt schlagen, echter kleiner Körper mit Fühlern, Schatten am Boden.
