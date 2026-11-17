@@ -7,6 +7,7 @@ import {CLOUD} from './cloud-config.mjs';
 import {readSave,applyRawSave} from './progress-save.mjs';
 
 const CFG_KEY='blob-collector-sync',ALPHABET='ABCDEFGHJKMNPQRSTVWXYZ23456789';
+const fmtFull=t=>{try{return new Date(t).toLocaleString('de-DE',{weekday:'short',day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return '';}};
 const fmt=t=>{try{return new Date(t).toLocaleString('de-DE',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return '';}};
 
 /** Neuer zufälliger Sync-Code, 20 Zeichen (ca. 98 Bit), in Fünfergruppen. */
@@ -35,6 +36,8 @@ export function bindCloudSync({getState,storage,safety,config=CLOUD,fetchFn=(...
    return await r.json();
   }finally{if(timer)clearTimeout(timer);}
  }
+ /** Jakob 16.11.: Datum des letzten Spielstands auf diesem Gerät, für die Cloud-Dialoge. */
+ const localLine=()=>{const t=readSave(storage)?.savedAt;return t>0?`Letzter Stand auf diesem Gerät: ${fmtFull(t)}.`:'Auf diesem Gerät gibt es noch keinen Spielstand.';};
  const info=()=>rpc('save_get',{p_code:cfg.code,p_with_payload:false});
  const fetchRemote=()=>rpc('save_get',{p_code:cfg.code,p_with_payload:true});
 
@@ -57,8 +60,8 @@ export function bindCloudSync({getState,storage,safety,config=CLOUD,fetchFn=(...
  function askRemoteNewer(remote,localChanged){
   const where=remote.device?`Gerät „${remote.device}“, `:'';
   const text=localChanged?
-   [`In der Cloud liegt ein anderer Stand (${where}${fmt(remote.saved_at)}). Du hast hier aber auch weitergespielt. Einer der beiden Stände geht verloren – welchen willst du behalten?`]:
-   [`In der Cloud liegt ein neuerer Stand (${where}${fmt(remote.saved_at)}). Hier wurde seitdem nicht weitergespielt.`];
+   [`In der Cloud liegt ein anderer Stand (${where}${fmt(remote.saved_at)}). Du hast hier aber auch weitergespielt. Einer der beiden Stände geht verloren – welchen willst du behalten?`,localLine()]:
+   [`In der Cloud liegt ein neuerer Stand (${where}${fmt(remote.saved_at)}). Hier wurde seitdem nicht weitergespielt.`,localLine()];
   safety.card(localChanged?'Zwei verschiedene Spielstände':'Neuerer Spielstand in der Cloud',[...text,'Hinweis: Der Stand auf diesem Gerät wird vor dem Laden automatisch gesichert.'],[
    ['Cloud-Stand laden','primary',async()=>{try{const r=await fetchRemote();if(!r||!await applyRemote(r))throw new Error('Laden fehlgeschlagen');}catch(e){failure(e);}}],
    ...(localChanged?[['Meinen Stand hochladen (Cloud wird überschrieben)','danger',async()=>{if(!confirm('Wirklich? Der Stand in der Cloud wird durch den von diesem Gerät ersetzt.'))return;try{const u=await upload({force:true});if(!u.ok)throw new Error(u.reason??'Hochladen fehlgeschlagen');safety.close();}catch(e){failure(e);}}]]:[]),
@@ -101,7 +104,7 @@ export function bindCloudSync({getState,storage,safety,config=CLOUD,fetchFn=(...
   const last=cfg.lastUpload?`letztes Hochladen: ${fmt(cfg.lastUpload)}`:'noch nicht hochgeladen';
   safety.card('Cloud-Sync ist an',[`Dieses Gerät: ${cfg.device}. ${last}.`,'Der Stand wird beim Schlafengehen, beim Verlassen der App und alle paar Minuten hochgeladen. Beim Start prüft das Spiel, ob ein neuerer Stand in der Cloud liegt.'],[
    ['Jetzt hochladen','primary',async()=>{try{const u=await upload();if(u.ok)ok('Hochgeladen',['Der Spielstand liegt jetzt in der Cloud.']);else if(u.conflict)askRemoteNewer({saved_at:u.remoteSavedAt,device:''},true);else ok('Nicht hochgeladen',[u.reason??'']);}catch(e){failure(e);}}],
-   ['Jetzt aus der Cloud laden','',async()=>{try{const r=await fetchRemote();if(!r)return ok('Nichts gefunden',['Unter diesem Code liegt noch kein Stand.']);safety.card('Cloud-Stand laden?',[`Stand von ${fmt(r.saved_at)}${r.device?' ('+r.device+')':''}. Der Stand auf diesem Gerät wird vorher automatisch gesichert.`],[['Laden','primary',async()=>{if(!await applyRemote(r))failure(new Error('Laden fehlgeschlagen'));}],['Abbrechen','',safety.close]]);}catch(e){failure(e);}}],
+   ['Jetzt aus der Cloud laden','',async()=>{try{const r=await fetchRemote();if(!r)return ok('Nichts gefunden',['Unter diesem Code liegt noch kein Stand.']);safety.card('Cloud-Stand laden?',[`Stand in der Cloud von ${fmt(r.saved_at)}${r.device?' ('+r.device+')':''}. ${localLine()} Der Stand auf diesem Gerät wird vorher automatisch gesichert.`],[['Laden','primary',async()=>{if(!await applyRemote(r))failure(new Error('Laden fehlgeschlagen'));}],['Abbrechen','',safety.close]]);}catch(e){failure(e);}}],
    ['Sync-Code anzeigen','',()=>showCode(false)],
    ['Sync ausschalten','danger',()=>{cfg=null;storeCfg();ok('Sync ist aus',['Der Spielstand bleibt auf diesem Gerät. In der Cloud liegt die letzte Kopie weiter (unter deinem Code).']);}],
    ['Schließen','',safety.close]]);
@@ -127,7 +130,7 @@ export function bindCloudSync({getState,storage,safety,config=CLOUD,fetchFn=(...
      if(!r){cfg=null;return ok('Code nicht gefunden',['Unter diesem Code liegt kein Spielstand. Prüfe die Eingabe, oder erstelle auf dem ersten Gerät zuerst den Code.']);}
      storeCfg();
      const mine=readSave(storage),hasProgress=(mine?.savedAt??0)>0;
-     safety.card('Cloud-Stand laden?',[`In der Cloud liegt ein Stand von ${fmt(r.saved_at)}${r.device?' ('+r.device+')':''}.`,hasProgress?'Der Stand auf diesem Gerät wird dadurch ersetzt. Er wird vorher automatisch gesichert.':'Dieses Gerät hat noch keinen Spielstand.'],[
+     safety.card('Cloud-Stand laden?',[`In der Cloud liegt ein Stand von ${fmt(r.saved_at)}${r.device?' ('+r.device+')':''}.`,hasProgress?localLine()+' Der Stand auf diesem Gerät wird dadurch ersetzt. Er wird vorher automatisch gesichert.':'Dieses Gerät hat noch keinen Spielstand.'],[
       ['Cloud-Stand laden','primary',async()=>{if(!await applyRemote(r))failure(new Error('Laden fehlgeschlagen'));}],
       ['Abbrechen (nicht verbinden)','',()=>{cfg=null;storeCfg();safety.close();}]]);
     }catch(e){cfg=null;storeCfg();failure(e);}

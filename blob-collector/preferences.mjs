@@ -1,6 +1,14 @@
 import {VERSION} from './version.mjs';
 const clamp=(n,a,b,d)=>Math.max(a,Math.min(b,Number.isFinite(Number(n))&&n!==null&&n!==undefined?Number(n):d));
 export function preferences(s){return s.preferences??={zoom:1,sound:true,music:true,titleSeen:false,volume:.45,hudSide:'right',hudScale:1,hudLift:0,hudShift:0,sprintMode:'stick',setupDone:false};}
+// Jakob 16.11.: Knopfposition und -größe gelten pro Gerät (iPad ≠ iPhone) und liegen deshalb nicht nur im Spielstand, der per Cloud geteilt wird.
+const DEVICE_KEY='blob-collector-hud-device',DEVICE_FIELDS=['hudSide','hudScale','hudLift','hudShift','sprintMode','setupDone'];
+export function saveDevicePreferences(s,storage){try{const p=preferences(s),o={};for(const k of DEVICE_FIELDS)o[k]=p[k];storage.setItem(DEVICE_KEY,JSON.stringify(o));return true;}catch{return false;}}
+/** Nach dem Laden aufrufen: gerätelokale Werte überschreiben die aus dem (evtl. von einem anderen Gerät stammenden) Spielstand. Ohne eigene Werte bleiben die Werte aus dem Spielstand (und werden danach für dieses Gerät gemerkt). */
+export function applyDevicePreferences(s,storage){const p=preferences(s);let raw=null;try{raw=JSON.parse(storage.getItem(DEVICE_KEY)||'null');}catch{}
+ if(raw&&typeof raw==='object'){Object.assign(p,{hudSide:raw.hudSide==='left'?'left':'right',hudScale:clampHud(raw.hudScale,.8,1.5,p.hudScale),hudLift:clampHud(raw.hudLift,0,160,p.hudLift),hudShift:clampHud(raw.hudShift,0,200,p.hudShift),sprintMode:raw.sprintMode==='button'?'button':'stick',setupDone:raw.setupDone===true});return true;}
+ return false;}
+const clampHud=(v,lo,hi,d)=>Number.isFinite(Number(v))&&v!==null?Math.max(lo,Math.min(hi,Number(v))):d;
 export function restorePreferences(s,data){s.preferences={zoom:Math.max(.7,Math.min(1.6,Number(data?.zoom)||1)),sound:data?.sound!==false,music:data?.music!==false,titleSeen:data?.titleSeen===true,volume:Math.max(0,Math.min(1,Number.isFinite(data?.volume)?data.volume:.45)),hudSide:data?.hudSide==='left'?'left':'right',hudScale:clamp(data?.hudScale,.8,1.5,1),hudLift:clamp(data?.hudLift,0,160,0),hudShift:clamp(data?.hudShift,0,200,0),sprintMode:data?.sprintMode==='button'?'button':'stick',setupDone:data?.setupDone===true,wildMult:clamp(data?.wildMult,0.2,10,1)};}
 // Jakob 1.11.: Knopfgröße und Position. Nur die Knöpfe wandern; der Joystick erscheint immer unter dem Finger.
 export function applyHudPreferences(p,body=globalThis.document?.body){if(!body)return;body.classList.toggle('hud-left',p.hudSide==='left');body.classList.toggle('sprint-stick',(p.sprintMode??'stick')!=='button');body.style.setProperty('--hud-scale',String(p.hudScale??1));body.style.setProperty('--hud-lift',(p.hudLift??0)+'px');body.style.setProperty('--hud-shift',(p.hudShift??0)+'px');}
