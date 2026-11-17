@@ -37,7 +37,7 @@ import {walkable} from './test-world.mjs';
 import {updateCharging} from './charging.mjs';
 import {PRESS,recountStorage,advancePress} from './material-press.mjs';
 export const count=n=>Number.isFinite(n)?Math.max(0,Math.min(1e12,Math.floor(n))):0;
-function counts(value){const out={};if(value&&typeof value==='object')for(const [k,v]of Object.entries(value))if(/^[a-z][a-z0-9]{0,30}$/.test(k)&&k!=='constructor')out[k]=count(v);return out;}
+function counts(value){const out={};if(value&&typeof value==='object')for(const [k,v]of Object.entries(value))if(/^[a-z][a-z0-9_]{0,40}$/.test(k)&&k!=='constructor')out[k]=count(v);return out;}
 export function sunnySnapshot(s,now){
  const world=s.area==='sunny'?{area:'sunny',player:s.buildReturn?s.buildReturn.player:s.testWorld.enabled?SUNNY.spawn:{x:s.player.x,z:s.player.z,angle:s.player.angle},blobCaught:['caught','pulling'].includes(s.blob.status),total:s.total,home:s.buildReturn?.home??s.home,nursery:s.nursery,cave:s.cave,buriedProgress:s.obstacles.filter(o=>o.tool==='ground'&&!o.cleared&&o.progress>0).map(o=>[o.id,o.progress]),buriedInventory:s.buriedInventory,renewableGround:s.obstacles.filter(o=>o.renewable&&o.cleared).map(o=>[o.id,Math.max(0,o.respawnAt-s.time)]),buriedSpots:s.obstacles.filter(o=>o.homeX!=null&&(o.x!==o.homeX||o.z!==o.homeZ)).map(o=>[o.id,+o.x.toFixed(2),+o.z.toFixed(2)]),cleared:s.obstacles.filter(o=>o.cleared).map(o=>o.id),iceDeposits:iceDepositSnapshot(s),
   leaves:s.leaves.filter(l=>l.status==='gone'||l.status==='returning').map(l=>[l.id,l.status==='gone'?Math.max(0,l.respawnAt-s.time):1,l.respawnCycle]),
