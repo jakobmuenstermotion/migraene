@@ -19,7 +19,7 @@ function baseSalePrice(kind,visited=new Set()){
  if(PRESS.recipes[kind]?.sale)return PRESS.recipes[kind].sale*GAME_BALANCE.saleDivisor;
  if(kind==='flowers')return SAUGER.material.daisy.value;
  if(FISH[kind])return FISH[kind].value*GAME_BALANCE.fishSaleMultiplier;
- if(kind.startsWith('bf_'))return (BUTTERFLIES[kind.slice(3)]?.coins??1)*GAME_BALANCE.saleDivisor; // Schmetterlinge: Geld erst beim Verkauf (Jakob 6.11.)
+ if(kind.startsWith('bf_'))return (BUTTERFLIES[kind.slice(3)]?.coins??1)*1.25*GAME_BALANCE.saleDivisor; // Schmetterlinge: Geld erst beim Verkauf (Jakob 6.11.)
  if(visited.has(kind))return 0;visited.add(kind);
  const press=PRESS.recipes[kind];if(press)return Math.ceil(PRICE_RULES.rawMultiplier*(press.inputs?Object.entries(press.inputs).reduce((n,[k,q])=>n+baseSalePrice(k,new Set(visited))*q,0):baseSalePrice(press.input,new Set(visited))*press.cost)+press.seconds*PRICE_RULES.perSecond);
  const r=Object.values(CRAFT_RECIPES).find(r=>r.output===kind&&!r.furniture&&!r.retired)??Object.values(CRAFT_RECIPES).find(r=>r.output===kind&&!r.furniture);if(r)return Math.ceil((PRICE_RULES.rawMultiplier*Object.entries(r.inputs).reduce((n,[k,q])=>n+baseSalePrice(k,new Set(visited))*q,0)+r.seconds*PRICE_RULES.perSecond)/(r.quantity??1)*(r.trade?PRICE_RULES.tradeBonus:1)*(r.saleFactor??1));
@@ -46,7 +46,7 @@ export function sellAtMarket(s,kind,amount,source='bag',defer=false){if(UNSELLAB
  if(!['bag','storage'].includes(source)||!Number.isSafeInteger(amount)||amount<1||Math.hypot(s.player.x-MARKET.x,s.player.z-MARKET.z)>7||s.area!=='sunny'||s.testWorld.enabled)return 0;
  const stock=s.inventory[source],n=Math.min(stock[kind]??0,amount);if(!n)return 0;
  if(source==='bag'){if(!removeMaterial(s,kind,n))return 0;}else{stock[kind]-=n;s.stored=Object.values(stock).reduce((a,b)=>a+b,0);}
- if(defer){const m=s.market??={stock:{}};m.stock[kind]=(m.stock[kind]??0)+n;return n;}creditDirectSale(s,n*salePrice(kind)*directSaleShare(s));s.inventory.sold+=n;if(FISH[kind]){s.fishing.book[kind]??={caught:0,sold:0};s.fishing.book[kind].sold+=n;}return n;
+ if(defer){const m=s.market??={stock:{}};m.stock[kind]=(m.stock[kind]??0)+n;return n;}creditDirectSale(s,n*salePrice(kind)*directSaleShare(s));s.inventory.sold+=n;if(FISH[kind]){const bk=FISH[kind].variantOf??kind;s.fishing.book[bk]??={caught:0,sold:0};s.fishing.book[bk].sold+=n;}return n;
 }
 
 export function consignAtMarket(s,kind,amount,source='bag'){return sellAtMarket(s,kind,amount,source,true);}

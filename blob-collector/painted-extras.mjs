@@ -131,7 +131,10 @@ FURN.market=P=>P.s('M16 28h68v40H16z','#be9964')+[0,1,2,3,4,5,6].map(i=>P.s('M'+
 
 // --- Jeder Wasserbewohner bekommt sein eigenes gemaltes Bild (Jakob 1.11.: nicht das Gleiche in anderen Farben).
 const SHAPE={trout:'M24 40Q38 20 68 26q20 6 26 15-8 14-28 17-28 2-42-18z',pike:'M14 40Q30 28 66 30q22 2 32 10-10 10-32 12-36 2-52-12z',carp:'M24 40Q34 12 64 20q24 8 28 22-6 18-30 20-28 0-38-22z',angel:'M30 40Q44 6 58 10q26 14 34 30-8 16-34 30-14 4-28-30z',cat:'M22 42Q30 26 66 28q26 4 30 16-6 12-30 14-30 2-44-16z'};
-const eye=(P,x=83,y=35,r=4)=>P.dot(x,y,r,'#fffdf3')+P.dot(x+1,y,r*.6,'#293e40')+P.dot(x+2,y-1,r*.22,'#ffffff');
+// Jakob 16.11.: süßere Fische – große glänzende Augen, rosa Bäckchen, kleines Lächeln.
+const cuteEye=(P,x,y,r)=>P.dot(x,y,r+.7,'#3a4a50',.35)+P.dot(x,y,r,'#fffdf3')+P.dot(x+r*.18,y+r*.08,r*.72,'#2b3a44')+P.dot(x+r*.18,y+r*.08,r*.4,'#12202a')+P.dot(x+r*.5,y-r*.34,r*.3,'#ffffff')+P.dot(x-r*.12,y+r*.36,r*.14,'#ffffff',.9);
+const blush=(P,x,y,w=5)=>P.e(x,y,w,w*.62,'#ff8fa6',.5);
+const eye=(P,x=83,y=35,r=5.2)=>cuteEye(P,x,y,r)+blush(P,x-4,y+9)+P.l('M'+(x+6)+' '+(y+10)+'q2.4 2.2 5 .4','#4a3a3a',1.4,.85);
 const tailFan=(P,a,x=26)=>P.s('M'+x+' 40L'+(x-20)+' 22q3 18 0 36z',a);
 const fish=(P,kind,c,a,marks,opts={})=>(opts.tail??tailFan(P,a,kind==='pike'?16:kind==='angel'?32:26))+(opts.back??P.s('M44 26q6-14 24-11-6 8-8 14z',a,1.2))+(kind==='round'?P.e(56,40,31,26,c):P.s(SHAPE[kind],c))+marks+(opts.fin??P.s('M60 46q-8 8-16 6 6-6 6-10z',tint(a,-.1),1.1))+eye(P,...(opts.eye??[83,35]))+P.g(opts.shine??'M44 30q12-6 24-4',2.6,.7);
 const moon=P=>P.s('M92 5q-14 2-8 15-15-5-6-15z','#ead99b',1)+P.spark(78,8,2.6,'#fff6c8');
@@ -169,7 +172,8 @@ const FISHART={
  eisqualle:(P,c,a)=>[22,32,42,52,62,72].map((x,i)=>P.l('M'+x+' 40q'+(i%2?5:-5)+' 12 0 18t0 18','#a8dcf2',2.2,.85)).join('')+P.s('M14 42Q14 8 47 8t33 34q-8 6-16 0-8 6-17 0-8 6-17 0-8 6-16 0z',c)+P.e(47,28,14,10,'#ffffff',.8)+P.l('M36 28q11-8 22 0M36 28q11 8 22 0','#8fc8e0',1.2)+P.dot(38,36,2,'#3f6f8a')+P.dot(56,36,2,'#3f6f8a')+P.l('M44 40q3 2 6 0','#3f6f8a',1.3)+P.g('M24 22q8-8 18-9',3,.8)+P.spark(84,14,3.4,'#ffffff')
 };
 const paintedFishBase=paintedFish;
-export function paintedFishArt(id,f){const d=FISHART[id];if(!d)return paintedFishBase(id,f);const {P,done}=painter('fa-'+id);return '<svg viewBox="0 0 100 80" aria-hidden="true">'+shadow(52,74,32,4)+done(d(P,f.color,f.accent))+'</svg>';}
+const FACES={flussaal:[[88,22,5,[83,28]]],lavaaal:[[88,56,5,[83,62]]],flusskrebs:[[72,36,4],[72,46,4]],schildkroete:[[93,39,4.6,[88,46]]],rochen:[[74,33,4.4,[69,38]],[74,47,4.4,[69,52]]],hai:[[82,33,4.6,[77,39]]],eisqualle:[[38,36,4.2,[31,42]],[56,36,4.2,[63,42]]],tintenfisch:[[62,32,6],[62,50,6]],kugelfisch:[[72,32,8.4,[62,44]]]};
+export function paintedFishArt(id,f){const d=FISHART[id];if(!d)return paintedFishBase(id,f);const {P,done}=painter('fa-'+id);const face=(FACES[id]??[]).map(([x,y,r,b])=>cuteEye(P,x,y,r)+(b?blush(P,b[0],b[1],5.4):'')).join('');return '<svg viewBox="0 0 100 80" aria-hidden="true">'+shadow(52,74,32,4)+done(d(P,f.color,f.accent)+face)+'</svg>';}
 
 FURN.fishtrophy=P=>P.s('M20 14h60q6 26 0 52H20q-6-26 0-52z','#8a6543')+P.s('M26 20h48q4 20 0 40H26q-4-20 0-40z','#c79e62',1)+P.s('M30 40q14-14 32-4l10-8v24l-10-8q-18 10-32-4z','#6f8a5c')+P.l('M40 34q4 6 0 12M50 32q4 8 0 16','#dfe3b8',1.6)+P.dot(35,38,1.8,'#20262a')+P.g('M36 30l8-3',2.4,.6);
 FURN.stove=P=>P.s('M16 16h68v56H16z','#c96f4a')+P.s('M16 16h68v10H16z','#8a4a32')+P.e(34,20,8,3,'#3a3a3e')+P.e(64,20,8,3,'#3a3a3e')+P.s('M26 36h48v28H26z','#3a2c28',1)+P.e(50,52,12,6,'#ff9a3a',.8)+P.e(50,52,6,3,'#ffd27a',.8)+P.l('M40 6q-3-5 1-9M58 6q-3-5 1-9','#ffffff',2,.5);

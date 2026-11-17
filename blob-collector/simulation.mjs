@@ -80,7 +80,7 @@ export function step(state,input,dt){syncSites(state);setHomeLevel(state);
   const trailX=state.player.x,trailZ=state.player.z;
   updateHomeTraversal(state);updateNurseryTraversal(state);updateCaveTraversal(state);
   dt=Math.min(Math.max(dt,0),.05);state.time+=dt;state.events=[];
-  const p=state.player,mag=Math.hypot(input.x||0,input.z||0),moving=mag>(input.analog ? .001 : .05),aimMag=Math.hypot(input.aimX||0,input.aimZ||0);let mode=effectiveVacuum(state);let active=activeSuction(state,input,mode);state.inputSuction=input.suction;
+  const p=state.player,prevPos={x:p.x,y:p.y,z:p.z,angle:p.angle},mag=Math.hypot(input.x||0,input.z||0),moving=mag>(input.analog ? .001 : .05),aimMag=Math.hypot(input.aimX||0,input.aimZ||0);let mode=effectiveVacuum(state);let active=activeSuction(state,input,mode);state.inputSuction=input.suction;
   if(aimMag>.05)p.angle=approachAngle(p.angle,Math.atan2(input.aimX,input.aimZ),1-Math.exp(-dt*20));
   prepareFlight(state,mode,active,dt);mode=effectiveVacuum(state);const capacity=capacityFor(mode),pullingAnchor=advanceAnchor(state,dt);
   const suctionMoving=active&&suctionCount(state)<capacity&&!basketInFront(p,state);
@@ -97,6 +97,8 @@ export function step(state,input,dt){syncSites(state);setHomeLevel(state);
     const dx=o.x-p.x,dz=o.z-p.z,d=Math.hypot(dx,dz);
     const working=(o.route&&o.tool==='power'?state.suctionEnabled&&state.inputSuction!==false&&!state.charging&&state.battery.charge>0:active)&&o.tool===mode.id&&(o.depth??0)<=mode.digDepth&&(o.size??1)<=(mode.obstacleSize??1)&&vacuumContains(p,o.route&&(o.tool==='ground'||o.kind==='icewall'||o.kind==='lavawall')?rootContactPoint(o,p):o.route&&o.gateRadius&&(o.tool==='fan'||o.rockGate)?edgeContactPoint(o,p):o,mode)&&(o.tool!=='ground'||o.route||suctionCount(state)+reservedBagSlots(state)+(mode.doubleChance>0?2:1)<=capacity);
     if(working)state.toolWorking=true;
+    /* Jakob 16.11.: Der Riss erscheint sofort, sobald der Bodensauger über einen Fund fährt – auch beim Sprinten (Weg seit dem letzten Bild wird mitgeprüft) und auch bei zu tiefen Funden. */
+    if(o.tool==='ground'&&!o.route&&o.progress<.03&&active&&mode.id==='ground'&&(vacuumContains(p,o,mode)||vacuumContains(prevPos,o,mode)||vacuumContains({...p,x:(p.x+prevPos.x)/2,z:(p.z+prevPos.z)/2},o,mode)))o.progress=.03;
     o.progress=working?Math.min(1,Math.max(o.tool==='ground'?.03:0,o.progress+dt*mode.work/(o.tool==='ground'&&!o.route?DIG_SECONDS[o.depth??0]:o.seconds))):o.tool==='ground'?o.progress:Math.max(0,o.progress-dt*.3);
     if(o.progress>=1){o.cleared=true;o.clearedAt=state.time;if(o.renewable)o.respawnAt=state.time+480+(state.lootSeed%421);if(o.tool==='ground'&&(!o.route||suctionCount(state)+reservedBagSlots(state)+2<=capacity))collectBuried(state,o,mode);awardToolXP(state,mode.id,500);state.events.push('obstacle');continue;}
     if(o.solid&&d<1.05){const a=d>.001?Math.atan2(-dx,-dz):p.angle+Math.PI;p.x=o.x+Math.sin(a)*1.05;p.z=o.z+Math.cos(a)*1.05;}

@@ -1,5 +1,5 @@
 // Explicitly approved provisional rebalance, 23 October 2026.
-export const GAME_BALANCE=Object.freeze({backpack:1000,saleDivisor:100,directSaleFactor:.1,productionMultiplier:10,roundSeconds:600,fishInterval:[75,150],wildPerRound:1,fishSaleMultiplier:5});
+export const GAME_BALANCE=Object.freeze({backpack:1000,saleDivisor:100,directSaleFactor:.1,productionMultiplier:10,roundSeconds:600,fishInterval:[75,150],wildPerRound:1,fishSaleMultiplier:6});
 export const roundCoins=n=>Math.round((n+Number.EPSILON)*100)/100;
 export const formatCoins=n=>roundCoins(n).toLocaleString('de-DE',{maximumFractionDigits:2});
 
