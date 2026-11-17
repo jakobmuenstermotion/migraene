@@ -132,11 +132,18 @@ FURN.market=P=>P.s('M16 28h68v40H16z','#be9964')+[0,1,2,3,4,5,6].map(i=>P.s('M'+
 // --- Jeder Wasserbewohner bekommt sein eigenes gemaltes Bild (Jakob 1.11.: nicht das Gleiche in anderen Farben).
 const SHAPE={trout:'M24 40Q38 20 68 26q20 6 26 15-8 14-28 17-28 2-42-18z',pike:'M14 40Q30 28 66 30q22 2 32 10-10 10-32 12-36 2-52-12z',carp:'M24 40Q34 12 64 20q24 8 28 22-6 18-30 20-28 0-38-22z',angel:'M30 40Q44 6 58 10q26 14 34 30-8 16-34 30-14 4-28-30z',cat:'M22 42Q30 26 66 28q26 4 30 16-6 12-30 14-30 2-44-16z'};
 // Jakob 16.11.: süßere Fische – große glänzende Augen, rosa Bäckchen, kleines Lächeln.
-const cuteEye=(P,x,y,r)=>P.dot(x,y,r+.7,'#3a4a50',.35)+P.dot(x,y,r,'#fffdf3')+P.dot(x+r*.18,y+r*.08,r*.72,'#2b3a44')+P.dot(x+r*.18,y+r*.08,r*.4,'#12202a')+P.dot(x+r*.5,y-r*.34,r*.3,'#ffffff')+P.dot(x-r*.12,y+r*.36,r*.14,'#ffffff',.9);
-const blush=(P,x,y,w=5)=>P.e(x,y,w,w*.62,'#ff8fa6',.5);
+const cuteEye=(P,x,y,r,white='#fffdf3')=>P.dot(x,y,r+.7,'#3a4a50',.35)+P.dot(x,y,r,white)+P.dot(x+r*.18,y+r*.08,r*.72,'#2b3a44')+P.dot(x+r*.18,y+r*.08,r*.4,'#12202a')+P.dot(x+r*.5,y-r*.34,r*.3,'#ffffff')+P.dot(x-r*.12,y+r*.36,r*.14,'#ffffff',.9);
+const blush=(P,x,y,w=3.6)=>P.e(x,y,w,w*.6,'#ff8fa6',0).replace(/stroke="[^"]*" stroke-width="[^"]*"/,'stroke="none"').replace('<ellipse','<ellipse opacity=".5"');
 const eye=(P,x=83,y=35,r=5.2)=>cuteEye(P,x,y,r)+blush(P,x-4,y+9)+P.l('M'+(x+6)+' '+(y+10)+'q2.4 2.2 5 .4','#4a3a3a',1.4,.85);
-const tailFan=(P,a,x=26)=>P.s('M'+x+' 40L'+(x-20)+' 22q3 18 0 36z',a);
-const fish=(P,kind,c,a,marks,opts={})=>(opts.tail??tailFan(P,a,kind==='pike'?16:kind==='angel'?32:26))+(opts.back??P.s('M44 26q6-14 24-11-6 8-8 14z',a,1.2))+(kind==='round'?P.e(56,40,31,26,c):P.s(SHAPE[kind],c))+marks+(opts.fin??P.s('M60 46q-8 8-16 6 6-6 6-10z',tint(a,-.1),1.1))+eye(P,...(opts.eye??[83,35]))+P.g(opts.shine??'M44 30q12-6 24-4',2.6,.7);
+const tailFan=(P,a,x=26)=>P.s('M'+x+' 40L'+(x-20)+' 22q3 18 0 36z',a)+[24,32,40,48,56].map(y=>P.l('M'+(x-1)+' 40L'+(x-18)+' '+y,tint(a,-.4),1,.55)).join('');
+let clipN=0;
+const BODY_PATH={trout:SHAPE.trout,pike:SHAPE.pike,carp:SHAPE.carp,angel:SHAPE.angel,round:'M25 40a31 26 0 1 0 62 0a31 26 0 1 0-62 0z'};
+const flat=(svg,op)=>svg.replace(/stroke="[^"]*" stroke-width="[^"]*"/,'stroke="none"').replace('<ellipse','<ellipse opacity="'+op+'"');
+// Jakob 16.11.: Körper mit Bauchaufhellung, Rückenschatten, Schuppenreihen, Kiemenbogen und Flossenstrahlen – detailreicher gezeichnet.
+const bodyDetail=(P,kind,c,a)=>{const id='cp'+(clipN++),d=BODY_PATH[kind]??SHAPE.trout;let sc='';for(let r=0;r<5;r++)for(let i=0;i<8;i++){const x=34+i*8+(r%2?4:0),y=28+r*7;sc+='M'+x+' '+y+'q4 5 8 0';}
+ return '<clipPath id="'+id+'"><path d="'+d+'"/></clipPath><g clip-path="url(#'+id+')">'+flat(P.e(58,64,48,20,tint(a,.3),0),.22)+flat(P.e(58,67,40,13,tint(a,.35),0),.3)+flat(P.e(58,14,48,12,tint(c,-.38),0),.2)+flat(P.e(58,18,44,8,tint(c,-.38),0),.2)+P.l(sc,tint(c,-.3),1,.32)+P.l('M30 40Q56 37 88 41',tint(c,-.35),1.1,.35)+'</g>'+P.l('M74 27q-7 13 0 26',tint(c,-.5),1.8,.8)+P.l('M71 30q-4 10 0 20',tint(a,.3),1.2,.5)+P.l('M91 41q2.5 1.8 5 0',tint(c,-.55),1.5,.8);};
+const finRays=(P,a)=>P.l('M46 24l5-6M52 22l5-6M58 20l5-4M64 20l4-3',tint(a,-.4),1,.55)+P.l('M44 52l-2 7M49 54l-2 7M54 55l-1 6',tint(a,-.4),1,.5);
+const fish=(P,kind,c,a,marks,opts={})=>(opts.tail??tailFan(P,a,kind==='pike'?26:kind==='angel'?32:26))+(opts.back??(P.s('M44 26q6-14 24-11-6 8-8 14z',a,1.2)+finRays(P,a)))+(kind==='round'?P.e(56,40,31,26,c):P.s(SHAPE[kind],c))+bodyDetail(P,kind,c,a)+marks+(opts.fin??P.s('M60 46q-8 8-16 6 6-6 6-10z',tint(a,-.1),1.1))+eye(P,...(opts.eye??[83,35]))+P.g(opts.shine??'M44 30q12-6 24-4',2.6,.7);
 const moon=P=>P.s('M92 5q-14 2-8 15-15-5-6-15z','#ead99b',1)+P.spark(78,8,2.6,'#fff6c8');
 const star=(P,x,y,r,c)=>P.spark(x,y,r,c);
 const FISHART={
@@ -171,9 +178,60 @@ const FISHART={
  hai:(P,c,a)=>P.s('M16 40L2 16q8 12 18 18z',c)+P.s('M16 40L4 58q8-8 16-12z',c,1.2)+P.s('M46 26q0-16 14-22 0 12 6 22z',c,1.2)+P.s('M14 40Q40 18 72 26q18 4 26 16-6 12-24 14-34 4-60-16z',c)+P.s('M28 46q30 12 68-4-6 12-22 14-26 2-46-10z',a,1)+P.s('M52 50q-6 12-16 16 2-10 4-16z',c,1.1)+P.l('M64 34v10M60 34v11M56 35v10',tint(c,-.45),1.5)+P.dot(82,33,2.8,'#1f2a30')+P.dot(83,32,.9,'#fff')+P.l('M78 46q8 2 16-3',tint(c,-.5),1.6)+[80,84,88].map(x=>P.s('M'+x+' 46l1.5 3 1.5-3z','#ffffff',.3)).join('')+P.g('M36 30q14-6 28-4',2.6,.6),
  eisqualle:(P,c,a)=>[22,32,42,52,62,72].map((x,i)=>P.l('M'+x+' 40q'+(i%2?5:-5)+' 12 0 18t0 18','#a8dcf2',2.2,.85)).join('')+P.s('M14 42Q14 8 47 8t33 34q-8 6-16 0-8 6-17 0-8 6-17 0-8 6-16 0z',c)+P.e(47,28,14,10,'#ffffff',.8)+P.l('M36 28q11-8 22 0M36 28q11 8 22 0','#8fc8e0',1.2)+P.dot(38,36,2,'#3f6f8a')+P.dot(56,36,2,'#3f6f8a')+P.l('M44 40q3 2 6 0','#3f6f8a',1.3)+P.g('M24 22q8-8 18-9',3,.8)+P.spark(84,14,3.4,'#ffffff')
 };
+// Jakob 16.11.: aufwendiger gezeichnete Wasserbewohner (eigener Körperbau, Schattierung, Strukturen).
+let richN=0;
+const clipped=(P,path,inner)=>{const id='rc'+(richN++);return '<clipPath id="'+id+'"><path d="'+path+'"/></clipPath><g clip-path="url(#'+id+')">'+inner+'</g>';};
+const soft=(svg,op)=>svg.replace(/stroke="[^"]*" stroke-width="[^"]*"/,'stroke="none"').replace(/<(ellipse|path)/,'<$1 opacity="'+op+'"');
+const RICH={
+ hai:(P,c,a)=>{const body='M14 40Q40 16 74 24q18 4 26 17-6 12-24 15-36 5-62-16z';
+  return P.s('M16 40L2 13q9 11 20 19z',c)+P.s('M16 40L4 62q9-7 18-15z',tint(c,-.08),1.2)+P.l('M14 36L6 22M15 38L8 30',tint(c,-.4),1,.6)
+  +P.s('M46 28q0-19 16-25 0 13 7 25z',c,1.2)+P.l('M54 26q2-10 8-16',tint(c,-.4),1,.5)+P.s('M56 54q-5 13-18 15 3-11 7-16z',tint(c,-.12),1.1)+P.s('M24 50q-6 8-12 10 6-1 10-6z',tint(c,-.1),1)
+  +P.s(body,c)+clipped(P,body,soft(P.e(56,60,48,17,'#f4f7f8',0),.9)+soft(P.e(56,17,52,12,tint(c,-.45),0),.5)+[[40,32],[52,30],[64,31],[46,38],[34,36],[58,37]].map(([x,y])=>P.dot(x,y,1.1,tint(c,-.3),.5)).join('')+P.l('M18 42Q50 38 96 42',tint(c,-.3),1,.4))
+  +P.s('M62 46q-3 13-20 19 3-11 6-19z',tint(c,-.14),1.2)+P.l('M58 48q-5 9-12 13',tint(c,-.45),1,.5)
+  +P.l('M70 31v13M66 31v14M62 32v13',tint(c,-.5),1.8,.8)
+  +P.l('M76 47q9 4 20-4',tint(c,-.55),1.6)+[80,85,90].map(x=>P.s('M'+x+' 46.5l1.8 3.6 1.8-3.8z','#ffffff',.3)).join('')+P.dot(94,36,1,tint(c,-.5))
+  +cuteEye(P,82,33,4.8)+blush(P,77,40,3.4)+P.g('M34 29q14-7 30-4',2.6,.6);},
+ schildkroete:(P,c,a)=>{const flip=(x,y,r)=>P.e(x,y,10.5,5.5,a,1,r)+P.l('M'+(x+(r>0?-9:-9))+' '+y+'l-2 3',tint(a,-.45),1.2,.7);
+  return '<g transform="translate(-7 0)">'+flip(28,60,-28)+flip(76,60,28)+flip(28,24,28)+flip(76,24,-28)+P.s('M18 42l-10-1 10-5z',a,1)
+  +P.s('M76 36q8-3 12-1v12q-5 3-12 0z',a)+P.e(91,42,10.5,9,a)+P.l('M84 40q1-5 4-6',tint(a,-.3),1,.5)+P.dot(95,39,.9,tint(a,-.6))+P.l('M93 47q3 2 6 0',tint(a,-.6),1.3)
+  +P.e(52,42,34,26,tint(c,-.28))+Array.from({length:16},(_,i)=>{const t=i/16*Math.PI*2;return P.e(52+Math.cos(t)*30,42+Math.sin(t)*22.5,5.2,4.2,tint(c,i%2?.05:-.08),.8,t*57.3+90);}).join('')
+  +P.e(52,42,27,19.5,c)+[[52,42],[38,34],[66,34],[38,50],[66,50],[27,42],[77,42]].map(([x,y],i)=>P.s('M'+(x-7)+' '+y+'l4-7h6l4 7-4 7h-6z',tint(c,i?-.1:.12),1)+P.l('M'+(x-4)+' '+(y-2)+'l4-3',tint(c,.45),1,.6)).join('')
+  +P.dot(42,33,1,tint(c,.5),.6)+P.g('M32 26q10-7 24-8',2.6,.6)+cuteEye(P,95,39,3.6)+blush(P,90,46,3.2)+'</g>';},
+ flusskrebs:(P,c,a)=>{const legs=[0,1,2,3].map(i=>P.l('M'+(38+i*8)+' 54q-6 6-4 14M'+(38+i*8)+' 54q-2 3-1 5',tint(c,-.3),2.4)+P.l('M'+(38+i*8)+' 28q-6-6-4-14',tint(c,-.3),2.4)).join('');
+  return legs+P.s('M3 40q4-14 13-9l8 4v10l-8 4q-9 5-13-9z',a)+[30,37,44].map(y=>P.l('M6 40L'+(10+(y-30)/7*2)+' '+(y-3),tint(a,-.4),1,.5)).join('')
+  +[0,1,2,3].map(i=>P.s('M'+(24+i*6)+' 31q6-3 6 0v18q0 3-6 0z',tint(c,-.04+i*.03),1)).join('')+P.s('M26 28q22-8 44-3 7 9 0 21-22 7-44 0z',c)+P.l('M32 38q16-4 34-2M32 44q16 2 34 0',tint(c,-.35),1.2,.55)+[[38,34],[48,32],[58,35],[44,42],[56,42]].map(([x,y])=>P.dot(x,y,1.3,tint(c,.3),.6)).join('')+P.l('M70 32q6 6 0 14',tint(c,-.45),1.6)
+  +P.l('M70 31q10-17 24-19M70 33q12-14 26-12',tint(c,-.3),1.3)
+  +P.s('M66 36q12-16 25-13-2 7-8 9 6 1 9 8-14 5-26 4z',a)+P.l('M80 29q5 1 8 4',tint(a,-.5),1.2)+P.s('M66 46q12 16 25 13-2-7-8-9 6-1 9-8-14-5-26-4z',a)+P.l('M80 53q5-1 8-4',tint(a,-.5),1.2)
+  +P.l('M72 33l3-5M72 47l3 5',tint(c,-.3),1.6)+cuteEye(P,75,28,3.4)+cuteEye(P,75,52,3.4)+P.g('M32 31q14-6 30-4',2.4,.6);},
+ rochen:(P,c,a)=>{const body='M90 40Q60 2 40 8 26 24 20 40q6 16 20 32 20 6 50-32z';
+  return P.l('M20 40Q10 44 2 58',tint(c,-.35),2.6)+P.l('M20 40Q12 42 4 52',tint(c,-.2),1.2,.6)+P.s(body,c)
+  +clipped(P,body,soft(P.e(60,40,38,12,tint(a,.2),0),.45)+soft(P.e(40,14,40,10,tint(c,-.4),0),.35)+[[42,28],[52,20],[58,29],[42,52],[52,60],[58,51],[34,40],[48,40],[62,40]].map(([x,y],i)=>P.dot(x,y,i<6?2.3:1.6,i<6?a:tint(c,.25),.9)).join('')+P.l('M30 20Q40 12 52 12M30 60Q40 68 52 68',tint(c,-.4),1.4,.5)+P.l('M24 40Q40 36 60 40',tint(c,-.3),1,.45))
+  +P.s('M58 40q10-8 24-4-6 12-24 4z',tint(a,.15),.9)+P.l('M70 32q4 4 0 8',tint(c,-.4),1,.5)+P.l('M84 36l3 2M84 44l3-2',tint(c,-.5),1.3)+cuteEye(P,74,31,4)+cuteEye(P,74,49,4)+blush(P,68,36,3)+blush(P,68,44,3)+P.g('M46 14q10 4 22 16',2.6,.55);},
+ eisqualle:(P,c,a)=>[18,28,38,48,58,68,76].map((x,i)=>P.l('M'+x+' 42q'+(i%2?5:-5)+' 12 0 18t0 18','#a8dcf2',2.2,.85)).join('')+[24,36,50,62].map((x,i)=>P.l('M'+x+' 44q'+(i%2?-7:7)+' 10 0 20t0 14',tint(c,.1),3.6,.6)).join('')
+  +P.s('M10 42Q10 6 47 6t37 36q-9 7-18 0-9 7-19 0-9 7-19 0-9 7-18 0z',c)
+  +clipped(P,'M10 42Q10 6 47 6t37 36q-9 7-18 0-9 7-19 0-9 7-19 0-9 7-18 0z',P.l('M47 6v36M30 10q-8 16-4 32M64 10q8 16 4 32M18 22q-4 10 0 20M76 22q4 10 0 20',tint(c,-.25),1.2,.45)+soft(P.e(47,38,36,10,tint(c,.3),0),.35))
+  +P.e(47,26,15,10,'#ffffff',.8)+P.l('M36 26q11-8 22 0M36 26q11 8 22 0','#8fc8e0',1.2)+cuteEye(P,38,34,4)+cuteEye(P,56,34,4)+blush(P,32,40,3.4)+blush(P,62,40,3.4)+P.l('M44 40q3 2.5 6 0','#3f6f8a',1.3)+P.g('M20 22q8-9 20-10',3,.8)+P.spark(86,12,3.4,'#ffffff')+P.dot(12,14,1.6,'#ffffff',.8)+P.dot(88,30,1.3,'#ffffff',.8),
+ tintenfisch:(P,c,a)=>{const mantle='M10 40Q20 16 52 22q16 6 20 18-4 12-20 18-32 6-42-18z';
+  return '<g transform="translate(-3 0)">'+[-3,-2,-1,0,1,2,3].map(i=>P.l('M66 '+(40+i*3)+'q12 '+(i*3)+' 26 '+(i*7+(i%2?3:-3)),i%2?a:c,3.6)+[0,1,2].map(k=>P.dot(74+k*6,41+i*4.4+(i*i*.1)*k,.9,'#fff3f6',.8)).join('')).join('')
+  +P.l('M64 36Q84 18 98 20M64 44Q84 62 98 60',tint(c,.15),2.4)+P.s('M94 16l7 3-5 5z',a,.8)+P.s('M94 64l7-3-5-5z',a,.8)
+  +P.s('M6 40q-4-10 4-17 4 7 8 13z',tint(c,-.08),1)+P.s('M6 40q-4 10 4 17 4-7 8-13z',tint(c,-.08),1)+P.s(mantle,c)
+  +clipped(P,mantle,soft(P.e(40,56,36,12,tint(a,.25),0),.55)+soft(P.e(40,20,40,9,tint(c,-.4),0),.35)+[[24,34],[34,30],[44,28],[30,44],[40,46],[50,40],[20,40],[56,32]].map(([x,y],i)=>P.dot(x,y,i%3?1.5:2.2,tint(c,-.28),.65)).join('')+P.l('M14 40Q40 34 70 40',tint(c,-.3),1.2,.4))
+  +P.s('M52 30q10 2 14 10-8 8-14 10z',tint(c,.1),1)+P.l('M54 34q6 3 8 6',tint(c,-.4),1,.5)+cuteEye(P,60,33,5.2)+cuteEye(P,60,48,5.2)+blush(P,54,41,3.2)+P.g('M20 28q10-6 22-4',2.4,.6)+'</g>';},
+ kugelfisch:(P,c,a)=>{const body='M22 40a30 28 0 1 0 60 0a30 28 0 1 0-60 0z';
+  return Array.from({length:22},(_,i)=>P.rot(i*16.4,52,40,P.s('M49 10l3-9 3 9z','#a8863e',.6))).join('')+P.s('M24 40L8 28q2 12 0 24z',a,1.1)+P.l('M20 36L10 32M20 44L10 48',tint(a,-.4),1,.55)
+  +P.s(body,c)+clipped(P,body,soft(P.e(52,64,36,16,tint(a,.35),0),.95)+soft(P.e(52,14,40,10,tint(c,-.4),0),.35)+[[38,26],[50,20],[62,26],[34,38],[46,32],[58,34],[70,32],[42,44],[56,44],[68,42]].map(([x,y])=>P.dot(x,y,2,tint(c,-.38),.7)).join('')+[[40,56],[52,60],[64,56],[46,66],[58,66]].map(([x,y])=>P.dot(x,y,1.1,tint(c,-.2),.5)).join(''))
+  +P.s('M50 52q8-2 12 4-6 4-12-4z',tint(a,-.1),1)+P.s('M42 36q-6-8-2-10 6 2 8 10z',tint(c,-.1),.9)+P.l('M76 46q6 3 8-1',tint(c,-.55),1.5)+P.e(82,47,3.4,2.4,'#e8a0a0',.8)
+  +cuteEye(P,70,32,8)+blush(P,62,46,4.4)+P.g('M34 24q12-8 26-6',2.8,.65);},
+ flussaal:(P,c,a)=>{const path='M10 54q14-24 28-8t28-8 26-14';return P.l(path,tint(c,-.45),16)+P.l(path,c,13)+P.l('M12 56q14-24 28-8t28-8 22-12',a,4,.75)+P.l('M10 52q14-24 28-8t28-8 26-14',tint(c,.25),3,.55)
+  +Array.from({length:12},(_,i)=>P.dot(16+i*6.5,50-(Math.sin(i*.9)*9)-i*1.6,1,tint(c,-.35),.5)).join('')+P.l('M88 22q4-6 8-4M90 28q5-3 8 0',tint(c,-.25),2)+P.l('M4 58q3-1 6-4',tint(c,-.3),4)+P.l('M20 44q-3-8 2-12M34 52q-2-8 3-10',tint(a,-.2),2.2,.7)
+  +P.l('M92 28q3 2 5 0',tint(c,-.55),1.5)+cuteEye(P,88,22,4.8)+blush(P,83,28,3.4)+P.g('M30 40q8-6 16-2',2.2,.5);},
+ lavaaal:(P,c,a)=>{const path='M10 26q14 24 28 8t28 8 26 14';return P.l(path,tint(c,-.3),16)+P.l(path,c,13)+P.l('M12 25q14 24 28 8t28 8 22 12','#ff8a2e',3.4)+P.l('M12 25q14 24 28 8t28 8 22 12','#ffd27a',1.2,.9)
+  +[[26,38],[50,36],[72,44]].map(([x,y])=>P.spark(x,y,3.4,'#ffd27a')).join('')+Array.from({length:10},(_,i)=>P.dot(16+i*7,28+Math.sin(i*1.1)*9+i*1.6,1,'#ff8a2e',.7)).join('')+P.l('M88 52q5 7 9 5M90 48q6 2 8-3',tint(c,.25),2)
+  +P.l('M92 56q3 2 5 0',tint(c,-.5),1.5)+cuteEye(P,88,56,4.8,'#ffe9a8')+blush(P,83,62,3.4)}
+};
 const paintedFishBase=paintedFish;
 const FACES={flussaal:[[88,22,5,[83,28]]],lavaaal:[[88,56,5,[83,62]]],flusskrebs:[[72,36,4],[72,46,4]],schildkroete:[[93,39,4.6,[88,46]]],rochen:[[74,33,4.4,[69,38]],[74,47,4.4,[69,52]]],hai:[[82,33,4.6,[77,39]]],eisqualle:[[38,36,4.2,[31,42]],[56,36,4.2,[63,42]]],tintenfisch:[[62,32,6],[62,50,6]],kugelfisch:[[72,32,8.4,[62,44]]]};
-export function paintedFishArt(id,f){const d=FISHART[id];if(!d)return paintedFishBase(id,f);const {P,done}=painter('fa-'+id);const face=(FACES[id]??[]).map(([x,y,r,b])=>cuteEye(P,x,y,r)+(b?blush(P,b[0],b[1],5.4):'')).join('');return '<svg viewBox="0 0 100 80" aria-hidden="true">'+shadow(52,74,32,4)+done(d(P,f.color,f.accent)+face)+'</svg>';}
+export function paintedFishArt(id,f){const d=RICH[id]??FISHART[id];if(!d)return paintedFishBase(id,f);const {P,done}=painter('fa-'+id);const face=(RICH[id]?[]:FACES[id]??[]).map(([x,y,r,b])=>cuteEye(P,x,y,r)+(b?blush(P,b[0],b[1],5.4):'')).join('');return '<svg viewBox="0 0 100 80" aria-hidden="true">'+shadow(52,74,32,4)+done(d(P,f.color,f.accent)+face)+'</svg>';}
 
 FURN.fishtrophy=P=>P.s('M20 14h60q6 26 0 52H20q-6-26 0-52z','#8a6543')+P.s('M26 20h48q4 20 0 40H26q-4-20 0-40z','#c79e62',1)+P.s('M30 40q14-14 32-4l10-8v24l-10-8q-18 10-32-4z','#6f8a5c')+P.l('M40 34q4 6 0 12M50 32q4 8 0 16','#dfe3b8',1.6)+P.dot(35,38,1.8,'#20262a')+P.g('M36 30l8-3',2.4,.6);
 FURN.stove=P=>P.s('M16 16h68v56H16z','#c96f4a')+P.s('M16 16h68v10H16z','#8a4a32')+P.e(34,20,8,3,'#3a3a3e')+P.e(64,20,8,3,'#3a3a3e')+P.s('M26 36h48v28H26z','#3a2c28',1)+P.e(50,52,12,6,'#ff9a3a',.8)+P.e(50,52,6,3,'#ffd27a',.8)+P.l('M40 6q-3-5 1-9M58 6q-3-5 1-9','#ffffff',2,.5);
