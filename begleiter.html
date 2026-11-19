@@ -531,15 +531,12 @@ function render(){
     tagsBody += '<div class="atk"><div class="atkhead"><span>Kopfschmerz seit '+hm(op.ts)+'</span></div><div class="grid">'+
       '<button class="big sm" data-act="worse"><b>Stärker</b></button><button class="big sm" data-act="better"><b>Schwächer</b></button>'+
       '<button class="big sm" data-act="med"><b>Medikament</b></button><button class="big sm end" data-act="end"><b>Ende</b></button></div></div>';
-    tagsBody += '<div class="grid g3"><button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button><button class="big" data-act="move"><b>Sport</b></button>'+
-      '<button class="big" data-act="stomach"><b>Bauch</b></button><button class="big" data-act="nausea"><b>Übelkeit</b></button></div>';
   } else {
     var ma = st.att && st.att.ma;
     if(ma && now-ma < 36*3600000) tagsBody += '<div class="card"><p class="hint" style="margin:0"><b style="color:var(--ink)">Kopfschmerz läuft seit '+hm(ma)+'</b> (in Jakobs App eingetragen). Mit „Kopfschmerz beginnt“ kannst du Stärke und Ende hier mit eintragen.</p></div>';
     tagsBody += '<div class="grid"><button class="big pain wide" data-act="pain"><b>Kopfschmerz beginnt</b><small>jetzt</small></button>'+
-      '<button class="big" data-act="meal"><b>Gegessen</b></button><button class="big" data-act="drink"><b>Getrunken</b></button>'+
-      '<button class="big" data-act="move"><b>Sport</b></button><button class="big" data-act="med"><b>Medikament</b></button>'+
-      '<button class="big" data-act="stomach"><b>Bauch</b></button><button class="big" data-act="nausea"><b>Übelkeit</b></button></div>';
+      /* Jakob 19.11.: schlank wie die Haupt-App – kein Essen, Trinken, Bauch und Übelkeit mehr */
+      '<button class="big" data-act="move"><b>Bewegung</b></button><button class="big" data-act="med"><b>Schmerzmittel</b></button></div>';
   }
   var ntoday = live().filter(function(e){ return e.k!=='fu' && sameDay(e.ts, now); }).length;
   var morgenSum = mq.pending ? 'noch offen' : 'erledigt', abendSum = !dc.dayOver ? '' : (eq.pending ? 'noch offen' : 'erledigt');
